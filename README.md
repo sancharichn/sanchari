@@ -24,7 +24,7 @@ Locally: `npm run db:push`.
 
 ## Neon
 
-This folder is linked to Neon project `quiet-art-52799014`, branch `production` (`.neon`). `neon.ts` holds the empty config-as-code policy; `neon deploy` applies it.
+This folder is linked (`.neon`) to the Neon project **sanchariwebsite** (`holy-brook-41730869`) in the Sanchari organisation, branch `production`. `neon.ts` holds the empty config-as-code policy; `neon deploy` applies it. The pooled and direct connection strings for `DATABASE_URL` and `DIRECT_URL` are under **Connect** on the `production` branch.
 
 ## Scripts
 
