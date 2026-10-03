@@ -1,8 +1,15 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import "@fontsource-variable/archivo/wdth.css";
 import "./globals.css";
+import { MotionProvider } from "@/components/site/motion-provider";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { getCurrentUserSafe } from "@/lib/session";
 
 const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+
+// Every page shows who is signed in, so every page renders per request.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -21,19 +28,25 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
+export const viewport = {
   themeColor: "#0A0A0A",
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUserSafe();
+
   return (
     <html lang="en">
-      <body className="min-h-dvh">
+      <body className="flex min-h-dvh flex-col">
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        {children}
+        <MotionProvider>
+          <SiteHeader user={user} />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
+        </MotionProvider>
       </body>
     </html>
   );

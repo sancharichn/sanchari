@@ -1,21 +1,46 @@
-export default function HomePage() {
+import Link from "next/link";
+import { Hero } from "@/components/site/hero";
+import { HowATripWorks } from "@/components/site/how-a-trip-works";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/components/site/site-footer";
+import { DepartureBoard } from "@/components/trips/departure-board";
+import { getUpcomingTrips } from "@/lib/queries";
+import { getCurrentUserSafe } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [user, upcoming] = await Promise.all([getCurrentUserSafe(), getUpcomingTrips(6)]);
+
   return (
-    <main id="main" className="container flex min-h-dvh flex-col justify-center py-24">
-      <p className="text-lichen">Sanchari Chennai</p>
-      <h1 className="stretch-wide mt-4 text-4xl font-extrabold leading-none tracking-tight text-signal md:text-5xl">
-        TRAVEL WITH NATURE
-      </h1>
-      <p className="measure mt-6 text-lg text-mist/80">
-        Trips, registrations and the trail log are on their way. Until then, find us on Instagram at{" "}
-        <a className="text-signal underline underline-offset-4" href="https://instagram.com/sanchari.chennai">
-          @sanchari.chennai
-        </a>{" "}
-        or write to{" "}
-        <a className="text-signal underline underline-offset-4" href="mailto:sanchari.chn@gmail.com">
-          sanchari.chn@gmail.com
-        </a>
-        .
-      </p>
+    <main id="main">
+      <Hero next={upcoming[0] ?? null} signedIn={Boolean(user)} />
+
+      <section aria-labelledby="upcoming-heading" className="container mt-20 md:mt-28">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h2 id="upcoming-heading" className="stretch-semiwide text-3xl font-bold">
+            Upcoming trips
+          </h2>
+          <Link href="/trips" className="text-sm font-semibold text-signal underline-offset-4 hover:underline">
+            All trips, including past ones
+          </Link>
+        </div>
+        <div className="mt-8">
+          <DepartureBoard
+            trips={upcoming}
+            emptyText={
+              <>
+                No trips are open right now. New trips are announced on{" "}
+                <a className="text-mist underline underline-offset-4" href={INSTAGRAM_URL}>
+                  Instagram @{INSTAGRAM_HANDLE}
+                </a>{" "}
+                first.
+              </>
+            }
+          />
+        </div>
+      </section>
+
+      <HowATripWorks />
     </main>
   );
 }
