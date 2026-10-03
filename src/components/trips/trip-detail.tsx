@@ -1,18 +1,34 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { FeedbackCard } from "@/components/members/feedback-card";
+import { FeedbackForm } from "@/components/members/feedback-form";
+import type { ProfileDefaults } from "@/components/members/register-dialog";
 import { ContourField } from "@/components/site/contour-field";
 import { durationLabel, formatDateRange, formatINR } from "@/lib/format";
 import type { TripForPage } from "@/lib/queries";
 import type { CurrentUser } from "@/lib/session";
-import { isPublicStatus, parseItinerary, STATUS_LABEL } from "@/lib/trips";
+import { isPublicStatus, parseItinerary, rosterPosition, splitRoster, STATUS_LABEL } from "@/lib/trips";
 import { ItineraryTrail } from "./itinerary-trail";
 import { RegistrationPanel } from "./registration-panel";
+import { TripAccounts } from "./trip-accounts";
 import { StatusBadge } from "./trip-status";
 
+export type TripViewer = { user: CurrentUser; profile: ProfileDefaults } | null;
+
 /** The whole trip page, given its data. Kept separate from fetching so it can be previewed. */
-export function TripDetail({ trip, user, now = new Date() }: { trip: TripForPage; user: CurrentUser | null; now?: Date }) {
+export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPage; viewer: TripViewer; now?: Date }) {
   const days = parseItinerary(trip.itinerary);
   const started = trip.startDate.getTime() <= now.getTime();
+  const isAdmin = viewer?.user.role === "ADMIN";
+
+  const { confirmed } = splitRoster(trip.registrations, trip.maxCapacity);
+  const myRegistration = viewer ? (trip.registrations.find((r) => r.userId === viewer.user.id) ?? null) : null;
+  const myPlace = myRegistration ? rosterPosition(trip.registrations, trip.maxCapacity, myRegistration.id) : null;
+  const travelling = myPlace?.kind === "confirmed";
+
+  const showAccounts = Boolean(viewer) && (travelling || isAdmin);
+  const canReview = trip.status === "COMPLETED" && travelling;
+  const myReview = viewer ? trip.feedbacks.find((f) => f.userId === viewer.user.id) : undefined;
 
   return (
     <main id="main">
@@ -66,16 +82,62 @@ export function TripDetail({ trip, user, now = new Date() }: { trip: TripForPage
               <ItineraryTrail days={days} />
             </div>
           </section>
+
+          {showAccounts && viewer ? (
+            <TripAccounts
+              expenses={trip.expenses}
+              travellerIds={confirmed.map((r) => r.userId)}
+              viewerId={viewer.user.id}
+              budgetEst={trip.budgetEst}
+            />
+          ) : null}
+
+          {trip.status === "COMPLETED" ? (
+            <section aria-labelledby="reviews-heading">
+              <h2 id="reviews-heading" className="stretch-semiwide text-2xl font-bold">
+                From the people who went
+              </h2>
+              {trip.feedbacks.length > 0 ? (
+                <ul className="mt-8 grid gap-5 sm:grid-cols-2">
+                  {trip.feedbacks.map((f) => (
+                    <li key={f.id}>
+                      <FeedbackCard item={f} showTrip={false} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-lichen">No reviews yet.</p>
+              )}
+              {canReview ? (
+                <div className="mt-10 max-w-2xl">
+                  <h3 className="text-lg font-bold">{myReview ? "Update your review" : "Review this trip"}</h3>
+                  {myReview ? (
+                    <p className="mt-1 text-sm text-lichen">Posting again replaces your earlier review.</p>
+                  ) : null}
+                  <div className="mt-4">
+                    <FeedbackForm fixedTripId={trip.id} idPrefix="trip-review" />
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
         </div>
 
         <aside className="order-first lg:sticky lg:top-24 lg:order-last lg:self-start">
           <RegistrationPanel
-            tripId={trip.id}
-            status={trip.status}
+            trip={trip}
             registered={trip.registrations.length}
-            capacity={trip.maxCapacity}
-            signedIn={Boolean(user)}
             started={started}
+            viewer={
+              viewer
+                ? {
+                    isAdmin,
+                    profile: viewer.profile,
+                    registration: myRegistration,
+                    place: myPlace,
+                  }
+                : null
+            }
           />
         </aside>
       </div>

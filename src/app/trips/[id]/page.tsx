@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { TripDetail } from "@/components/trips/trip-detail";
+import { TripDetail, type TripViewer } from "@/components/trips/trip-detail";
 import { formatDateRange } from "@/lib/format";
-import { getTripForPage } from "@/lib/queries";
+import { getMemberProfile, getTripForPage } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
 import { isPublicStatus } from "@/lib/trips";
 
@@ -24,5 +24,18 @@ export default async function TripPage({ params }: Params) {
   if (!trip) notFound();
   if (!isPublicStatus(trip.status) && user?.role !== "ADMIN") notFound();
 
-  return <TripDetail trip={trip} user={user} />;
+  let viewer: TripViewer = null;
+  if (user) {
+    const profile = await getMemberProfile(user.id);
+    viewer = {
+      user,
+      profile: {
+        phone: profile?.phone ?? null,
+        emergencyContact: profile?.emergencyContact ?? null,
+        bloodGroup: profile?.bloodGroup ?? null,
+      },
+    };
+  }
+
+  return <TripDetail trip={trip} viewer={viewer} />;
 }

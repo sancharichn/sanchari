@@ -1,15 +1,20 @@
 import Link from "next/link";
+import { FromTheGroup } from "@/components/site/from-the-group";
 import { Hero } from "@/components/site/hero";
 import { HowATripWorks } from "@/components/site/how-a-trip-works";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/components/site/site-footer";
 import { DepartureBoard } from "@/components/trips/departure-board";
-import { getUpcomingTrips } from "@/lib/queries";
+import { getRecentFeedback, getUpcomingTrips } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [user, upcoming] = await Promise.all([getCurrentUserSafe(), getUpcomingTrips(6)]);
+  const [user, upcoming, feedback] = await Promise.all([
+    getCurrentUserSafe(),
+    getUpcomingTrips(6),
+    getRecentFeedback(3, 4),
+  ]);
 
   return (
     <main id="main">
@@ -41,6 +46,8 @@ export default async function HomePage() {
       </section>
 
       <HowATripWorks />
+
+      <FromTheGroup items={feedback} />
     </main>
   );
 }
