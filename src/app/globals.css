@@ -62,10 +62,11 @@
 
 @layer components {
   .skip-link {
-    @apply sr-only;
+    /* Colours set even while hidden, so contrast checkers read it correctly. */
+    @apply sr-only bg-signal text-night;
   }
   .skip-link:focus {
-    @apply not-sr-only fixed left-4 top-4 z-[100] rounded-md bg-signal px-4 py-2 font-semibold text-night;
+    @apply not-sr-only fixed left-4 top-4 z-[100] rounded-md px-4 py-2 font-semibold;
   }
 
   /* Reading measure for long text */
