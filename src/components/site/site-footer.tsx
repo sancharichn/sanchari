@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CONTACT_EMAIL, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
-import { Wordmark } from "./wordmark";
+import { SanchariLogo } from "./wordmark";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -8,8 +8,8 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-ridge">
       <div className="container grid gap-10 py-14 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
-          <Wordmark />
-          <p className="stretch-wide mt-5 text-sm font-extrabold tracking-wide text-mist">TRAVEL WITH NATURE</p>
+          <SanchariLogo width={200} />
+          <p className="stretch-wide mt-6 text-sm font-extrabold tracking-wide text-mist">TRAVEL WITH NATURE</p>
           <p className="measure mt-3 text-sm text-lichen">
             A Chennai travel group for treks, forest stays and coastal rides, planned together.
           </p>
