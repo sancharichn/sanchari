@@ -92,7 +92,7 @@ The feed uses the Instagram API with Instagram Login, so @sanchari.chennai must 
 1. Import `sancharichn/sanchari` as a new project (framework: Next.js; the build command comes from `package.json`).
 2. Add the environment variables above, then deploy.
 3. Set `NEXTAUTH_URL` to the production URL and add that URL's callback to the Google OAuth client.
-4. For members in India, set **Settings → Functions → Region** to the one closest to the Neon project (Neon's project is in AWS us-east-2, so Washington, `iad1`).
+4. Functions run in **Cleveland (`cle1`)**, set in `vercel.json`, because the Neon project is in AWS us-east-2 (Ohio) and each page makes several database round trips. If the database ever moves, change the region to match.
 
 Sign in once as sanchari.chn@gmail.com: that account becomes ADMIN on first sign-in, and the **Organiser** link appears in the header.
 
