@@ -1,9 +1,6 @@
 import Link from "next/link";
+import { CONTACT_EMAIL, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { Wordmark } from "./wordmark";
-
-export const CONTACT_EMAIL = "sanchari.chn@gmail.com";
-export const INSTAGRAM_HANDLE = process.env.INSTAGRAM_HANDLE || "sanchari.chennai";
-export const INSTAGRAM_URL = `https://instagram.com/${INSTAGRAM_HANDLE}`;
 
 export function SiteFooter() {
   const year = new Date().getFullYear();

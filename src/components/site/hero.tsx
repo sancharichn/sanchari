@@ -3,8 +3,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { SeatsMeter } from "@/components/trips/trip-status";
 import { formatDateRange } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { ContourField } from "./contour-field";
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "./site-footer";
 import { TrailClimb } from "./trail-climb";
 
 export function Hero({ next, signedIn }: { next: TripListItem | null; signedIn: boolean }) {

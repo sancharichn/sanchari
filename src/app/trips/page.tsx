@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DepartureBoard } from "@/components/trips/departure-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/components/site/site-footer";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { getPublicTripGroups } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
