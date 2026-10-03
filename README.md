@@ -37,8 +37,8 @@ Copy `.env.example` to `.env` for local work. On Vercel, add the same keys under
 
 | Key | What it is | Where it comes from |
 | --- | --- | --- |
-| `DATABASE_URL` | Pooled Postgres URL (host contains `-pooler`) | Neon → sanchariwebsite → `production` → **Connect**, pooling on |
-| `DIRECT_URL` | Direct Postgres URL | Same dialog, pooling off |
+| `DATABASE_URL` | Pooled Postgres URL (host contains `-pooler`), ending `?sslmode=require&connect_timeout=15` | Neon → sanchariwebsite → `production` → **Connect**, pooling on |
+| `DIRECT_URL` | Direct Postgres URL, same ending | Same dialog, pooling off |
 | `NEXTAUTH_URL` | The site's URL, e.g. `https://sanchari.vercel.app` | Vercel → Domains |
 | `NEXTAUTH_SECRET` | Random secret for signing sessions | `openssl rand -base64 32` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | OAuth client for "Sign in with Google" | Google Cloud, see below |
