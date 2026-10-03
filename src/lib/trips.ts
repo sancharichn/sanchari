@@ -1,5 +1,14 @@
 import { z } from "zod";
-import type { TripStatus } from "@prisma/client";
+import type { PaymentStatus, TripStatus } from "@prisma/client";
+
+export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
+  PENDING: "Not recorded yet",
+  PARTIAL: "Part paid",
+  PAID: "Paid",
+  REFUNDED: "Refunded",
+};
+
+export const PAYMENT_STATUSES: PaymentStatus[] = ["PENDING", "PARTIAL", "PAID", "REFUNDED"];
 
 /** Statuses anyone can see. DRAFT and ARCHIVED are organiser-only. */
 export const PUBLIC_STATUSES: TripStatus[] = ["OPEN", "WAITLIST", "FULL", "ONGOING", "COMPLETED"];
@@ -70,6 +79,14 @@ export function seatSummary(registered: number, capacity: number) {
     waitlist: Math.max(0, registered - capacity),
     ratio: capacity > 0 ? Math.min(1, registered / capacity) : 1,
   };
+}
+
+/** Why a trip isn't taking registrations, in words for the member. */
+export function closedReason(status: TripStatus, started: boolean) {
+  if (status === "COMPLETED") return "This trip is over. See you on the next one.";
+  if (status === "ONGOING" || started) return "This trip has already started.";
+  if (status === "FULL") return "Registrations are closed for this trip.";
+  return "This trip isn't taking registrations.";
 }
 
 /* ----------------------------------------------------------------------------
