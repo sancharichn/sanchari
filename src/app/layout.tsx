@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/archivo/wdth.css";
 import "./globals.css";
+import { LaunchIntro } from "@/components/site/launch-intro";
 import { MotionProvider } from "@/components/site/motion-provider";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { INTRO_GATE_SCRIPT } from "@/lib/intro";
 import { getCurrentUserSafe } from "@/lib/session";
 
 const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
@@ -37,8 +39,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const user = await getCurrentUserSafe();
 
   return (
-    <html lang="en">
+    // The intro gate script sets data-intro on <html> before React hydrates.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: INTRO_GATE_SCRIPT }} />
+      </head>
       <body className="flex min-h-dvh flex-col">
+        <LaunchIntro />
         <a href="#main" className="skip-link">
           Skip to content
         </a>

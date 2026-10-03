@@ -73,6 +73,14 @@
   .measure {
     max-width: 65ch;
   }
+
+  /* The launch intro only exists once the gate script has switched it on. */
+  .launch-intro {
+    display: none;
+  }
+  html[data-intro="on"] .launch-intro {
+    display: flex;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
