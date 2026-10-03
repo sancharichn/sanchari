@@ -1,19 +1,23 @@
 import Link from "next/link";
+import { PhotoStrip } from "@/components/gallery/photo-strip";
 import { FromTheGroup } from "@/components/site/from-the-group";
 import { Hero } from "@/components/site/hero";
 import { HowATripWorks } from "@/components/site/how-a-trip-works";
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/components/site/site-footer";
+import { InstagramStrip } from "@/components/site/instagram-strip";
 import { DepartureBoard } from "@/components/trips/departure-board";
+import { getLatestPhotos } from "@/lib/drive";
 import { getRecentFeedback, getUpcomingTrips } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [user, upcoming, feedback] = await Promise.all([
+  const [user, upcoming, feedback, photos] = await Promise.all([
     getCurrentUserSafe(),
     getUpcomingTrips(6),
     getRecentFeedback(3, 4),
+    getLatestPhotos(5),
   ]);
 
   return (
@@ -47,7 +51,11 @@ export default async function HomePage() {
 
       <HowATripWorks />
 
+      <PhotoStrip photos={photos} />
+
       <FromTheGroup items={feedback} />
+
+      <InstagramStrip />
     </main>
   );
 }
