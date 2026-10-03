@@ -59,3 +59,83 @@ export const feedbackSchema = z.object({
 export type ProfileInput = z.input<typeof profileSchema>;
 export type RegistrationInput = z.input<typeof registrationSchema>;
 export type FeedbackInput = z.input<typeof feedbackSchema>;
+
+/* ----------------------------------------------------------------------------
+ * Organiser input
+ * ------------------------------------------------------------------------- */
+
+const dateInput = (message: string) => z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, message);
+
+const rupees = (message: string) => z.string().trim().regex(/^\d{1,8}(\.\d{1,2})?$/, message);
+
+export const TRIP_STATUS_VALUES = ["DRAFT", "OPEN", "WAITLIST", "FULL", "ONGOING", "COMPLETED", "ARCHIVED"] as const;
+
+export const tripSchema = z
+  .object({
+    title: z.string().trim().min(3, "Give the trip a name.").max(120, "Keep the name under 120 characters."),
+    location: z.string().trim().min(2, "Add where the trip goes.").max(120, "Keep the place under 120 characters."),
+    description: z
+      .string()
+      .trim()
+      .min(10, "Describe the trip in a sentence or two.")
+      .max(5000, "Keep the description under 5,000 characters."),
+    startDate: dateInput("Pick the start date."),
+    endDate: dateInput("Pick the end date."),
+    maxCapacity: z.coerce
+      .number({ invalid_type_error: "Enter the number of seats." })
+      .int("Seats must be a whole number.")
+      .min(1, "A trip needs at least one seat.")
+      .max(500, "That's more than 500 seats."),
+    budgetEst: z
+      .union([z.literal(""), rupees("Enter an amount like 4500 or 4500.50.")])
+      .optional()
+      .transform((v) => (v ? v : null)),
+    status: z.enum(TRIP_STATUS_VALUES).optional(),
+    itinerary: z
+      .array(
+        z.object({
+          title: z.string().trim().max(120, "Keep each day's title under 120 characters."),
+          details: z.string().trim().max(2000, "Keep each day's details under 2,000 characters."),
+        }),
+      )
+      .max(30, "Up to 30 days."),
+  })
+  .superRefine((value, ctx) => {
+    if (value.endDate < value.startDate) {
+      ctx.addIssue({ code: "custom", path: ["endDate"], message: "The trip can't end before it starts." });
+    }
+    value.itinerary.forEach((day, i) => {
+      if (!day.title && day.details) {
+        ctx.addIssue({ code: "custom", path: ["itinerary", i, "title"], message: `Give day ${i + 1} a title.` });
+      }
+    });
+  })
+  .transform((value) => ({
+    ...value,
+    // Fully empty days are dropped rather than saved.
+    itinerary: value.itinerary.filter((day) => day.title),
+  }));
+
+export type TripFormInput = z.input<typeof tripSchema>;
+
+export const EXPENSE_CATEGORIES = ["Transport", "Stay", "Food", "Permits and fees", "Gear", "Other"] as const;
+
+export const expenseSchema = z.object({
+  title: z.string().trim().min(2, "Say what the expense was for.").max(120, "Keep it under 120 characters."),
+  category: z.enum(EXPENSE_CATEGORIES, { errorMap: () => ({ message: "Pick a category." }) }),
+  amount: rupees("Enter an amount like 1200 or 1200.50.").refine((v) => Number(v) > 0, "Enter an amount above zero."),
+  paidById: z.string().trim().min(1, "Pick who paid."),
+  receiptUrl: z
+    .union([
+      z.literal(""),
+      z
+        .string()
+        .trim()
+        .url("Enter a full link, starting with https://")
+        .refine((v) => v.startsWith("https://"), "Use an https:// link."),
+    ])
+    .optional()
+    .transform((v) => (v ? v : null)),
+});
+
+export type ExpenseFormInput = z.input<typeof expenseSchema>;

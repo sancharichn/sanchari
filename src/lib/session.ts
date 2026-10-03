@@ -57,6 +57,12 @@ export async function requireAdmin(): Promise<CurrentUser> {
   return user;
 }
 
+/** For server actions, which should answer rather than throw: the admin, or null. */
+export async function getAdmin(): Promise<CurrentUser | null> {
+  const user = await getCurrentUser();
+  return user?.role === "ADMIN" ? user : null;
+}
+
 export function isAdmin(user: CurrentUser | null): boolean {
   return user?.role === "ADMIN";
 }
