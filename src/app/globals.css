@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn/ui tokens (HSL) mapped onto the brand palette */
+    --background: 0 0% 3.9%; /* night  #0A0A0A */
+    --foreground: 60 19% 94%; /* mist   #F2F2EC */
+    --card: 0 0% 7.1%; /* basalt #121212 */
+    --card-foreground: 60 19% 94%;
+    --popover: 0 0% 7.1%;
+    --popover-foreground: 60 19% 94%;
+    --primary: 54 100% 50%; /* signal #FFE600 */
+    --primary-foreground: 0 0% 3.9%;
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 60 19% 94%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 60 5% 58%; /* lichen #9A9A90 */
+    --accent: 0 0% 13%;
+    --accent-foreground: 60 19% 94%;
+    --destructive: 7 100% 67%; /* ember  #FF6B57 */
+    --destructive-foreground: 0 0% 3.9%;
+    --border: 0 0% 16.5%; /* ridge  #2A2A2A */
+    --input: 0 0% 16.5%;
+    --ring: 54 100% 50%;
+    --radius: 0.625rem;
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: #0a0a0a;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-night font-sans text-mist antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: #ffe600;
+    color: #0a0a0a;
+  }
+
+  /* Keyboard focus is always visible and always the trail colour */
+  :focus-visible {
+    outline: 2px solid #ffe600;
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only;
+  }
+  .skip-link:focus {
+    @apply not-sr-only fixed left-4 top-4 z-[100] rounded-md bg-signal px-4 py-2 font-semibold text-night;
+  }
+
+  /* Reading measure for long text */
+  .measure {
+    max-width: 65ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

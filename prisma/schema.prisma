@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum TripStatus {
+  DRAFT
+  OPEN
+  WAITLIST
+  FULL
+  ONGOING
+  COMPLETED
+  ARCHIVED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+model User {
+  id               String             @id @default(cuid())
+  name             String?
+  email            String             @unique
+  image            String?
+  role             Role               @default(MEMBER)
+  phone            String?
+  bloodGroup       String?
+  emergencyContact String?
+  registrations    TripRegistration[]
+  feedbacks        Feedback[]
+  expensesPaid     Expense[]          @relation("PaidBy")
+  createdAt        DateTime           @default(now())
+}
+
+model Trip {
+  id            String             @id @default(cuid())
+  title         String
+  description   String
+  startDate     DateTime
+  endDate       DateTime
+  location      String
+  maxCapacity   Int
+  status        TripStatus         @default(DRAFT)
+  budgetEst     Decimal?           @db.Decimal(10, 2)
+  itinerary     Json?
+  registrations TripRegistration[]
+  expenses      Expense[]
+  feedbacks     Feedback[]
+  createdAt     DateTime           @default(now())
+}
+
+model TripRegistration {
+  id             String        @id @default(cuid())
+  userId         String
+  tripId         String
+  vehicleDetails String?
+  paymentStatus  PaymentStatus @default(PENDING)
+  gearChecked    Boolean       @default(false)
+  user           User          @relation(fields: [userId], references: [id])
+  trip           Trip          @relation(fields: [tripId], references: [id])
+  createdAt      DateTime      @default(now())
+
+  @@unique([userId, tripId])
+}
+
+model Expense {
+  id         String   @id @default(cuid())
+  tripId     String
+  paidById   String
+  title      String
+  category   String
+  amount     Decimal  @db.Decimal(10, 2)
+  receiptUrl String?
+  trip       Trip     @relation(fields: [tripId], references: [id])
+  paidBy     User     @relation("PaidBy", fields: [paidById], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  tripId    String?
+  rating    Int
+  comment   String
+  user      User     @relation(fields: [userId], references: [id])
+  trip      Trip?    @relation(fields: [tripId], references: [id])
+  createdAt DateTime @default(now())
+}
