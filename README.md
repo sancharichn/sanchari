@@ -8,7 +8,7 @@ Contact: [sanchari.chn@gmail.com](mailto:sanchari.chn@gmail.com)
 
 | Who | What they get |
 | --- | --- |
-| Anyone | Home page, trips (upcoming, on the trail, past), trip pages with the day-by-day plan, gallery, the feedback form of any trip that's taking feedback (no sign-in needed) |
+| Anyone | Home page, About & FAQ (`/faq`: who we are, how joining works, guidelines), trips (upcoming, on the trail, past), trip pages with the day-by-day plan, gallery, the feedback form of any trip that's taking feedback (no sign-in needed) |
 | Members (Google sign-in) | Register for a trip, join the waitlist when it's full, see payment and gear-check status, cancel while nothing is paid, keep phone / emergency contact / blood group up to date, write notes about the group |
 | Organiser (`ADMIN_EMAIL`) | `/admin`: create and edit trips and itineraries, set status, manage the roster (payment, gear check, remove), log expenses and see who owes whom, members list, download the roster as CSV; set up, open and share each trip's feedback form, see its scores and answers, pick quotes for the website, compare trips, and work through the suggestions board |
 
@@ -22,6 +22,8 @@ Contact: [sanchari.chn@gmail.com](mailto:sanchari.chn@gmail.com)
 - **Expenses** are split equally across everyone with a seat, in whole paise. Trip fees members pay the organiser are tracked as payment status on the roster, not as expenses.
 - **Trip feedback** goes through each trip's form at `/trips/<id>/feedback`, which organisers open from the trip's Feedback tab (only for trips visible on the site) and share on WhatsApp. See [Trip feedback](#trip-feedback) below.
 - **The estimated cost** on a trip is per person.
+- **Trip types** (Meetup, One-day trip, Stay-back / multi-day, International, Trek) set who a trip is for, following the joining steps on `/faq#joining`. The trip page shows who can join; the site doesn't check eligibility, organisers do.
+- **Registering needs the guidelines tick** (18 or over, agrees to the code of conduct). The time is saved on the registration and shown in the roster CSV.
 
 ## Trip feedback
 
