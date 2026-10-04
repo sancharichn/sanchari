@@ -51,6 +51,13 @@ export default async function SignInPage({
         <div className="mt-8">
           <GoogleSignInButton callbackUrl={callbackUrl} />
         </div>
+        <p className="measure mt-4 text-sm text-lichen">
+          Google shares your name, email address and profile photo with us.{" "}
+          <Link href="/privacy" className="text-mist underline underline-offset-4 hover:text-signal">
+            What we keep and why
+          </Link>
+          .
+        </p>
 
         <p className="mt-10 text-sm text-lichen">
           Just looking?{" "}

@@ -53,7 +53,12 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-ridge">
-        <p className="container py-6 text-xs text-lichen">© {year} Sanchari Chennai</p>
+        <div className="container flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-5 text-xs text-lichen">
+          <p>© {year} Sanchari Chennai</p>
+          <Link className="inline-block py-1 hover:text-mist" href="/privacy">
+            Privacy
+          </Link>
+        </div>
       </div>
     </footer>
   );
