@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft, Download, ExternalLink, Trash2 } from "lucide-react";
-import { deleteExpense, deleteFeedback, deleteTrip, removeRegistration } from "@/actions/admin";
+import { deleteExpense, deleteTrip, removeRegistration } from "@/actions/admin";
 import { AddExpenseDialog } from "@/components/admin/add-expense-dialog";
+import { FeedbackSetup } from "@/components/admin/feedback-setup";
 import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { GearToggle, PaymentSelect } from "@/components/admin/roster-controls";
 import { StatusSwitcher } from "@/components/admin/status-switcher";
 import { TripForm, type TripFormValues } from "@/components/admin/trip-form";
-import { RatingMarks } from "@/components/members/rating-marks";
 import { StatusBadge } from "@/components/trips/trip-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { AdminTrip } from "@/lib/admin-queries";
 import { formatDate, formatDateRange, formatINR, paiseToRupees, toDateInputValue, toPaise } from "@/lib/format";
 import { computeBalances, settleUp } from "@/lib/settle";
-import { parseItinerary, splitRoster } from "@/lib/trips";
+import { parseExtraQuestions } from "@/lib/feedback";
+import { isPublicStatus, parseItinerary, splitRoster } from "@/lib/trips";
 
 type Props = {
   trip: AdminTrip;
@@ -40,7 +41,7 @@ export function AdminTripView({ trip, payers, adminId, tab }: Props) {
     trip.expenses.map((e) => ({ paidById: e.paidById, amountPaise: toPaise(e.amount) })),
   );
   const transfers = settleUp(accounts.balances);
-  const canDelete = trip.registrations.length + trip.expenses.length + trip.feedbacks.length === 0;
+  const canDelete = trip.registrations.length + trip.expenses.length + trip.feedbacks.length + trip._count.responses === 0;
 
   const initialForm: TripFormValues = {
     title: trip.title,
@@ -95,7 +96,7 @@ export function AdminTripView({ trip, payers, adminId, tab }: Props) {
             Expenses <Count n={trip.expenses.length} />
           </TabsTrigger>
           <TabsTrigger value="feedback">
-            Feedback <Count n={trip.feedbacks.length} />
+            Feedback <Count n={trip._count.responses} />
           </TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
         </TabsList>
@@ -326,32 +327,17 @@ export function AdminTripView({ trip, payers, adminId, tab }: Props) {
 
         {/* Feedback -------------------------------------------------------- */}
         <TabsContent value="feedback">
-          {trip.feedbacks.length === 0 ? (
-            <p className="text-mist">No reviews yet. Travellers can review the trip once it&apos;s marked Completed.</p>
-          ) : (
-            <ul className="grid gap-4 md:grid-cols-2">
-              {trip.feedbacks.map((f) => (
-                <li key={f.id} className="rounded-panel border border-ridge bg-basalt p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <RatingMarks rating={f.rating} />
-                    <ConfirmActionButton
-                      label="Delete"
-                      title="Delete this review?"
-                      description="It disappears from the trip page and the feedback page. This can't be undone."
-                      confirmLabel="Delete review"
-                      pendingLabel="Deleting…"
-                      variant="ghost"
-                      action={deleteFeedback.bind(null, f.id)}
-                    />
-                  </div>
-                  <p className="mt-3 whitespace-pre-line text-mist">{f.comment}</p>
-                  <p className="mt-3 text-xs text-lichen">
-                    {f.user.name ?? f.user.email}, {formatDate(f.createdAt)}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
+          <FeedbackSetup
+            tripId={trip.id}
+            tripTitle={trip.title}
+            tripVisible={isPublicStatus(trip.status)}
+            responseCount={trip._count.responses}
+            form={
+              trip.feedbackForm
+                ? { ...trip.feedbackForm, questions: parseExtraQuestions(trip.feedbackForm.questions) }
+                : null
+            }
+          />
         </TabsContent>
 
         {/* Details --------------------------------------------------------- */}

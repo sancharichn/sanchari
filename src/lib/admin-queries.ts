@@ -118,10 +118,9 @@ export async function getAdminTrip(id: string) {
           paidBy: { select: { name: true, email: true } },
         },
       },
-      feedbacks: {
-        orderBy: { createdAt: "desc" },
-        select: { id: true, rating: true, comment: true, createdAt: true, user: { select: { name: true, email: true } } },
-      },
+      feedbacks: { select: { id: true } },
+      feedbackForm: { select: { isOpen: true, intro: true, questions: true } },
+      _count: { select: { responses: true } },
     },
   });
 }
