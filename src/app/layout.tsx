@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/archivo/wdth.css";
 import "./globals.css";
+import { BottomTabs } from "@/components/site/bottom-tabs";
 import { LaunchIntro } from "@/components/site/launch-intro";
 import { MotionProvider } from "@/components/site/motion-provider";
 import { SiteFooter } from "@/components/site/site-footer";
@@ -44,7 +45,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_GATE_SCRIPT }} />
       </head>
-      <body className="flex min-h-dvh flex-col">
+      {/* On phones the bottom tabs cover the last 4rem, so the page ends above them. */}
+      <body className="flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <LaunchIntro />
         <a href="#main" className="skip-link">
           Skip to content
@@ -53,6 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteHeader user={user} />
           <div className="flex-1">{children}</div>
           <SiteFooter />
+          <BottomTabs signedIn={Boolean(user)} />
         </MotionProvider>
       </body>
     </html>
