@@ -148,6 +148,9 @@ describe("guessTopic", () => {
     expect(guessTopic("Start earlier to beat the traffic", "IDEA")).toBe("Travel and transport");
     expect(guessTopic("Bonfire games for the kids", "IDEA")).toBe("Activities and games");
     expect(guessTopic("Carry a first aid kit", "IDEA")).toBe("Safety");
+    expect(guessTopic("Start the games before lunch so the kids don't tire", "IDEA")).toBe("Activities and games");
+    expect(guessTopic("Lunch was late because of the games", "IDEA")).toBe("Food");
+    expect(guessTopic("Team games after the campfire", "IDEA")).toBe("Activities and games");
     expect(guessTopic("Yercaud", "PLACE")).toBe("Destinations");
     expect(guessTopic("അടുത്ത തവണ കൂടുതൽ സമയം", "IDEA")).toBe("Other");
   });

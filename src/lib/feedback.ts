@@ -342,20 +342,30 @@ export const TOPICS = [
 
 export type Topic = (typeof TOPICS)[number];
 
+// Whole words only (\w* where a word has several endings), so "carry" isn't a car and "team" isn't tea.
 const TOPIC_WORDS: Array<[Topic, RegExp]> = [
-  ["Safety", /\b(safe|safety|first[- ]aid|medical|medicine|helmet|injur|emergency|accident|marshal|guard)/i],
-  ["Food", /\b(food|meal|lunch|dinner|breakfast|sadya|snack|tea|coffee|drinks?|menu|veg|biryani|cook|payasam|water bottle)/i],
-  ["Stay and venue", /\b(stay|room|tent|camp|hotel|resort|venue|toilet|bathroom|washroom|bed|accommodation|homestay|clean|hall)/i],
-  ["Travel and transport", /\b(bus|car|cars|bike|bikes|ride|road|traffic|transport|pick[- ]?up|drop|vehicle|parking|fuel|route|drive|train|carpool)/i],
-  ["Activities and games", /\b(game|games|activit|kids|children|couples?|music|dance|bonfire|campfire|trek|hike|swim|kayak|competition|prize|pookkalam|quiz)/i],
-  ["Cost", /\b(cost|price|fee|cheap|expensive|budget|money|payment|refund|charges?|discount)/i],
-  ["Planning and communication", /\b(plan|planning|schedule|timing|on time|late|delay|update|whatsapp|inform|communicat|coordinat|organi[sz]|register)/i],
+  ["Safety", /\b(safe\w*|first[- ]aid|medical|medicines?|helmets?|injur\w*|emergenc\w*|accidents?|marshal\w*|guards?)\b/i],
+  ["Food", /\b(food|meals?|lunch|dinner|breakfast|sadya|snacks?|tea|coffee|drinks?|menu|veg|vegetarian|biryani|cook\w*|payasam|water bottles?)\b/i],
+  ["Stay and venue", /\b(stay\w*|rooms?|tents?|camp(site|ing)?s?|hotels?|resorts?|venue|toilets?|bathrooms?|washrooms?|beds?|accommodation|homestays?|clean\w*|hall)\b/i],
+  ["Travel and transport", /\b(bus(es)?|cars?|bikes?|rides?|riding|roads?|traffic|transport\w*|pick[- ]?ups?|drops?|vehicles?|parking|fuel|routes?|driv\w*|trains?|carpool\w*)\b/i],
+  ["Activities and games", /\b(games?|activit\w*|kids|children|couples?|music|danc\w*|bonfire|campfire|trek\w*|hik\w*|swim\w*|kayak\w*|competitions?|prizes?|pookkalam|quiz\w*)\b/i],
+  ["Cost", /\b(costs?|costly|prices?|pricing|fees?|cheap\w*|expensive|budget\w*|money|payments?|refunds?|charges?|discounts?)\b/i],
+  ["Planning and communication", /\b(plan\w*|schedul\w*|timings?|on time|late|delay\w*|updates?|whatsapp|inform\w*|communicat\w*|coordinat\w*|organi[sz]\w*|regist\w*)\b/i],
 ];
 
+/**
+ * The topic whose words come first in the text: people tend to lead with
+ * what they mean ("start the games before lunch" is about games, not food).
+ * Ties go to the earlier topic in the list, so safety wins over the rest.
+ */
 export function guessTopic(text: string, kind: "IDEA" | "PLACE"): Topic {
   if (kind === "PLACE") return "Destinations";
-  for (const [topic, pattern] of TOPIC_WORDS) if (pattern.test(text)) return topic;
-  return "Other";
+  let best: { topic: Topic; at: number } | null = null;
+  for (const [topic, pattern] of TOPIC_WORDS) {
+    const match = pattern.exec(text);
+    if (match && (best === null || match.index < best.at)) best = { topic, at: match.index };
+  }
+  return best?.topic ?? "Other";
 }
 
 export const SUGGESTION_STATUS_LABEL = {
