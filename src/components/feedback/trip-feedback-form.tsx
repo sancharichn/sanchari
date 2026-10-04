@@ -87,6 +87,12 @@ export function TripFeedbackForm({ tripId, tripHref, extras, token, defaultName,
   const step = steps[index];
   const isLast = index === steps.length - 1;
 
+  /** Back to the top of the form; a jump instead of a glide for people who prefer less motion. */
+  function scrollToTop() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    topRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }
+
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((v) => ({ ...v, [key]: value }));
   }
@@ -114,7 +120,7 @@ export function TripFeedbackForm({ tripId, tripHref, extras, token, defaultName,
   function goTo(nextIndex: number, focusKey?: string) {
     setIndex(nextIndex);
     requestAnimationFrame(() => {
-      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollToTop();
       const target = focusKey ? document.getElementById(domId(focusKey)) : headingRef.current;
       target?.focus({ preventScroll: true });
     });
@@ -142,7 +148,7 @@ export function TripFeedbackForm({ tripId, tripHref, extras, token, defaultName,
       const response = await submitTripFeedback(tripId, { token, website: honeypot, answers: values });
       setResult(response);
       if (!response.ok && response.fieldErrors) showErrors(response.fieldErrors);
-      if (response.ok) requestAnimationFrame(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      if (response.ok) requestAnimationFrame(scrollToTop);
     } catch {
       setResult(NETWORK_ERROR);
     } finally {
