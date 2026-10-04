@@ -4,7 +4,7 @@ import { CancelRegistrationButton } from "@/components/members/cancel-registrati
 import { RegisterDialog, type ProfileDefaults } from "@/components/members/register-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { SeatsMeter } from "@/components/trips/trip-status";
-import { acceptsRegistrations, closedReason, PAYMENT_LABEL } from "@/lib/trips";
+import { acceptsRegistrations, closedReason, PAYMENT_LABEL, showsSeats } from "@/lib/trips";
 
 export type ViewerPlace = { kind: "confirmed" } | { kind: "waitlist"; place: number } | null;
 
@@ -26,13 +26,18 @@ type Props = {
 export function RegistrationPanel({ trip, registered, started, viewer }: Props) {
   const open = acceptsRegistrations(trip.status) && !started;
   const registration = viewer?.registration ?? null;
+  const seatsShown = showsSeats(trip.status, registered);
 
   return (
     <div className="rounded-panel border border-ridge bg-basalt p-6">
-      <h2 className="stretch-semiwide text-lg font-bold">Seats</h2>
-      <SeatsMeter className="mt-4" registered={registered} capacity={trip.maxCapacity} status={trip.status} />
+      {seatsShown ? (
+        <>
+          <h2 className="stretch-semiwide text-lg font-bold">Seats</h2>
+          <SeatsMeter className="mt-4" registered={registered} capacity={trip.maxCapacity} status={trip.status} />
+        </>
+      ) : null}
 
-      <div className="mt-6 border-t border-ridge pt-6">
+      <div className={seatsShown ? "mt-6 border-t border-ridge pt-6" : undefined}>
         {registration ? (
           <YourPlace
             trip={trip}

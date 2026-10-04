@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dateBlock, formatDateRange, formatINR, fromDateInputValue, toDateInputValue, toPaise, tripDays } from "./format";
-import { parseItinerary, rosterPosition, seatSummary, splitRoster } from "./trips";
+import { parseItinerary, rosterPosition, seatSummary, showsSeats, splitRoster } from "./trips";
 
 const reg = (id: string, minute: number) => ({ id, createdAt: new Date(Date.UTC(2026, 9, 1, 10, minute)) });
 
@@ -23,6 +23,16 @@ describe("seatSummary", () => {
   it("reports seats left and the waitlist", () => {
     expect(seatSummary(12, 20)).toMatchObject({ taken: 12, left: 8, waitlist: 0 });
     expect(seatSummary(23, 20)).toMatchObject({ taken: 20, left: 0, waitlist: 3, ratio: 1 });
+  });
+});
+
+describe("showsSeats", () => {
+  it("leaves out the headcount of trips that were run outside the site", () => {
+    expect(showsSeats("COMPLETED", 0)).toBe(false);
+    expect(showsSeats("ONGOING", 0)).toBe(false);
+    expect(showsSeats("COMPLETED", 14)).toBe(true);
+    expect(showsSeats("OPEN", 0)).toBe(true);
+    expect(showsSeats("FULL", 20)).toBe(true);
   });
 });
 

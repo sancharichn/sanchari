@@ -71,6 +71,14 @@ export function rosterPosition<T extends { createdAt: Date; id: string }>(
   return index === -1 ? null : { kind: "waitlist", place: index + 1 };
 }
 
+/**
+ * Whether a trip has seats worth showing. An ongoing or finished trip that nobody registered for was run outside
+ * the site (and added afterwards, for its feedback and photos), so "0 travelled" would be wrong.
+ */
+export function showsSeats(status: TripStatus, registered: number) {
+  return registered > 0 || (status !== "ONGOING" && status !== "COMPLETED");
+}
+
 export function seatSummary(registered: number, capacity: number) {
   const taken = Math.min(registered, capacity);
   return {

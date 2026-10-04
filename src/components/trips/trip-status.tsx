@@ -1,6 +1,6 @@
 import type { TripStatus } from "@prisma/client";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { STATUS_LABEL, seatSummary } from "@/lib/trips";
+import { STATUS_LABEL, seatSummary, showsSeats } from "@/lib/trips";
 import { cn } from "@/lib/utils";
 
 const STATUS_VARIANT: Record<TripStatus, NonNullable<BadgeProps["variant"]>> = {
@@ -33,6 +33,7 @@ export function SeatsMeter({
   status: TripStatus;
   className?: string;
 }) {
+  if (!showsSeats(status, registered)) return null;
   const seats = seatSummary(registered, capacity);
 
   if (status === "COMPLETED" || status === "ONGOING") {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { dateBlock, durationLabel } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
+import { showsSeats } from "@/lib/trips";
 import { SeatsMeter, StatusBadge } from "./trip-status";
 
 /**
@@ -38,7 +39,12 @@ export function DepartureBoard({ trips, emptyText }: { trips: TripListItem[]; em
                 </p>
               </div>
 
-              <SeatsMeter registered={trip.registered} capacity={trip.maxCapacity} status={trip.status} />
+              {showsSeats(trip.status, trip.registered) ? (
+                <SeatsMeter registered={trip.registered} capacity={trip.maxCapacity} status={trip.status} />
+              ) : (
+                // Holds the seats column on wide screens so the status badge stays lined up.
+                <span aria-hidden="true" className="hidden md:block" />
+              )}
 
               <div className="md:text-right">
                 <StatusBadge status={trip.status} />
