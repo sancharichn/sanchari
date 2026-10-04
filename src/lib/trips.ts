@@ -27,6 +27,21 @@ export const WHO_CAN_JOIN: Record<TripKind, string> = {
   TREK: TREKS_NOTE,
 };
 
+/** For filters: "Show me meetups". */
+export const KIND_PLURAL: Record<TripKind, string> = {
+  MEETUP: "Meetups",
+  DAY_TRIP: "Day trips",
+  STAY_BACK: "Stay-back trips",
+  INTERNATIONAL: "International trips",
+  TREK: "Treks",
+};
+
+/** Reads a ?type= value, ignoring anything that isn't a trip type. */
+export function parseKind(value: string | undefined): TripKind | null {
+  const upper = value?.toUpperCase();
+  return TRIP_KINDS.find((k) => k === upper) ?? null;
+}
+
 const KIND_NOUN: Record<TripKind, string> = {
   MEETUP: "meetup",
   DAY_TRIP: "day trip",

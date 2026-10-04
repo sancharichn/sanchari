@@ -5,6 +5,8 @@ import { TripCards } from "@/components/trips/trip-cards";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { getPublicTripGroups } from "@/lib/queries";
+import { KIND_PLURAL, parseKind, TRIP_KINDS } from "@/lib/trips";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Trips" };
@@ -12,8 +14,11 @@ export const metadata: Metadata = { title: "Trips" };
 const VIEWS = ["upcoming", "ongoing", "past"] as const;
 type View = (typeof VIEWS)[number];
 
-export default async function TripsPage({ searchParams }: { searchParams: { view?: string } }) {
-  const groups = await getPublicTripGroups();
+export default async function TripsPage({ searchParams }: { searchParams: { view?: string; type?: string } }) {
+  const kind = parseKind(searchParams.type);
+  const all = await getPublicTripGroups();
+  const only = <T extends { kind: string }>(list: T[]) => (kind ? list.filter((t) => t.kind === kind) : list);
+  const groups = { upcoming: only(all.upcoming), ongoing: only(all.ongoing), past: only(all.past) };
   const requested = searchParams.view as View | undefined;
   const initial: View =
     requested && VIEWS.includes(requested) ? requested : groups.upcoming.length || !groups.ongoing.length ? "upcoming" : "ongoing";
@@ -30,7 +35,29 @@ export default async function TripsPage({ searchParams }: { searchParams: { view
         . Registering needs a free sign-in with Google.
       </p>
 
-      <Tabs defaultValue={initial} className="mt-10">
+      <nav aria-label="Filter by type" className="mt-8">
+        <ul className="flex flex-wrap gap-2">
+          {[null, ...TRIP_KINDS].map((k) => {
+            const active = k === kind;
+            return (
+              <li key={k ?? "all"}>
+                <Link
+                  href={k ? `/trips?type=${k.toLowerCase()}` : "/trips"}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "inline-flex h-9 items-center rounded-full border px-4 text-sm font-semibold transition-colors",
+                    active ? "border-signal bg-signal text-night" : "border-ridge text-mist hover:border-mist/40",
+                  )}
+                >
+                  {k ? KIND_PLURAL[k] : "Everything"}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <Tabs key={kind ?? "all"} defaultValue={initial} className="mt-8">
         <TabsList aria-label="Trips by status">
           <TabsTrigger value="upcoming">
             Upcoming <Count n={groups.upcoming.length} />

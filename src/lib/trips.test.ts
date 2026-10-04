@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dateBlock, formatDateRange, formatINR, fromDateInputValue, toDateInputValue, toPaise, tripDays } from "./format";
-import { parseItinerary, rosterPosition, seatSummary, showsSeats, splitRoster, tripTypeLabel, WHO_CAN_JOIN } from "./trips";
+import { parseKind, parseItinerary, rosterPosition, seatSummary, showsSeats, splitRoster, tripTypeLabel, WHO_CAN_JOIN } from "./trips";
 
 const reg = (id: string, minute: number) => ({ id, createdAt: new Date(Date.UTC(2026, 9, 1, 10, minute)) });
 
@@ -46,6 +46,15 @@ describe("tripTypeLabel", () => {
     expect(WHO_CAN_JOIN.MEETUP).toMatch(/open to everyone/i);
     expect(WHO_CAN_JOIN.DAY_TRIP).toMatch(/two meetups in a row/);
     expect(Object.values(WHO_CAN_JOIN).every((text) => text.length > 20)).toBe(true);
+  });
+});
+
+describe("parseKind", () => {
+  it("reads trip types from links and ignores anything else", () => {
+    expect(parseKind("meetup")).toBe("MEETUP");
+    expect(parseKind("STAY_BACK")).toBe("STAY_BACK");
+    expect(parseKind("cruise")).toBeNull();
+    expect(parseKind(undefined)).toBeNull();
   });
 });
 
