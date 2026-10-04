@@ -1,6 +1,6 @@
 # Sanchari Chennai Travel Group
 
-**TRAVEL WITH NATURE.** The web app for [@sanchari.chennai](https://instagram.com/sanchari.chennai): upcoming trips, registrations with a waitlist, trip accounts, a photo gallery and the Instagram feed.
+**TRAVEL WITH NATURE.** The web app for [@sanchari.chennai](https://instagram.com/sanchari.chennai): upcoming trips, registrations with a waitlist, trip accounts, trip feedback, a photo gallery and the Instagram feed.
 
 Contact: [sanchari.chn@gmail.com](mailto:sanchari.chn@gmail.com)
 
@@ -8,9 +8,9 @@ Contact: [sanchari.chn@gmail.com](mailto:sanchari.chn@gmail.com)
 
 | Who | What they get |
 | --- | --- |
-| Anyone | Home page, trips (upcoming, on the trail, past), trip pages with the day-by-day plan, gallery, feedback |
-| Members (Google sign-in) | Register for a trip, join the waitlist when it's full, see payment and gear-check status, cancel while nothing is paid, review completed trips, keep phone / emergency contact / blood group up to date |
-| Organiser (`ADMIN_EMAIL`) | `/admin`: create and edit trips and itineraries, set status, manage the roster (payment, gear check, remove), log expenses and see who owes whom, members list, moderate feedback, download the roster as CSV |
+| Anyone | Home page, trips (upcoming, on the trail, past), trip pages with the day-by-day plan, gallery, the feedback form of any trip that's taking feedback (no sign-in needed) |
+| Members (Google sign-in) | Register for a trip, join the waitlist when it's full, see payment and gear-check status, cancel while nothing is paid, keep phone / emergency contact / blood group up to date, write notes about the group |
+| Organiser (`ADMIN_EMAIL`) | `/admin`: create and edit trips and itineraries, set status, manage the roster (payment, gear check, remove), log expenses and see who owes whom, members list, download the roster as CSV; set up, open and share each trip's feedback form, see its scores and answers, pick quotes for the website, compare trips, and work through the suggestions board |
 
 `/admin` returns the 404 page to everyone who isn't ADMIN. The role is checked in middleware, again in the admin layout against the database, and again inside every organiser action and the CSV route.
 
@@ -20,8 +20,20 @@ Contact: [sanchari.chn@gmail.com](mailto:sanchari.chn@gmail.com)
 - **Statuses:** Draft (organisers only) → Open → Waitlist / Full → On the trail → Completed → Archived (hidden). Open and Waitlist take registrations; trips that have started don't.
 - **Cancelling:** members can cancel their own registration until the trip starts, as long as no payment is recorded. After that, the organiser removes them.
 - **Expenses** are split equally across everyone with a seat, in whole paise. Trip fees members pay the organiser are tracked as payment status on the roster, not as expenses.
-- **Reviews** of a trip come from people who had a seat on it, once it's Completed. One review per person per trip; posting again replaces it.
+- **Trip feedback** goes through each trip's form at `/trips/<id>/feedback`, which organisers open from the trip's Feedback tab (only for trips visible on the site) and share on WhatsApp. See [Trip feedback](#trip-feedback) below.
 - **The estimated cost** on a trip is per person.
+
+## Trip feedback
+
+Every form asks the same standard questions, so trips can be compared: overall stars; venue or stay, food, getting there, planning and value for money on an Excellent / Good / Needs improvement scale; "would you travel with Sanchari again?"; what they loved; "if you were leading Sanchari…"; and where to go next. Organisers add up to 12 extra questions per trip (stars, the three-step scale, pick one option, or a written answer), from scratch or from the ready-made family event, trek and ride sets.
+
+- **Who can answer:** anyone with the link; signing in is optional. Answers can be anonymous, which stores no name, WhatsApp number or account.
+- **One response each:** per Google account, or per phone for people not signed in (a random id in a cookie). Sending again replaces the earlier answers. Both are stored only as keyed hashes made with `NEXTAUTH_SECRET`.
+- **Spam:** a hidden field, a minimum fill time, and at most 30 answers an hour from one internet address (stored hashed). Answers filled in very quickly or containing links are flagged for organisers.
+- **Verified:** answers from someone with a seat on the trip (signed in, or with a WhatsApp number matching their profile phone) get a verified tag, and the scores can be filtered to verified answers only.
+- **On the website:** an answer's "what I loved" appears on the trip page, the home page and the Feedback page only if its writer allowed quoting and an organiser picked it. Anonymous quotes say "A traveller".
+- **Suggestions:** "if you were leading Sanchari" ideas and "where next" places go to `/admin/suggestions`, filed under a topic guessed from their words (organisers can change it), to be marked Planned, Done or Not now.
+- **Hiding and deleting:** hidden answers stay listed but don't count anywhere; deleting an answer also deletes its suggestions. A trip with answers can't be deleted, only archived.
 
 ## Stack
 
@@ -111,4 +123,4 @@ npm run dev
 | `npm run build` | Generate the Prisma client, sync the schema (Vercel production only), build |
 | `npm run typecheck` | Type-check |
 | `npm run lint` | Lint |
-| `npm test` | Unit tests (expense splitting, waitlist order, dates and rupees, CSV, gallery URL signing) |
+| `npm test` | Unit tests (expense splitting, waitlist order, dates and rupees, CSV, gallery URL signing, feedback checks and scoring) |
