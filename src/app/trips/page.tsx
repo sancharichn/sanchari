@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DepartureBoard } from "@/components/trips/departure-board";
+import { TripCards } from "@/components/trips/trip-cards";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { getPublicTripGroups } from "@/lib/queries";
@@ -43,7 +44,7 @@ export default async function TripsPage({ searchParams }: { searchParams: { view
         </TabsList>
 
         <TabsContent value="upcoming">
-          <DepartureBoard
+          <TripCards
             trips={groups.upcoming}
             emptyText={
               <>
@@ -57,7 +58,7 @@ export default async function TripsPage({ searchParams }: { searchParams: { view
           />
         </TabsContent>
         <TabsContent value="ongoing">
-          <DepartureBoard trips={groups.ongoing} emptyText="Nobody is out on a trip right now." />
+          <TripCards trips={groups.ongoing} emptyText="Nobody is out on a trip right now." />
         </TabsContent>
         <TabsContent value="past">
           <DepartureBoard trips={groups.past} emptyText="Completed trips will be listed here." />

@@ -5,7 +5,7 @@ import { Hero } from "@/components/site/hero";
 import { HowToJoin } from "@/components/site/how-to-join";
 import { HowWeTravel } from "@/components/site/how-we-travel";
 import { InstagramStrip } from "@/components/site/instagram-strip";
-import { DepartureBoard } from "@/components/trips/departure-board";
+import { TripCards } from "@/components/trips/trip-cards";
 import { getLatestPhotos } from "@/lib/drive";
 import { getFeaturedReviews, getRecentFeedback, getUpcomingTrips, reviewToCard } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
@@ -38,7 +38,7 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="mt-8">
-          <DepartureBoard
+          <TripCards
             trips={upcoming}
             emptyText={
               <>
