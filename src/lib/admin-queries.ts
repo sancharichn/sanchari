@@ -222,3 +222,24 @@ export async function getSuggestions() {
 }
 
 export type SuggestionItem = Awaited<ReturnType<typeof getSuggestions>>[number];
+
+/** Trips with a feedback form or answers, newest first, with the answers that count (hidden ones left out). */
+export async function getFeedbackOverview() {
+  return prisma.trip.findMany({
+    where: { OR: [{ feedbackForm: { isNot: null } }, { responses: { some: {} } }] },
+    orderBy: { startDate: "desc" },
+    select: {
+      id: true,
+      title: true,
+      startDate: true,
+      endDate: true,
+      feedbackForm: { select: { isOpen: true } },
+      responses: {
+        where: { hidden: false },
+        select: { overall: true, comeAgain: true, ratings: true, extras: true, groupSize: true, verified: true },
+      },
+    },
+  });
+}
+
+export type FeedbackOverviewTrip = Awaited<ReturnType<typeof getFeedbackOverview>>[number];
