@@ -200,3 +200,25 @@ export async function getTripResponses(tripId: string) {
 }
 
 export type TripResponse = Awaited<ReturnType<typeof getTripResponses>>[number];
+
+/** Ideas and places from feedback for the suggestions board, newest first; hidden answers' ideas left out. */
+export async function getSuggestions() {
+  return prisma.suggestion.findMany({
+    where: { OR: [{ responseId: null }, { response: { hidden: false } }] },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+    select: {
+      id: true,
+      kind: true,
+      text: true,
+      topic: true,
+      status: true,
+      note: true,
+      createdAt: true,
+      trip: { select: { id: true, title: true } },
+      response: { select: { anonymous: true, name: true, verified: true } },
+    },
+  });
+}
+
+export type SuggestionItem = Awaited<ReturnType<typeof getSuggestions>>[number];

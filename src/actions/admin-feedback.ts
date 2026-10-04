@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { done, fail, invalid, type ActionResult } from "@/lib/action-result";
-import { formSettingsSchema } from "@/lib/feedback";
+import type { SuggestionStatus } from "@prisma/client";
+import { formSettingsSchema, TOPICS } from "@/lib/feedback";
 import { prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/session";
 import { isPublicStatus } from "@/lib/trips";
@@ -108,4 +109,35 @@ export async function deleteResponse(responseId: string): Promise<ActionResult> 
   revalidatePath("/");
   revalidatePath("/feedback");
   return done("Response deleted.");
+}
+
+const SUGGESTION_STATUSES: SuggestionStatus[] = ["NEW", "PLANNED", "DONE", "NOT_NOW"];
+
+/** Moves an idea along the board (status), files it under another topic, or adds the organisers' note. */
+export async function updateSuggestion(
+  suggestionId: string,
+  change: { status?: string; topic?: string; note?: string },
+): Promise<ActionResult> {
+  if (!(await getAdmin())) return fail(NO_ACCESS);
+
+  const data: { status?: SuggestionStatus; topic?: string; note?: string | null } = {};
+  if (change.status !== undefined) {
+    if (!SUGGESTION_STATUSES.includes(change.status as SuggestionStatus)) return fail("Pick a status from the list.");
+    data.status = change.status as SuggestionStatus;
+  }
+  if (change.topic !== undefined) {
+    if (!(TOPICS as readonly string[]).includes(change.topic)) return fail("Pick a topic from the list.");
+    data.topic = change.topic;
+  }
+  if (change.note !== undefined) {
+    const note = String(change.note).trim();
+    if (note.length > 300) return fail("Keep the note under 300 characters.");
+    data.note = note || null;
+  }
+  if (Object.keys(data).length === 0) return fail("Nothing to change.");
+
+  const updated = await prisma.suggestion.updateMany({ where: { id: suggestionId }, data });
+  if (updated.count === 0) return fail("That suggestion no longer exists.");
+  revalidatePath("/admin/suggestions");
+  return done(data.note !== undefined ? "Note saved." : "Saved.");
 }
