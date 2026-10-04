@@ -65,7 +65,7 @@ Locally: `npm run db:push`.
 In [Google Cloud console](https://console.cloud.google.com), signed in as sanchari.chn@gmail.com:
 
 1. Create a project (for example `sanchari-web`).
-2. **Google Auth Platform → Branding:** app name *Sanchari Chennai*, support email sanchari.chn@gmail.com.
+2. **Google Auth Platform → Branding:** app name *Sanchari Chennai*, support email sanchari.chn@gmail.com, home page `https://<your-vercel-domain>`, privacy policy `https://<your-vercel-domain>/privacy`. **Publish app** stays greyed out until these links are filled in. Don't upload a logo: a logo means Google has to verify the app first.
 3. **Audience:** External, then **Publish app** so any Google account can sign in. The app only asks for name, email and photo, so no verification is needed.
 4. **Clients → Create client → Web application.** Authorised redirect URIs:
    - `https://<your-vercel-domain>/api/auth/callback/google`
