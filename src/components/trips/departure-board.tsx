@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { dateBlock, durationLabel } from "@/lib/format";
+import { dateBlock } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
-import { showsSeats } from "@/lib/trips";
+import { showsSeats, tripTypeLabel } from "@/lib/trips";
 import { SeatsMeter, StatusBadge } from "./trip-status";
 
 /**
@@ -35,7 +35,7 @@ export function DepartureBoard({ trips, emptyText }: { trips: TripListItem[]; em
                   {trip.title}
                 </h3>
                 <p className="mt-1 text-sm text-lichen">
-                  {trip.location}, {durationLabel(trip.startDate, trip.endDate).toLowerCase()}
+                  {trip.location}, {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
                 </p>
               </div>
 

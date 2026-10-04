@@ -1,5 +1,5 @@
 import "server-only";
-import type { Prisma, TripStatus } from "@prisma/client";
+import type { Prisma, TripKind, TripStatus } from "@prisma/client";
 import type { FeedbackCardItem } from "@/components/members/feedback-card";
 import { prisma } from "@/lib/prisma";
 import { PUBLIC_STATUSES, rosterPosition } from "@/lib/trips";
@@ -11,6 +11,7 @@ const listSelect = {
   startDate: true,
   endDate: true,
   status: true,
+  kind: true,
   maxCapacity: true,
   budgetEst: true,
   _count: { select: { registrations: true } },
@@ -23,6 +24,7 @@ export type TripListItem = {
   startDate: Date;
   endDate: Date;
   status: TripStatus;
+  kind: TripKind;
   maxCapacity: number;
   budgetEst: string | null;
   registered: number;
@@ -36,6 +38,7 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
     startDate: trip.startDate,
     endDate: trip.endDate,
     status: trip.status,
+    kind: trip.kind,
     maxCapacity: trip.maxCapacity,
     budgetEst: trip.budgetEst?.toString() ?? null,
     registered: trip._count.registrations,

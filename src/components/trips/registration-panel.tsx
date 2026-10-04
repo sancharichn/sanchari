@@ -1,10 +1,10 @@
 import Link from "next/link";
-import type { PaymentStatus, TripStatus } from "@prisma/client";
+import type { PaymentStatus, TripKind, TripStatus } from "@prisma/client";
 import { CancelRegistrationButton } from "@/components/members/cancel-registration";
 import { RegisterDialog, type ProfileDefaults } from "@/components/members/register-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { SeatsMeter } from "@/components/trips/trip-status";
-import { acceptsRegistrations, closedReason, PAYMENT_LABEL, showsSeats } from "@/lib/trips";
+import { acceptsRegistrations, closedReason, PAYMENT_LABEL, showsSeats, WHO_CAN_JOIN } from "@/lib/trips";
 
 export type ViewerPlace = { kind: "confirmed" } | { kind: "waitlist"; place: number } | null;
 
@@ -16,7 +16,7 @@ export type PanelViewer = {
 } | null;
 
 type Props = {
-  trip: { id: string; title: string; status: TripStatus; maxCapacity: number };
+  trip: { id: string; title: string; status: TripStatus; kind: TripKind; maxCapacity: number };
   registered: number;
   started: boolean;
   viewer: PanelViewer;
@@ -27,6 +27,8 @@ export function RegistrationPanel({ trip, registered, started, viewer }: Props) 
   const open = acceptsRegistrations(trip.status) && !started;
   const registration = viewer?.registration ?? null;
   const seatsShown = showsSeats(trip.status, registered);
+  // Before the trip, people deciding whether to register need to know who it's open to.
+  const upcoming = !started && ["DRAFT", "OPEN", "WAITLIST", "FULL"].includes(trip.status);
 
   return (
     <div className="rounded-panel border border-ridge bg-basalt p-6">
@@ -38,6 +40,18 @@ export function RegistrationPanel({ trip, registered, started, viewer }: Props) 
       ) : null}
 
       <div className={seatsShown ? "mt-6 border-t border-ridge pt-6" : undefined}>
+        {upcoming && !registration ? (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-mist">Who can join</h3>
+            <p className="mt-1 text-sm text-lichen">{WHO_CAN_JOIN[trip.kind]}</p>
+            <Link
+              href="/faq#joining"
+              className="mt-2 inline-block text-sm font-semibold text-mist underline underline-offset-4 hover:text-signal"
+            >
+              How joining works
+            </Link>
+          </div>
+        ) : null}
         {registration ? (
           <YourPlace
             trip={trip}

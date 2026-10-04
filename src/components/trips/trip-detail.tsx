@@ -4,10 +4,10 @@ import { FeedbackCard } from "@/components/members/feedback-card";
 import type { ProfileDefaults } from "@/components/members/register-dialog";
 import { ContourField } from "@/components/site/contour-field";
 import { buttonVariants } from "@/components/ui/button";
-import { durationLabel, formatDateRange, formatINR } from "@/lib/format";
+import { formatDateRange, formatINR } from "@/lib/format";
 import { reviewToCard, type TripForPage } from "@/lib/queries";
 import type { CurrentUser } from "@/lib/session";
-import { isPublicStatus, parseItinerary, rosterPosition, splitRoster, STATUS_LABEL } from "@/lib/trips";
+import { isPublicStatus, parseItinerary, rosterPosition, splitRoster, STATUS_LABEL, tripTypeLabel } from "@/lib/trips";
 import { ItineraryTrail } from "./itinerary-trail";
 import { RegistrationPanel } from "./registration-panel";
 import { TripAccounts } from "./trip-accounts";
@@ -59,7 +59,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
           <dl className="mt-10 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-4">
             <Fact label="When" value={formatDateRange(trip.startDate, trip.endDate)} />
             <Fact label="Where" value={trip.location} />
-            <Fact label="Length" value={durationLabel(trip.startDate, trip.endDate)} />
+            <Fact label="Type" value={tripTypeLabel(trip.kind, trip.startDate, trip.endDate)} />
             {trip.budgetEst || !departed ? (
               <Fact
                 label="Estimated cost"

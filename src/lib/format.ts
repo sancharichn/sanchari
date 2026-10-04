@@ -64,11 +64,6 @@ export function tripDays(start: Date, end: Date): number {
   return Math.max(1, Math.round((e - s) / 86_400_000) + 1);
 }
 
-export function durationLabel(start: Date, end: Date): string {
-  const days = tripDays(start, end);
-  return days === 1 ? "Day trip" : `${days} days`;
-}
-
 /** "YYYY-MM-DD" in India time, for <input type="date">. */
 export function toDateInputValue(date: Date): string {
   return partsOf(date).ymd;

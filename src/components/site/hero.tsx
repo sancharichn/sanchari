@@ -4,6 +4,7 @@ import { SeatsMeter } from "@/components/trips/trip-status";
 import { formatDateRange } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
+import { tripTypeLabel } from "@/lib/trips";
 import { ContourField } from "./contour-field";
 import { TrailClimb } from "./trail-climb";
 
@@ -75,7 +76,9 @@ function NextDeparture({ trip }: { trip: TripListItem | null }) {
         {trip.title}
       </p>
       <p className="mt-2 text-sm text-mist/85">{formatDateRange(trip.startDate, trip.endDate)}</p>
-      <p className="text-sm text-lichen">{trip.location}</p>
+      <p className="text-sm text-lichen">
+        {trip.location}, {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
+      </p>
       <SeatsMeter className="mt-5" registered={trip.registered} capacity={trip.maxCapacity} status={trip.status} />
     </Link>
   );

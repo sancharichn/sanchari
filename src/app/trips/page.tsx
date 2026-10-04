@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DepartureBoard } from "@/components/trips/departure-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
@@ -20,8 +21,12 @@ export default async function TripsPage({ searchParams }: { searchParams: { view
     <main id="main" className="container py-14 md:py-20">
       <h1 className="stretch-wide text-4xl font-extrabold leading-none md:text-5xl">Trips</h1>
       <p className="measure mt-5 text-lg text-lichen">
-        Everything the group has on the calendar, and everywhere it has been. Registering needs a free sign-in with
-        Google.
+        Meetups and trips on the calendar, and everywhere the group has been. New to Sanchari? Everyone starts with a
+        meetup:{" "}
+        <Link href="/faq#joining" className="text-mist underline underline-offset-4 hover:text-signal">
+          see how joining works
+        </Link>
+        . Registering needs a free sign-in with Google.
       </p>
 
       <Tabs defaultValue={initial} className="mt-10">
