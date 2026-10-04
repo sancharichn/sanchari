@@ -74,6 +74,12 @@ describe("buildResponseSchema", () => {
     expect(result.error?.issues.map((i) => i.path.join("."))).toContain("name");
   });
 
+  it("reports a missing name even while later steps are still blank", () => {
+    const result = schema.safeParse({ anonymous: false, name: "", whatsapp: "123", ratings: {}, extras: {} });
+    const paths = result.error?.issues.map((i) => i.path.join("."));
+    expect(paths).toEqual(expect.arrayContaining(["name", "whatsapp", "overall", "ratings.venue", "comeAgain", "extras.kidsgames01"]));
+  });
+
   it("checks the WhatsApp number only when one is given", () => {
     expect(schema.safeParse({ ...valid, whatsapp: "" }).success).toBe(true);
     const bad = schema.safeParse({ ...valid, whatsapp: "12345" });

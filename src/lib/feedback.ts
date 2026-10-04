@@ -226,43 +226,21 @@ function extraAnswerSchema(q: ExtraQuestion) {
   return q.required ? schema.refine((v) => v !== null && v !== undefined, answerThis) : schema;
 }
 
-/** The full set of checks for one trip's form: the standard questions plus that trip's extras. */
+/**
+ * The full set of checks for one trip's form: the standard questions plus that
+ * trip's extras. Built from independent parts so every problem is reported at
+ * once (a cross-field check inside one big object would wait for the rest of
+ * the form to be valid first).
+ */
 export function buildResponseSchema(extras: ExtraQuestion[]) {
   const extrasShape: Record<string, z.ZodTypeAny> = {};
   for (const q of extras) extrasShape[q.id] = extraAnswerSchema(q);
 
-  return z
+  const identity = z
     .object({
       anonymous: z.boolean(),
       name: z.string().trim().max(80, "Keep your name under 80 characters.").optional().default(""),
       whatsapp: z.string().trim().max(24, "That number is too long.").optional().default(""),
-      groupSize: z.preprocess(
-        emptyToNull,
-        z.coerce
-          .number({ invalid_type_error: "Enter a number." })
-          .int("Enter a whole number.")
-          .min(1, "At least 1.")
-          .max(50, "That's more than 50.")
-          .nullable(),
-      ),
-      overall: z.coerce
-        .number({ invalid_type_error: "Pick a rating from 1 to 5." })
-        .int()
-        .min(1, "Pick a rating from 1 to 5.")
-        .max(5, "Pick a rating from 1 to 5."),
-      ratings: z.object({
-        venue: aspectAnswer,
-        food: aspectAnswer,
-        travel: aspectAnswer,
-        planning: aspectAnswer,
-        value: aspectAnswer,
-      }),
-      comeAgain: z.enum(["YES", "MAYBE", "NO"], { errorMap: () => ({ message: "Pick one." }) }),
-      extras: z.object(extrasShape),
-      loved: optionalText(1000),
-      leaderIdea: optionalText(1500),
-      nextPlace: optionalText(120),
-      shareOk: z.boolean().optional().default(false),
     })
     .superRefine((value, ctx) => {
       if (!value.anonymous && value.name.length < 2) {
@@ -276,6 +254,45 @@ export function buildResponseSchema(extras: ExtraQuestion[]) {
         });
       }
     });
+
+  const party = z.object({
+    groupSize: z.preprocess(
+      emptyToNull,
+      z.coerce
+        .number({ invalid_type_error: "Enter a number." })
+        .int("Enter a whole number.")
+        .min(1, "At least 1.")
+        .max(50, "That's more than 50.")
+        .nullable(),
+    ),
+  });
+
+  const trip = z.object({
+    overall: z.coerce
+      .number({ invalid_type_error: "Pick a rating from 1 to 5." })
+      .int()
+      .min(1, "Pick a rating from 1 to 5.")
+      .max(5, "Pick a rating from 1 to 5."),
+    ratings: z.object({
+      venue: aspectAnswer,
+      food: aspectAnswer,
+      travel: aspectAnswer,
+      planning: aspectAnswer,
+      value: aspectAnswer,
+    }),
+    comeAgain: z.enum(["YES", "MAYBE", "NO"], { errorMap: () => ({ message: "Pick one." }) }),
+  });
+
+  const activities = z.object({ extras: z.object(extrasShape) });
+
+  const ideas = z.object({
+    loved: optionalText(1000),
+    leaderIdea: optionalText(1500),
+    nextPlace: optionalText(120),
+    shareOk: z.boolean().optional().default(false),
+  });
+
+  return identity.and(party).and(trip).and(activities).and(ideas);
 }
 
 export type ResponseInput = z.input<ReturnType<typeof buildResponseSchema>>;
