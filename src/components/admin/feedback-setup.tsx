@@ -19,49 +19,22 @@ import {
 } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
-type Props = {
-  tripId: string;
-  tripTitle: string;
-  tripVisible: boolean;
-  responseCount: number;
-  form: { isOpen: boolean; intro: string | null; questions: ExtraQuestion[] } | null;
-};
-
-/** Open or close a trip's feedback form, share its link, and edit the welcome note and extra questions. */
-export function FeedbackSetup({ tripId, tripTitle, tripVisible, responseCount, form }: Props) {
-  const path = `/trips/${tripId}/feedback`;
-  const [origin, setOrigin] = useState("");
-  useEffect(() => setOrigin(window.location.origin), []);
-  const link = `${origin}${path}`;
-
-  return (
-    <div className="grid gap-10">
-      <OpenPanel tripId={tripId} tripTitle={tripTitle} isOpen={Boolean(form?.isOpen)} tripVisible={tripVisible} link={link} path={path} />
-      <QuestionsEditor
-        tripId={tripId}
-        responseCount={responseCount}
-        initialIntro={form?.intro ?? ""}
-        initialQuestions={form?.questions ?? []}
-      />
-    </div>
-  );
-}
-
-function OpenPanel({
+/** Opens or closes a trip's feedback form and shares its link. */
+export function FeedbackOpenPanel({
   tripId,
   tripTitle,
   isOpen,
   tripVisible,
-  link,
-  path,
 }: {
   tripId: string;
   tripTitle: string;
   isOpen: boolean;
   tripVisible: boolean;
-  link: string;
-  path: string;
 }) {
+  const path = `/trips/${tripId}/feedback`;
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
+  const link = `${origin}${path}`;
   const { pending, result, run } = useActionRunner();
   const [copied, setCopied] = useState(false);
   const message = `Thank you for travelling with Sanchari Chennai on ${tripTitle}! Tell us how it went, it takes a few minutes: ${link}`;
@@ -144,7 +117,8 @@ function OpenPanel({
 
 type Draft = ExtraQuestion;
 
-function QuestionsEditor({
+/** The welcome note and the trip's extra questions. */
+export function FeedbackQuestionsEditor({
   tripId,
   responseCount,
   initialIntro,

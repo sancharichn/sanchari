@@ -169,3 +169,34 @@ export async function getAllFeedback() {
     },
   });
 }
+
+/** Every response to a trip's feedback form, newest first, hidden ones included. */
+export async function getTripResponses(tripId: string) {
+  return prisma.feedbackResponse.findMany({
+    where: { tripId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      anonymous: true,
+      name: true,
+      whatsapp: true,
+      groupSize: true,
+      overall: true,
+      comeAgain: true,
+      ratings: true,
+      extras: true,
+      loved: true,
+      leaderIdea: true,
+      nextPlace: true,
+      shareOk: true,
+      featured: true,
+      hidden: true,
+      verified: true,
+      flags: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
+export type TripResponse = Awaited<ReturnType<typeof getTripResponses>>[number];

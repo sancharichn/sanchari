@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminTripView } from "@/components/admin/admin-trip-view";
-import { getAdminTrip, getPayerOptions } from "@/lib/admin-queries";
+import { getAdminTrip, getPayerOptions, getTripResponses } from "@/lib/admin-queries";
 import { requireAdmin } from "@/lib/session";
 
-type Params = { params: { id: string }; searchParams: { tab?: string } };
+type Params = { params: { id: string }; searchParams: { tab?: string; fv?: string } };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const trip = await getAdminTrip(params.id);
@@ -13,8 +13,21 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function AdminTripPage({ params, searchParams }: Params) {
   const admin = await requireAdmin();
-  const [trip, payers] = await Promise.all([getAdminTrip(params.id), getPayerOptions(params.id)]);
+  const [trip, payers, responses] = await Promise.all([
+    getAdminTrip(params.id),
+    getPayerOptions(params.id),
+    getTripResponses(params.id),
+  ]);
   if (!trip) notFound();
 
-  return <AdminTripView trip={trip} payers={payers} adminId={admin.id} tab={searchParams.tab} />;
+  return (
+    <AdminTripView
+      trip={trip}
+      payers={payers}
+      adminId={admin.id}
+      tab={searchParams.tab}
+      responses={responses}
+      verifiedOnly={searchParams.fv === "1"}
+    />
+  );
 }

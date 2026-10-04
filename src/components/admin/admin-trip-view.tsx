@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowLeft, Download, ExternalLink, Trash2 } from "lucide-react";
 import { deleteExpense, deleteTrip, removeRegistration } from "@/actions/admin";
 import { AddExpenseDialog } from "@/components/admin/add-expense-dialog";
-import { FeedbackSetup } from "@/components/admin/feedback-setup";
+import { FeedbackResults } from "@/components/admin/feedback-results";
+import { FeedbackOpenPanel, FeedbackQuestionsEditor } from "@/components/admin/feedback-setup";
 import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { GearToggle, PaymentSelect } from "@/components/admin/roster-controls";
 import { StatusSwitcher } from "@/components/admin/status-switcher";
@@ -11,7 +12,7 @@ import { StatusBadge } from "@/components/trips/trip-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { AdminTrip } from "@/lib/admin-queries";
+import type { AdminTrip, TripResponse } from "@/lib/admin-queries";
 import { formatDate, formatDateRange, formatINR, paiseToRupees, toDateInputValue, toPaise } from "@/lib/format";
 import { computeBalances, settleUp } from "@/lib/settle";
 import { parseExtraQuestions } from "@/lib/feedback";
@@ -22,9 +23,11 @@ type Props = {
   payers: Array<{ id: string; label: string }>;
   adminId: string;
   tab?: string;
+  responses: TripResponse[];
+  verifiedOnly?: boolean;
 };
 
-export function AdminTripView({ trip, payers, adminId, tab }: Props) {
+export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false }: Props) {
   const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
   const roster = [
     ...confirmed.map((r) => ({ ...r, place: "Seat" })),
@@ -55,6 +58,8 @@ export function AdminTripView({ trip, payers, adminId, tab }: Props) {
     itinerary: parseItinerary(trip.itinerary).map((d) => ({ title: d.title, details: d.details ?? "" })),
   };
   if (initialForm.itinerary.length === 0) initialForm.itinerary.push({ title: "", details: "" });
+
+  const extras = parseExtraQuestions(trip.feedbackForm?.questions);
 
   const validTabs = ["roster", "expenses", "feedback", "details"];
   const defaultTab = tab && validTabs.includes(tab) ? tab : "roster";
@@ -327,17 +332,30 @@ export function AdminTripView({ trip, payers, adminId, tab }: Props) {
 
         {/* Feedback -------------------------------------------------------- */}
         <TabsContent value="feedback">
-          <FeedbackSetup
-            tripId={trip.id}
-            tripTitle={trip.title}
-            tripVisible={isPublicStatus(trip.status)}
-            responseCount={trip._count.responses}
-            form={
-              trip.feedbackForm
-                ? { ...trip.feedbackForm, questions: parseExtraQuestions(trip.feedbackForm.questions) }
-                : null
-            }
-          />
+          <div className="grid gap-12">
+            <FeedbackOpenPanel
+              tripId={trip.id}
+              tripTitle={trip.title}
+              isOpen={Boolean(trip.feedbackForm?.isOpen)}
+              tripVisible={isPublicStatus(trip.status)}
+            />
+            {responses.length > 0 ? (
+              <FeedbackResults tripId={trip.id} responses={responses} extras={extras} verifiedOnly={verifiedOnly} />
+            ) : (
+              <p className="text-mist">
+                No answers yet. Once the form is open, answers and scores appear here as they come in.
+              </p>
+            )}
+            <div className="border-t border-ridge pt-10">
+              <FeedbackQuestionsEditor
+                key={JSON.stringify(trip.feedbackForm ?? null)}
+                tripId={trip.id}
+                responseCount={trip._count.responses}
+                initialIntro={trip.feedbackForm?.intro ?? ""}
+                initialQuestions={extras}
+              />
+            </div>
+          </div>
         </TabsContent>
 
         {/* Details --------------------------------------------------------- */}

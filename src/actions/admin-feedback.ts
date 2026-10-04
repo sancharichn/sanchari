@@ -57,3 +57,55 @@ export async function setFeedbackOpen(tripId: string, open: boolean): Promise<Ac
   revalidateFeedback(tripId);
   return done(open ? "Feedback is open. Share the link with the group." : "Feedback is closed.");
 }
+
+/** Picks (or un-picks) a response's "what I loved" for the website. Only with the writer's permission. */
+export async function setResponseFeatured(responseId: string, featured: boolean): Promise<ActionResult> {
+  if (!(await getAdmin())) return fail(NO_ACCESS);
+
+  const response = await prisma.feedbackResponse.findUnique({
+    where: { id: responseId },
+    select: { tripId: true, shareOk: true, loved: true, hidden: true },
+  });
+  if (!response) return fail("That response no longer exists.");
+  if (featured && (!response.shareOk || !response.loved)) {
+    return fail("Only answers whose writers allowed quoting, and that say what they loved, can go on the website.");
+  }
+  if (featured && response.hidden) return fail("Unhide this response before showing it on the website.");
+
+  await prisma.feedbackResponse.update({ where: { id: responseId }, data: { featured: Boolean(featured) } });
+  revalidateFeedback(response.tripId);
+  revalidatePath("/");
+  revalidatePath("/feedback");
+  return done(featured ? "Shown on the website." : "Taken off the website.");
+}
+
+/** Hides a response (spam, a joke, a duplicate) from the scores and the website without deleting it. */
+export async function setResponseHidden(responseId: string, hidden: boolean): Promise<ActionResult> {
+  if (!(await getAdmin())) return fail(NO_ACCESS);
+
+  const response = await prisma.feedbackResponse.findUnique({ where: { id: responseId }, select: { tripId: true } });
+  if (!response) return fail("That response no longer exists.");
+
+  await prisma.feedbackResponse.update({
+    where: { id: responseId },
+    data: hidden ? { hidden: true, featured: false } : { hidden: false },
+  });
+  revalidateFeedback(response.tripId);
+  revalidatePath("/");
+  revalidatePath("/feedback");
+  return done(hidden ? "Hidden. It no longer counts in the scores." : "Back in the scores.");
+}
+
+/** Deletes a response and the suggestions that came from it. */
+export async function deleteResponse(responseId: string): Promise<ActionResult> {
+  if (!(await getAdmin())) return fail(NO_ACCESS);
+
+  const response = await prisma.feedbackResponse
+    .delete({ where: { id: responseId }, select: { tripId: true } })
+    .catch(() => null);
+  if (!response) return fail("That response no longer exists.");
+  revalidateFeedback(response.tripId);
+  revalidatePath("/");
+  revalidatePath("/feedback");
+  return done("Response deleted.");
+}
