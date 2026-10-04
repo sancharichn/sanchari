@@ -5,6 +5,7 @@ export function navLinksFor(isAdmin: boolean): NavLink[] {
     { href: "/trips", label: "Trips" },
     { href: "/gallery", label: "Gallery" },
     { href: "/feedback", label: "Feedback" },
+    { href: "/faq", label: "About & FAQ" },
   ];
   if (isAdmin) links.push({ href: "/admin", label: "Organiser" });
   return links;
