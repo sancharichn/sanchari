@@ -69,17 +69,37 @@ async function listChildren(folderId: string, token: string, limit: number): Pro
   return files.slice(0, limit);
 }
 
+/** Signed proxy URLs for a Drive photo, at each width. */
+function photoSrc(fileId: string): GalleryImage["src"] {
+  const sig = signFileId(fileId);
+  return Object.fromEntries(
+    GALLERY_WIDTHS.map((w) => [w, `/api/gallery/${fileId}?w=${w}&sig=${sig}`]),
+  ) as GalleryImage["src"];
+}
+
 function toImage(file: DriveFile, albumName: string, index: number): GalleryImage {
-  const sig = signFileId(file.id);
   const meta = file.imageMediaMetadata;
   // Drive reports the stored size; thumbnails come out already rotated.
   const sideways = meta?.rotation === 1 || meta?.rotation === 3;
   const width = (sideways ? meta?.height : meta?.width) ?? null;
   const height = (sideways ? meta?.width : meta?.height) ?? null;
-  const src = Object.fromEntries(
-    GALLERY_WIDTHS.map((w) => [w, `/api/gallery/${file.id}?w=${w}&sig=${sig}`]),
-  ) as GalleryImage["src"];
-  return { id: file.id, alt: `Photo ${index + 1} from ${albumName}`, src, width, height };
+  return { id: file.id, alt: `Photo ${index + 1} from ${albumName}`, src: photoSrc(file.id), width, height };
+}
+
+/** A trip's cover photo from its Drive file id, or null when it has none (or the id is malformed). */
+export function coverPhoto(fileId: string | null | undefined, alt: string): GalleryImage | null {
+  if (!fileId || !DRIVE_ID.test(fileId)) return null;
+  return { id: fileId, alt, src: photoSrc(fileId), width: null, height: null };
+}
+
+export type CoverChoice = { id: string; thumb: string; album: string };
+
+/** Gallery photos organisers can pick a trip cover from, newest albums first. */
+export async function getCoverChoices(limit = 80): Promise<CoverChoice[]> {
+  const albums = await getGallery();
+  return albums
+    .flatMap((album) => album.images.map((image) => ({ id: image.id, thumb: image.src[480], album: album.name })))
+    .slice(0, limit);
 }
 
 async function loadGallery(folderId: string): Promise<GalleryAlbum[]> {

@@ -83,6 +83,8 @@ model Trip {
   maxCapacity   Int
   status        TripStatus         @default(DRAFT)
   kind          TripKind           @default(DAY_TRIP)
+  // A Drive file id from the gallery folder, shown on trip cards and the trip page.
+  coverPhotoId  String?
   budgetEst     Decimal?           @db.Decimal(10, 2)
   itinerary     Json?
   registrations TripRegistration[]

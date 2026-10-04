@@ -34,6 +34,7 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
   const data = {
     title: v.title,
     kind: v.kind,
+    coverPhotoId: v.coverPhotoId,
     location: v.location,
     description: v.description,
     startDate: fromDateInputValue(v.startDate),

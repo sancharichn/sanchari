@@ -7,7 +7,7 @@ import { FeedbackOpenPanel, FeedbackQuestionsEditor } from "@/components/admin/f
 import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { GearToggle, PaymentSelect } from "@/components/admin/roster-controls";
 import { StatusSwitcher } from "@/components/admin/status-switcher";
-import { TripForm, type TripFormValues } from "@/components/admin/trip-form";
+import { TripForm, type CoverOption, type TripFormValues } from "@/components/admin/trip-form";
 import { StatusBadge } from "@/components/trips/trip-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,9 +25,10 @@ type Props = {
   tab?: string;
   responses: TripResponse[];
   verifiedOnly?: boolean;
+  coverChoices?: CoverOption[];
 };
 
-export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false }: Props) {
+export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false, coverChoices = [] }: Props) {
   const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
   const roster = [
     ...confirmed.map((r) => ({ ...r, place: "Seat" })),
@@ -49,6 +50,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
   const initialForm: TripFormValues = {
     title: trip.title,
     kind: trip.kind,
+    coverPhotoId: trip.coverPhotoId ?? "",
     location: trip.location,
     description: trip.description,
     startDate: toDateInputValue(trip.startDate),
@@ -365,7 +367,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
         {/* Details --------------------------------------------------------- */}
         <TabsContent value="details">
           <div className="max-w-3xl">
-            <TripForm tripId={trip.id} initial={initialForm} />
+            <TripForm tripId={trip.id} initial={initialForm} photos={coverChoices} />
             <div className="mt-14 rounded-panel border border-ember/40 p-6">
               <h2 className="text-lg font-bold">Delete this trip</h2>
               {canDelete ? (

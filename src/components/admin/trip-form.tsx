@@ -13,6 +13,7 @@ import { ALL_STATUSES, KIND_OPTION_LABEL, STATUS_HELP, STATUS_LABEL, TRIP_KINDS,
 export type TripFormValues = {
   title: string;
   kind: TripKind;
+  coverPhotoId: string;
   location: string;
   description: string;
   startDate: string;
@@ -26,6 +27,7 @@ export type TripFormValues = {
 export const EMPTY_TRIP: TripFormValues = {
   title: "",
   kind: "DAY_TRIP",
+  coverPhotoId: "",
   location: "",
   description: "",
   startDate: "",
@@ -36,7 +38,18 @@ export const EMPTY_TRIP: TripFormValues = {
   itinerary: [{ title: "", details: "" }],
 };
 
-export function TripForm({ tripId, initial }: { tripId: string | null; initial: TripFormValues }) {
+/** A gallery photo an organiser can pick as the trip's cover. */
+export type CoverOption = { id: string; thumb: string; album: string };
+
+export function TripForm({
+  tripId,
+  initial,
+  photos,
+}: {
+  tripId: string | null;
+  initial: TripFormValues;
+  photos: CoverOption[];
+}) {
   const router = useRouter();
   const { pending, result, run, fieldErrors } = useActionRunner();
   const [values, setValues] = useState<TripFormValues>(initial);
@@ -154,6 +167,48 @@ export function TripForm({ tripId, initial }: { tripId: string | null; initial: 
             </NativeSelect>
           </Field>
         ) : null}
+      </fieldset>
+
+      <fieldset className="grid gap-4">
+        <legend className="stretch-semiwide mb-2 text-xl font-bold">Cover photo</legend>
+        <p className="-mt-1 text-sm text-lichen">
+          Shown on trip cards and at the top of the trip page. Photos come from the shared Drive gallery folder.
+        </p>
+        {err("coverPhotoId") ? <p className="text-sm text-ember">{err("coverPhotoId")}</p> : null}
+        {photos.length === 0 ? (
+          <p className="text-sm text-mist">No gallery photos yet. Add some to the Drive folder, then pick one here.</p>
+        ) : (
+          <div className="grid max-h-[26rem] grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
+            <label className="flex aspect-[4/3] cursor-pointer items-center justify-center rounded-[10px] border border-ridge p-2 text-center text-xs font-semibold text-lichen has-[:checked]:border-signal has-[:checked]:text-mist has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-signal">
+              <input
+                type="radio"
+                name="trip-cover"
+                value=""
+                checked={values.coverPhotoId === ""}
+                onChange={() => setValues((v) => ({ ...v, coverPhotoId: "" }))}
+                className="sr-only"
+              />
+              No cover photo
+            </label>
+            {photos.map((photo, i) => (
+              <label
+                key={photo.id}
+                className="relative aspect-[4/3] cursor-pointer overflow-hidden rounded-[10px] border-2 border-transparent has-[:checked]:border-signal has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal"
+              >
+                <input
+                  type="radio"
+                  name="trip-cover"
+                  value={photo.id}
+                  checked={values.coverPhotoId === photo.id}
+                  onChange={() => setValues((v) => ({ ...v, coverPhotoId: photo.id }))}
+                  className="sr-only"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element -- small thumbnail from our own photo proxy */}
+                <img src={photo.thumb} alt={`Photo ${i + 1} from ${photo.album}`} loading="lazy" className="size-full object-cover" />
+              </label>
+            ))}
+          </div>
+        )}
       </fieldset>
 
       <fieldset className="grid gap-5">

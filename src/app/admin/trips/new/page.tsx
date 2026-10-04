@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { EMPTY_TRIP, TripForm } from "@/components/admin/trip-form";
+import { getCoverChoices } from "@/lib/drive";
 
 export const metadata: Metadata = { title: "Organiser: new trip" };
 
-export default function NewTripPage() {
+export default async function NewTripPage() {
+  const photos = await getCoverChoices();
   return (
     <main id="main" className="container max-w-3xl py-10 md:py-14">
       <Link href="/admin/trips" className="inline-flex items-center gap-2 text-sm font-semibold text-lichen hover:text-mist">
@@ -18,7 +20,7 @@ export default function NewTripPage() {
         registrations.
       </p>
       <div className="mt-10">
-        <TripForm tripId={null} initial={EMPTY_TRIP} />
+        <TripForm tripId={null} initial={EMPTY_TRIP} photos={photos} />
       </div>
     </main>
   );

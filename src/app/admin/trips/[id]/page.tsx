@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminTripView } from "@/components/admin/admin-trip-view";
 import { getAdminTrip, getPayerOptions, getTripResponses } from "@/lib/admin-queries";
+import { getCoverChoices } from "@/lib/drive";
 import { requireAdmin } from "@/lib/session";
 
 type Params = { params: { id: string }; searchParams: { tab?: string; fv?: string } };
@@ -13,10 +14,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function AdminTripPage({ params, searchParams }: Params) {
   const admin = await requireAdmin();
-  const [trip, payers, responses] = await Promise.all([
+  const [trip, payers, responses, coverChoices] = await Promise.all([
     getAdminTrip(params.id),
     getPayerOptions(params.id),
     getTripResponses(params.id),
+    getCoverChoices(),
   ]);
   if (!trip) notFound();
 
@@ -28,6 +30,7 @@ export default async function AdminTripPage({ params, searchParams }: Params) {
       tab={searchParams.tab}
       responses={responses}
       verifiedOnly={searchParams.fv === "1"}
+      coverChoices={coverChoices}
     />
   );
 }

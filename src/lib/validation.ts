@@ -73,6 +73,10 @@ export const tripSchema = z
   .object({
     title: z.string().trim().min(3, "Give the trip a name.").max(120, "Keep the name under 120 characters."),
     kind: z.enum(TRIP_KIND_VALUES, { errorMap: () => ({ message: "Pick what kind of trip this is." }) }),
+    coverPhotoId: z
+      .union([z.literal(""), z.string().regex(/^[A-Za-z0-9_-]{10,200}$/, "Pick a photo from the gallery.")])
+      .optional()
+      .transform((v) => (v ? v : null)),
     location: z.string().trim().min(2, "Add where the trip goes.").max(120, "Keep the place under 120 characters."),
     description: z
       .string()
