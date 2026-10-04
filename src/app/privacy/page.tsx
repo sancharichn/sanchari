@@ -70,8 +70,13 @@ export default function PrivacyPage() {
               Your phone number, an emergency contact and your blood group, on your profile. All three are optional.
             </li>
             <li>
-              For each trip you register for: how you&apos;re getting to the start point, and the time you registered,
-              which sets your place for a seat or on the waitlist.
+              For each trip you register for: how you&apos;re getting to the start point; the time you registered,
+              which sets your place for a seat or on the waitlist; and when you confirmed you&apos;re 18 or over and
+              agreed to the group&apos;s{" "}
+              <Link className={linkClass} href="/faq#guidelines">
+                guidelines
+              </Link>
+              .
             </li>
             <li>
               Trip feedback: your ratings and answers and, unless you send it anonymously, your name, an optional
@@ -105,7 +110,8 @@ export default function PrivacyPage() {
             <li>
               <strong className="font-semibold text-mist">Organisers</strong> see everything above, including every trip
               feedback answer. They can download a trip&apos;s roster as a spreadsheet, with names, contact and emergency
-              details, blood groups, travel, payment and gear check, to use on the trip.
+              details, blood groups, travel, payment, gear check and when each person agreed to the guidelines, to use
+              on the trip.
             </li>
             <li>
               <strong className="font-semibold text-mist">Other members</strong> don&apos;t see your contact details,
