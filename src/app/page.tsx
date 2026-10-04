@@ -3,6 +3,7 @@ import { PhotoStrip } from "@/components/gallery/photo-strip";
 import { FromTheGroup } from "@/components/site/from-the-group";
 import { Hero } from "@/components/site/hero";
 import { HowToJoin } from "@/components/site/how-to-join";
+import { HowWeTravel } from "@/components/site/how-we-travel";
 import { InstagramStrip } from "@/components/site/instagram-strip";
 import { DepartureBoard } from "@/components/trips/departure-board";
 import { getLatestPhotos } from "@/lib/drive";
@@ -53,6 +54,7 @@ export default async function HomePage() {
       </section>
 
       <HowToJoin />
+      <HowWeTravel />
 
       <PhotoStrip photos={photos} />
 

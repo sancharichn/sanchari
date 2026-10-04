@@ -19,8 +19,9 @@ export function Hero({ next, signedIn }: { next: TripListItem | null; signedIn: 
             <span className="block">NATURE</span>
           </h1>
           <p className="measure mt-8 text-lg text-mist/85 md:text-xl md:leading-8">
-            Treks, forest stays and coastal rides from Chennai, planned together. We sort the route, the stays and the
-            shared costs. You bring your boots.
+            We&apos;re the Chennai unit of Sanchari, the community that began online among Malayali travel lovers over a
+            decade ago. Anyone in Chennai is welcome. We travel as volunteers, share only the real costs, and look after
+            the places we visit.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link href="/trips" className={buttonVariants({ size: "lg" })}>
@@ -31,8 +32,9 @@ export function Hero({ next, signedIn }: { next: TripListItem | null; signedIn: 
                 Your trips
               </Link>
             ) : (
-              <Link href="/signin" className={buttonVariants({ variant: "outline", size: "lg" })}>
-                Sign in with Google
+              // New visitors need the joining steps more than a sign-in; the header has Sign in.
+              <Link href="#join" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                How to join
               </Link>
             )}
           </div>
