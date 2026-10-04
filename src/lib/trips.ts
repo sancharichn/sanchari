@@ -34,7 +34,7 @@ export const STATUS_HELP: Record<TripStatus, string> = {
   WAITLIST: "Visible; new sign-ups join the waitlist once seats run out.",
   FULL: "Visible; registrations are closed.",
   ONGOING: "The group is on the trip right now.",
-  COMPLETED: "Trip is over; travellers can leave feedback.",
+  COMPLETED: "Trip is over. Open its feedback form from the trip's Feedback tab.",
   ARCHIVED: "Hidden from the site; kept for the records.",
 };
 
