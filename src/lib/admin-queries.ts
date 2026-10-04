@@ -92,6 +92,7 @@ export async function getAdminTrip(id: string) {
           paymentStatus: true,
           gearChecked: true,
           vehicleDetails: true,
+          agreedToGuidelinesAt: true,
           user: {
             select: {
               id: true,

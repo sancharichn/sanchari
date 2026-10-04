@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { registerForTrip } from "@/actions/member";
 import { FormMessage, useActionRunner } from "@/components/forms/use-action-runner";
 import { Button } from "@/components/ui/button";
@@ -39,9 +40,10 @@ export function RegisterDialog({
     emergencyContact: profile.emergencyContact ?? "",
     bloodGroup: profile.bloodGroup ?? "",
     vehicleDetails: "",
+    agreesToGuidelines: false,
   });
 
-  const set = (key: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  const set = (key: "phone" | "emergencyContact" | "bloodGroup" | "vehicleDetails") => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));
 
   const describe = (id: string, error?: string) => (error ? `${id}-error` : `${id}-hint`);
@@ -149,6 +151,39 @@ export function RegisterDialog({
                 aria-describedby={describe("reg-vehicle", fieldErrors.vehicleDetails)}
               />
             </Field>
+
+            <div>
+              <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-ridge p-4 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal">
+                <input
+                  type="checkbox"
+                  id="reg-guidelines"
+                  checked={values.agreesToGuidelines}
+                  onChange={(e) => setValues((v) => ({ ...v, agreesToGuidelines: e.target.checked }))}
+                  aria-invalid={Boolean(fieldErrors.agreesToGuidelines)}
+                  aria-describedby={fieldErrors.agreesToGuidelines ? "reg-guidelines-error" : undefined}
+                  className="mt-0.5 size-4 shrink-0 accent-[#FFE600]"
+                />
+                <span className="text-sm text-mist">
+                  I&apos;m 18 or over, and I agree to follow Sanchari&apos;s guidelines: no alcohol, tobacco or drugs, no
+                  litter, and the code of conduct.
+                </span>
+              </label>
+              <a
+                href="/faq#guidelines"
+                target="_blank"
+                rel="noopener"
+                className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-mist underline underline-offset-4 hover:text-signal"
+              >
+                Read the guidelines
+                <ExternalLink className="size-3.5" aria-hidden="true" />
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+              {fieldErrors.agreesToGuidelines ? (
+                <p id="reg-guidelines-error" className="mt-2 text-sm text-ember">
+                  {fieldErrors.agreesToGuidelines}
+                </p>
+              ) : null}
+            </div>
 
             <FormMessage result={result} />
 

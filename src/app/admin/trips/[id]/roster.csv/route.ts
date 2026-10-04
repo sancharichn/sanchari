@@ -29,10 +29,23 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     PAYMENT_LABEL[r.paymentStatus],
     r.gearChecked ? "Yes" : "No",
     formatDateTime(r.createdAt),
+    r.agreedToGuidelinesAt ? formatDateTime(r.agreedToGuidelinesAt) : "Registered before this was asked",
   ]);
 
   const csv = toCsv([
-    ["Place", "Name", "Email", "Phone", "Emergency contact", "Blood group", "Getting there", "Payment", "Gear checked", "Registered"],
+    [
+      "Place",
+      "Name",
+      "Email",
+      "Phone",
+      "Emergency contact",
+      "Blood group",
+      "Getting there",
+      "Payment",
+      "Gear checked",
+      "Registered",
+      "Agreed to guidelines (18 or over)",
+    ],
     ...rows,
   ]);
 

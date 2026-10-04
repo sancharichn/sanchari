@@ -35,6 +35,10 @@ export const registrationSchema = profileSchema.extend({
     .max(200, "Keep vehicle details under 200 characters.")
     .optional()
     .transform((v) => (v ? v : null)),
+  // Adults only, and everyone on a trip follows the guidelines (see /faq#guidelines).
+  agreesToGuidelines: z.literal(true, {
+    errorMap: () => ({ message: "Tick this box to register. Everyone on a trip agrees to the guidelines." }),
+  }),
 });
 
 export const feedbackSchema = z.object({

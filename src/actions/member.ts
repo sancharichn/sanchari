@@ -41,7 +41,9 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
   try {
     const [, registration] = await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { phone, emergencyContact, bloodGroup } }),
-      prisma.tripRegistration.create({ data: { userId: user.id, tripId: trip.id, vehicleDetails } }),
+      prisma.tripRegistration.create({
+        data: { userId: user.id, tripId: trip.id, vehicleDetails, agreedToGuidelinesAt: new Date() },
+      }),
     ]);
     registrationId = registration.id;
   } catch (error) {

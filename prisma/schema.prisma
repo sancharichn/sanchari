@@ -95,15 +95,17 @@ model Trip {
 }
 
 model TripRegistration {
-  id             String        @id @default(cuid())
-  userId         String
-  tripId         String
-  vehicleDetails String?
-  paymentStatus  PaymentStatus @default(PENDING)
-  gearChecked    Boolean       @default(false)
-  user           User          @relation(fields: [userId], references: [id])
-  trip           Trip          @relation(fields: [tripId], references: [id])
-  createdAt      DateTime      @default(now())
+  id                   String        @id @default(cuid())
+  userId               String
+  tripId               String
+  vehicleDetails       String?
+  paymentStatus        PaymentStatus @default(PENDING)
+  gearChecked          Boolean       @default(false)
+  // When they ticked "18 or over, and I agree to the guidelines". Empty for registrations made before it was asked.
+  agreedToGuidelinesAt DateTime?
+  user                 User          @relation(fields: [userId], references: [id])
+  trip                 Trip          @relation(fields: [tripId], references: [id])
+  createdAt            DateTime      @default(now())
 
   @@unique([userId, tripId])
 }
