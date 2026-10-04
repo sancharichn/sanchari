@@ -92,6 +92,22 @@ export async function getTripForPage(id: string) {
 
 export type TripForPage = NonNullable<Awaited<ReturnType<typeof getTripForPage>>>;
 
+/** A trip with its feedback form, for the feedback page. */
+export async function getFeedbackFormTrip(id: string) {
+  return prisma.trip.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      startDate: true,
+      endDate: true,
+      status: true,
+      feedbackForm: { select: { id: true, isOpen: true, intro: true, questions: true } },
+    },
+  });
+}
+
 /** Totals for the home page; only shown once there is something to count. */
 export async function getGroupStats() {
   const [completedTrips, members] = await Promise.all([
