@@ -19,6 +19,8 @@ export type TripViewer = { user: CurrentUser; profile: ProfileDefaults } | null;
 export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPage; viewer: TripViewer; now?: Date }) {
   const days = parseItinerary(trip.itinerary);
   const started = trip.startDate.getTime() <= now.getTime();
+  // Once a trip is under way, "posted closer to departure" and "to be confirmed" no longer make sense.
+  const departed = started || trip.status === "ONGOING" || trip.status === "COMPLETED";
   const isAdmin = viewer?.user.role === "ADMIN";
 
   const { confirmed } = splitRoster(trip.registrations, trip.maxCapacity);
@@ -58,10 +60,12 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             <Fact label="When" value={formatDateRange(trip.startDate, trip.endDate)} />
             <Fact label="Where" value={trip.location} />
             <Fact label="Length" value={durationLabel(trip.startDate, trip.endDate)} />
-            <Fact
-              label="Estimated cost"
-              value={trip.budgetEst ? `${formatINR(trip.budgetEst)} per person` : "To be confirmed"}
-            />
+            {trip.budgetEst || !departed ? (
+              <Fact
+                label="Estimated cost"
+                value={trip.budgetEst ? `${formatINR(trip.budgetEst)} per person` : "To be confirmed"}
+              />
+            ) : null}
           </dl>
         </div>
       </header>
@@ -75,14 +79,16 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             <p className="measure mt-5 whitespace-pre-line leading-relaxed text-mist/90">{trip.description}</p>
           </section>
 
-          <section aria-labelledby="plan-heading">
-            <h2 id="plan-heading" className="stretch-semiwide text-2xl font-bold">
-              Day by day
-            </h2>
-            <div className="mt-8">
-              <ItineraryTrail days={days} />
-            </div>
-          </section>
+          {days.length > 0 || !departed ? (
+            <section aria-labelledby="plan-heading">
+              <h2 id="plan-heading" className="stretch-semiwide text-2xl font-bold">
+                Day by day
+              </h2>
+              <div className="mt-8">
+                <ItineraryTrail days={days} />
+              </div>
+            </section>
+          ) : null}
 
           {showAccounts && viewer ? (
             <TripAccounts
