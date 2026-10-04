@@ -347,8 +347,10 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
               </p>
             )}
             <div className="border-t border-ridge pt-10">
+              {/* Keyed by trip only, so a page refresh (after saving, or opening the form) keeps the editor's
+                  unsaved edits and its "Form saved" message. */}
               <FeedbackQuestionsEditor
-                key={JSON.stringify(trip.feedbackForm ?? null)}
+                key={trip.id}
                 tripId={trip.id}
                 responseCount={trip._count.responses}
                 initialIntro={trip.feedbackForm?.intro ?? ""}

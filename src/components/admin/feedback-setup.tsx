@@ -388,7 +388,8 @@ export function FeedbackQuestionsEditor({
           {pending ? "Saving…" : "Save form"}
         </Button>
         {dirty && !pending ? <span className={cn("text-sm text-lichen")}>Unsaved changes</span> : null}
-        <FormMessage result={result} />
+        {/* Once they edit again, "Unsaved changes" replaces the old "Form saved". Errors stay until the next save. */}
+        {dirty && result?.ok ? null : <FormMessage result={result} />}
       </div>
     </form>
   );
