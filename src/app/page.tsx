@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PhotoStrip } from "@/components/gallery/photo-strip";
 import { FromTheGroup } from "@/components/site/from-the-group";
 import { Hero } from "@/components/site/hero";
+import { HomeQuestions } from "@/components/site/home-questions";
 import { HowToJoin } from "@/components/site/how-to-join";
 import { HowWeTravel } from "@/components/site/how-we-travel";
 import { InstagramStrip } from "@/components/site/instagram-strip";
@@ -59,6 +60,8 @@ export default async function HomePage() {
       <PhotoStrip photos={photos} />
 
       <FromTheGroup items={feedback} />
+
+      <HomeQuestions />
 
       <InstagramStrip />
     </main>
