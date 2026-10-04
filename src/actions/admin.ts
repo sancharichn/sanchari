@@ -72,11 +72,11 @@ export async function deleteTrip(tripId: string): Promise<ActionResult> {
 
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },
-    select: { _count: { select: { registrations: true, expenses: true, feedbacks: true } } },
+    select: { _count: { select: { registrations: true, expenses: true, feedbacks: true, responses: true } } },
   });
   if (!trip) return fail("That trip no longer exists.");
-  const { registrations, expenses, feedbacks } = trip._count;
-  if (registrations + expenses + feedbacks > 0) {
+  const { registrations, expenses, feedbacks, responses } = trip._count;
+  if (registrations + expenses + feedbacks + responses > 0) {
     return fail("This trip has registrations, expenses or feedback, so it can't be deleted. Set it to Archived instead.");
   }
 

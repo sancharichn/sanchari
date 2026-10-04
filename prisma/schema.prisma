@@ -30,6 +30,24 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum ComeAgain {
+  YES
+  MAYBE
+  NO
+}
+
+enum SuggestionKind {
+  IDEA
+  PLACE
+}
+
+enum SuggestionStatus {
+  NEW
+  PLANNED
+  DONE
+  NOT_NOW
+}
+
 model User {
   id               String             @id @default(cuid())
   name             String?
@@ -42,6 +60,7 @@ model User {
   registrations    TripRegistration[]
   feedbacks        Feedback[]
   expensesPaid     Expense[]          @relation("PaidBy")
+  feedbackAnswers  FeedbackResponse[]
   createdAt        DateTime           @default(now())
 }
 
@@ -59,6 +78,9 @@ model Trip {
   registrations TripRegistration[]
   expenses      Expense[]
   feedbacks     Feedback[]
+  feedbackForm  FeedbackForm?
+  responses     FeedbackResponse[]
+  suggestions   Suggestion[]
   createdAt     DateTime           @default(now())
 }
 
@@ -98,4 +120,76 @@ model Feedback {
   user      User     @relation(fields: [userId], references: [id])
   trip      Trip?    @relation(fields: [tripId], references: [id])
   createdAt DateTime @default(now())
+}
+
+/// A trip's feedback form: the standard questions plus the organiser's extras.
+model FeedbackForm {
+  id        String             @id @default(cuid())
+  tripId    String             @unique
+  isOpen    Boolean            @default(false)
+  intro     String?
+  /// Extra questions for this trip: [{ id, type, label, help, options, required }]
+  questions Json               @default("[]")
+  trip      Trip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  responses FeedbackResponse[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+/// One person's (or one family's) answers. Anonymous answers keep no name, number or account.
+model FeedbackResponse {
+  id            String       @id @default(cuid())
+  formId        String
+  tripId        String
+  userId        String?
+  anonymous     Boolean      @default(false)
+  name          String?
+  whatsapp      String?
+  groupSize     Int?
+  overall       Int
+  comeAgain     ComeAgain
+  /// The standard aspects: { venue, food, travel, planning, value } -> EXCELLENT | GOOD | NEEDS_WORK | NA
+  ratings       Json
+  /// Answers to the trip's extra questions, keyed by question id
+  extras        Json         @default("{}")
+  loved         String?
+  leaderIdea    String?
+  nextPlace     String?
+  shareOk       Boolean      @default(false)
+  featured      Boolean      @default(false)
+  hidden        Boolean      @default(false)
+  verified      Boolean      @default(false)
+  flags         String[]     @default([])
+  secondsToFill Int?
+  /// Keyed hash of the account or device, so a second submission replaces the first
+  dedupeKey     String
+  ipHash        String?
+  form          FeedbackForm @relation(fields: [formId], references: [id])
+  trip          Trip         @relation(fields: [tripId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  suggestions   Suggestion[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([formId, dedupeKey])
+  @@index([tripId, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+/// An idea or a destination taken from a response, tracked on the suggestions board.
+model Suggestion {
+  id         String            @id @default(cuid())
+  responseId String?
+  tripId     String?
+  kind       SuggestionKind
+  text       String
+  topic      String
+  status     SuggestionStatus  @default(NEW)
+  note       String?
+  response   FeedbackResponse? @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  trip       Trip?             @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([status, topic])
 }
