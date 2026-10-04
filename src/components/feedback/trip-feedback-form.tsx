@@ -735,18 +735,29 @@ function ExtraAnswer({
       />
     );
   }
+  // Laid out like the star and choice questions around it: question, then hint, then the answer box.
   return (
-    <Field label={question.label} htmlFor={id} hint={hint || undefined} error={error}>
+    <div>
+      <label htmlFor={id} className="block font-semibold text-mist">
+        {question.label}
+      </label>
+      {hint ? (
+        <p id={`${id}-hint`} className="mt-0.5 text-sm text-lichen">
+          {hint}
+        </p>
+      ) : null}
       <Textarea
         id={id}
         rows={3}
         maxLength={1000}
+        className="mt-2.5"
         value={typeof value === "string" ? value : ""}
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
+        aria-describedby={[error ? `${id}-error` : "", hint ? `${id}-hint` : ""].filter(Boolean).join(" ") || undefined}
       />
-    </Field>
+      <ErrorText id={id} error={error} />
+    </div>
   );
 }
 
