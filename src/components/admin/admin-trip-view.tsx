@@ -16,7 +16,7 @@ import type { AdminTrip, TripResponse } from "@/lib/admin-queries";
 import { formatDate, formatDateRange, formatINR, paiseToRupees, toDateInputValue, toPaise } from "@/lib/format";
 import { computeBalances, settleUp } from "@/lib/settle";
 import { parseExtraQuestions } from "@/lib/feedback";
-import { isPublicStatus, parseItinerary, splitRoster } from "@/lib/trips";
+import { isPublicStatus, parseItinerary, splitRoster, tripTypeLabel } from "@/lib/trips";
 
 type Props = {
   trip: AdminTrip;
@@ -48,6 +48,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
 
   const initialForm: TripFormValues = {
     title: trip.title,
+    kind: trip.kind,
     location: trip.location,
     description: trip.description,
     startDate: toDateInputValue(trip.startDate),
@@ -76,7 +77,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
           <StatusBadge status={trip.status} />
           <h1 className="stretch-semiwide mt-3 text-3xl font-bold leading-tight md:text-4xl">{trip.title}</h1>
           <p className="mt-2 text-lichen">
-            {formatDateRange(trip.startDate, trip.endDate)}, {trip.location}
+            {formatDateRange(trip.startDate, trip.endDate)}, {trip.location},{" "}
+            {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href={`/trips/${trip.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>

@@ -64,6 +64,7 @@ export async function getAdminTrips() {
       startDate: true,
       endDate: true,
       status: true,
+      kind: true,
       maxCapacity: true,
       registrations: { select: { id: true, createdAt: true, paymentStatus: true } },
     },

@@ -23,6 +23,15 @@ enum TripStatus {
   ARCHIVED
 }
 
+// What kind of outing a trip is, which decides who can join it (see /faq#joining).
+enum TripKind {
+  MEETUP
+  DAY_TRIP
+  STAY_BACK
+  INTERNATIONAL
+  TREK
+}
+
 enum PaymentStatus {
   PENDING
   PARTIAL
@@ -73,6 +82,7 @@ model Trip {
   location      String
   maxCapacity   Int
   status        TripStatus         @default(DRAFT)
+  kind          TripKind           @default(DAY_TRIP)
   budgetEst     Decimal?           @db.Decimal(10, 2)
   itinerary     Json?
   registrations TripRegistration[]

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dateBlock, formatDateRange, formatINR, fromDateInputValue, toDateInputValue, toPaise, tripDays } from "./format";
-import { parseItinerary, rosterPosition, seatSummary, showsSeats, splitRoster } from "./trips";
+import { parseItinerary, rosterPosition, seatSummary, showsSeats, splitRoster, tripTypeLabel, WHO_CAN_JOIN } from "./trips";
 
 const reg = (id: string, minute: number) => ({ id, createdAt: new Date(Date.UTC(2026, 9, 1, 10, minute)) });
 
@@ -23,6 +23,29 @@ describe("seatSummary", () => {
   it("reports seats left and the waitlist", () => {
     expect(seatSummary(12, 20)).toMatchObject({ taken: 12, left: 8, waitlist: 0 });
     expect(seatSummary(23, 20)).toMatchObject({ taken: 20, left: 0, waitlist: 3, ratio: 1 });
+  });
+});
+
+describe("tripTypeLabel", () => {
+  const day = fromDateInputValue("2026-11-14");
+  const next = fromDateInputValue("2026-11-15");
+
+  it("names the type, with the length for longer trips", () => {
+    expect(tripTypeLabel("DAY_TRIP", day, day)).toBe("Day trip");
+    expect(tripTypeLabel("MEETUP", day, day)).toBe("Meetup");
+    expect(tripTypeLabel("STAY_BACK", day, next)).toBe("2-day stay-back trip");
+    expect(tripTypeLabel("TREK", day, fromDateInputValue("2026-11-16"))).toBe("3-day trek");
+    expect(tripTypeLabel("INTERNATIONAL", day, fromDateInputValue("2026-11-19"))).toBe("6-day international trip");
+  });
+
+  it("doesn't call a trip over several days a day trip", () => {
+    expect(tripTypeLabel("DAY_TRIP", day, next)).toBe("2-day trip");
+  });
+
+  it("says who can join every type", () => {
+    expect(WHO_CAN_JOIN.MEETUP).toMatch(/open to everyone/i);
+    expect(WHO_CAN_JOIN.DAY_TRIP).toMatch(/two meetups in a row/);
+    expect(Object.values(WHO_CAN_JOIN).every((text) => text.length > 20)).toBe(true);
   });
 });
 

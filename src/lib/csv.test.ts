@@ -26,6 +26,7 @@ describe("slugify", () => {
 describe("tripSchema", () => {
   const base = {
     title: "Kolli Hills night trek",
+    kind: "STAY_BACK",
     location: "Namakkal",
     description: "A night walk to the falls.",
     startDate: "2026-11-07",
@@ -50,6 +51,13 @@ describe("tripSchema", () => {
     const result = tripSchema.safeParse({ ...base, endDate: "2026-11-01" });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].path).toEqual(["endDate"]);
+  });
+
+  it("needs to know what kind of trip it is", () => {
+    const { kind: _kind, ...withoutKind } = base;
+    expect(tripSchema.safeParse(withoutKind).error?.issues[0].path).toEqual(["kind"]);
+    expect(tripSchema.safeParse({ ...base, kind: "CRUISE" }).success).toBe(false);
+    expect(tripSchema.parse(base).kind).toBe("STAY_BACK");
   });
 
   it("asks for a title when a day has details", () => {

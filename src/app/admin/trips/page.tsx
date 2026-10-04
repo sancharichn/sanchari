@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getAdminTrips } from "@/lib/admin-queries";
 import { formatDateRange } from "@/lib/format";
+import { tripTypeLabel } from "@/lib/trips";
 
 export const metadata: Metadata = { title: "Organiser: trips" };
 
@@ -48,7 +49,9 @@ export default async function AdminTripsPage() {
                     <Link href={`/admin/trips/${trip.id}`} className="font-semibold text-mist underline-offset-4 hover:text-signal hover:underline">
                       {trip.title}
                     </Link>
-                    <p className="text-xs text-lichen">{trip.location}</p>
+                    <p className="text-xs text-lichen">
+                      {trip.location}, {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
+                    </p>
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-lichen">{formatDateRange(trip.startDate, trip.endDate)}</TableCell>
                   <TableCell>

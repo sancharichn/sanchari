@@ -63,10 +63,12 @@ const dateInput = (message: string) => z.string().trim().regex(/^\d{4}-\d{2}-\d{
 const rupees = (message: string) => z.string().trim().regex(/^\d{1,8}(\.\d{1,2})?$/, message);
 
 export const TRIP_STATUS_VALUES = ["DRAFT", "OPEN", "WAITLIST", "FULL", "ONGOING", "COMPLETED", "ARCHIVED"] as const;
+export const TRIP_KIND_VALUES = ["MEETUP", "DAY_TRIP", "STAY_BACK", "INTERNATIONAL", "TREK"] as const;
 
 export const tripSchema = z
   .object({
     title: z.string().trim().min(3, "Give the trip a name.").max(120, "Keep the name under 120 characters."),
+    kind: z.enum(TRIP_KIND_VALUES, { errorMap: () => ({ message: "Pick what kind of trip this is." }) }),
     location: z.string().trim().min(2, "Add where the trip goes.").max(120, "Keep the place under 120 characters."),
     description: z
       .string()

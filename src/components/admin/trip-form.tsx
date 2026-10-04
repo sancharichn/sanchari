@@ -3,15 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import type { TripStatus } from "@prisma/client";
+import type { TripKind, TripStatus } from "@prisma/client";
 import { saveTrip } from "@/actions/admin";
 import { FormMessage, useActionRunner } from "@/components/forms/use-action-runner";
 import { Button } from "@/components/ui/button";
 import { Field, Input, NativeSelect, Textarea } from "@/components/ui/form";
-import { ALL_STATUSES, STATUS_HELP, STATUS_LABEL } from "@/lib/trips";
+import { ALL_STATUSES, KIND_OPTION_LABEL, STATUS_HELP, STATUS_LABEL, TRIP_KINDS, WHO_CAN_JOIN } from "@/lib/trips";
 
 export type TripFormValues = {
   title: string;
+  kind: TripKind;
   location: string;
   description: string;
   startDate: string;
@@ -24,6 +25,7 @@ export type TripFormValues = {
 
 export const EMPTY_TRIP: TripFormValues = {
   title: "",
+  kind: "DAY_TRIP",
   location: "",
   description: "",
   startDate: "",
@@ -85,6 +87,20 @@ export function TripForm({ tripId, initial }: { tripId: string | null; initial: 
         <legend className="stretch-semiwide mb-2 text-xl font-bold">The trip</legend>
         <Field label="Name" htmlFor="trip-title" error={err("title")}>
           <Input id="trip-title" value={values.title} onChange={set("title")} {...aria("trip-title", "title")} />
+        </Field>
+        <Field
+          label="Type"
+          htmlFor="trip-kind"
+          hint={`Who can join, as the trip page will say: ${WHO_CAN_JOIN[values.kind]}`}
+          error={err("kind")}
+        >
+          <NativeSelect id="trip-kind" value={values.kind} onChange={set("kind")} {...aria("trip-kind", "kind", true)}>
+            {TRIP_KINDS.map((k) => (
+              <option key={k} value={k}>
+                {KIND_OPTION_LABEL[k]}
+              </option>
+            ))}
+          </NativeSelect>
         </Field>
         <Field label="Where" htmlFor="trip-location" hint="Town or area, for example: Kolli Hills, Namakkal" error={err("location")}>
           <Input id="trip-location" value={values.location} onChange={set("location")} {...aria("trip-location", "location", true)} />

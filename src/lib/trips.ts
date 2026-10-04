@@ -1,5 +1,48 @@
 import { z } from "zod";
-import type { PaymentStatus, TripStatus } from "@prisma/client";
+import type { PaymentStatus, TripKind, TripStatus } from "@prisma/client";
+import { tripDays } from "./format";
+import { JOIN_STEPS, TREKS_NOTE } from "./joining";
+
+/* ----------------------------------------------------------------------------
+ * Trip types: what kind of outing it is, which decides who can join
+ * ------------------------------------------------------------------------- */
+
+export const TRIP_KINDS: TripKind[] = ["MEETUP", "DAY_TRIP", "STAY_BACK", "INTERNATIONAL", "TREK"];
+
+/** The names organisers pick from. */
+export const KIND_OPTION_LABEL: Record<TripKind, string> = {
+  MEETUP: "Meetup",
+  DAY_TRIP: "One-day trip or event",
+  STAY_BACK: "Stay-back, night or multi-day trip",
+  INTERNATIONAL: "International trip",
+  TREK: "Trek (Health & Fitness group)",
+};
+
+/** Who each kind is open to, worded as on the About & FAQ page. */
+export const WHO_CAN_JOIN: Record<TripKind, string> = {
+  MEETUP: JOIN_STEPS[0].body,
+  DAY_TRIP: JOIN_STEPS[1].body,
+  STAY_BACK: JOIN_STEPS[2].body,
+  INTERNATIONAL: JOIN_STEPS[3].body,
+  TREK: TREKS_NOTE,
+};
+
+const KIND_NOUN: Record<TripKind, string> = {
+  MEETUP: "meetup",
+  DAY_TRIP: "day trip",
+  STAY_BACK: "stay-back trip",
+  INTERNATIONAL: "international trip",
+  TREK: "trek",
+};
+
+/** "Day trip", "Meetup", "2-day stay-back trip": the type, with the length when it's more than a day. */
+export function tripTypeLabel(kind: TripKind, start: Date, end: Date): string {
+  const days = tripDays(start, end);
+  // A "day trip" over several days would read oddly; call it a trip.
+  const noun = days > 1 && kind === "DAY_TRIP" ? "trip" : KIND_NOUN[kind];
+  const label = days > 1 ? `${days}-day ${noun}` : noun;
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   PENDING: "Not recorded yet",
