@@ -4,6 +4,7 @@ import { FeedbackCard } from "@/components/members/feedback-card";
 import type { ProfileDefaults } from "@/components/members/register-dialog";
 import { ContourField } from "@/components/site/contour-field";
 import { buttonVariants } from "@/components/ui/button";
+import { coverPhoto } from "@/lib/drive";
 import { formatDateRange, formatINR } from "@/lib/format";
 import { reviewToCard, type TripForPage } from "@/lib/queries";
 import type { CurrentUser } from "@/lib/session";
@@ -18,6 +19,7 @@ export type TripViewer = { user: CurrentUser; profile: ProfileDefaults } | null;
 /** The whole trip page, given its data. Kept separate from fetching so it can be previewed. */
 export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPage; viewer: TripViewer; now?: Date }) {
   const days = parseItinerary(trip.itinerary);
+  const cover = coverPhoto(trip.coverPhotoId, trip.title);
   const started = trip.startDate.getTime() <= now.getTime();
   // Once a trip is under way, "posted closer to departure" and "to be confirmed" no longer make sense.
   const departed = started || trip.status === "ONGOING" || trip.status === "COMPLETED";
@@ -36,7 +38,22 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
   return (
     <main id="main">
       <header className="relative isolate overflow-hidden border-b border-ridge">
-        <ContourField className="opacity-70 [mask-image:linear-gradient(to_bottom,black_35%,transparent)]" />
+        {cover ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- already resized and cached by our own photo proxy */}
+            <img
+              src={cover.src[1600]}
+              srcSet={`${cover.src[960]} 960w, ${cover.src[1600]} 1600w`}
+              sizes="100vw"
+              alt=""
+              fetchPriority="high"
+              className="absolute inset-0 -z-10 size-full object-cover"
+            />
+            <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-night via-night/75 to-night/35" />
+          </>
+        ) : (
+          <ContourField className="opacity-70 [mask-image:linear-gradient(to_bottom,black_35%,transparent)]" />
+        )}
         <div className="container relative py-12 md:py-16">
           <Link href="/trips" className="inline-flex items-center gap-2 text-sm font-semibold text-lichen hover:text-mist">
             <ArrowLeft className="size-4" aria-hidden="true" />
