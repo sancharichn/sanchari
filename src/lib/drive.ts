@@ -1,6 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { DRIVE_READONLY_SCOPE, getGoogleAccessToken, signFileId } from "@/lib/google";
+import { SITE_COVERS, SITE_COVER_PREFIX, siteCover } from "@/lib/site-covers";
 
 /*
  * The gallery is a Google Drive folder shared (Viewer) with the service
@@ -88,7 +89,10 @@ function toImage(file: DriveFile, albumName: string, index: number): GalleryImag
 
 /** A trip's cover photo from its Drive file id, or null when it has none (or the id is malformed). */
 export function coverPhoto(fileId: string | null | undefined, alt: string): GalleryImage | null {
-  if (!fileId || !DRIVE_ID.test(fileId)) return null;
+  if (!fileId) return null;
+  const site = siteCover(fileId);
+  if (site) return { id: fileId, alt: site.alt, src: { 480: site.path, 960: site.path, 1600: site.path }, width: null, height: null };
+  if (!DRIVE_ID.test(fileId)) return null;
   return { id: fileId, alt, src: photoSrc(fileId), width: null, height: null };
 }
 
@@ -97,9 +101,11 @@ export type CoverChoice = { id: string; thumb: string; album: string };
 /** Gallery photos organisers can pick a trip cover from, newest albums first. */
 export async function getCoverChoices(limit = 80): Promise<CoverChoice[]> {
   const albums = await getGallery();
-  return albums
-    .flatMap((album) => album.images.map((image) => ({ id: image.id, thumb: image.src[480], album: album.name })))
-    .slice(0, limit);
+  const site = SITE_COVERS.map((c) => ({ id: `${SITE_COVER_PREFIX}${c.file}`, thumb: `/covers/${c.file}`, album: "the site" }));
+  return [
+    ...site,
+    ...albums.flatMap((album) => album.images.map((image) => ({ id: image.id, thumb: image.src[480], album: album.name }))),
+  ].slice(0, limit);
 }
 
 async function loadGallery(folderId: string): Promise<GalleryAlbum[]> {
