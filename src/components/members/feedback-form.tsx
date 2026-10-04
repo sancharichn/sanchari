@@ -4,28 +4,14 @@ import { useState } from "react";
 import { submitFeedback } from "@/actions/member";
 import { FormMessage, useActionRunner } from "@/components/forms/use-action-runner";
 import { Button } from "@/components/ui/button";
-import { Field, NativeSelect, Textarea } from "@/components/ui/form";
+import { Field, Textarea } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
 const RATING_WORDS = ["", "Poor", "Below par", "Good", "Great", "Loved it"];
 
-type TripOption = { id: string; title: string };
-
-/**
- * Feedback for one completed trip (tripId fixed), or a choice between the
- * member's completed trips and general feedback about the group.
- */
-export function FeedbackForm({
-  trips = [],
-  fixedTripId,
-  idPrefix = "fb",
-}: {
-  trips?: TripOption[];
-  fixedTripId?: string;
-  idPrefix?: string;
-}) {
+/** A note about the group in general. Trip feedback goes through each trip's own form. */
+export function FeedbackForm({ idPrefix = "fb" }: { idPrefix?: string }) {
   const { pending, result, setResult, run, fieldErrors } = useActionRunner();
-  const [tripId, setTripId] = useState(fixedTripId ?? "");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
@@ -56,21 +42,9 @@ export function FeedbackForm({
       className="grid gap-5 rounded-panel border border-ridge bg-basalt p-6"
       onSubmit={(e) => {
         e.preventDefault();
-        void run(() => submitFeedback({ tripId: tripId || undefined, rating, comment }));
+        void run(() => submitFeedback({ rating, comment }));
       }}
     >
-      {!fixedTripId ? (
-        <Field label="About" htmlFor={`${idPrefix}-trip`}>
-          <NativeSelect id={`${idPrefix}-trip`} value={tripId} onChange={(e) => setTripId(e.target.value)}>
-            <option value="">The group in general</option>
-            {trips.map((trip) => (
-              <option key={trip.id} value={trip.id}>
-                {trip.title}
-              </option>
-            ))}
-          </NativeSelect>
-        </Field>
-      ) : null}
 
       <fieldset className="grid gap-2" aria-describedby={fieldErrors.rating ? `${idPrefix}-rating-error` : undefined}>
         <legend className="mb-2 text-sm font-semibold text-mist">How was it?</legend>

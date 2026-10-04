@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquareHeart } from "lucide-react";
 import { FeedbackCard } from "@/components/members/feedback-card";
-import { FeedbackForm } from "@/components/members/feedback-form";
 import type { ProfileDefaults } from "@/components/members/register-dialog";
 import { ContourField } from "@/components/site/contour-field";
+import { buttonVariants } from "@/components/ui/button";
 import { durationLabel, formatDateRange, formatINR } from "@/lib/format";
-import type { TripForPage } from "@/lib/queries";
+import { reviewToCard, type TripForPage } from "@/lib/queries";
 import type { CurrentUser } from "@/lib/session";
 import { isPublicStatus, parseItinerary, rosterPosition, splitRoster, STATUS_LABEL } from "@/lib/trips";
 import { ItineraryTrail } from "./itinerary-trail";
@@ -27,8 +27,9 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
   const travelling = myPlace?.kind === "confirmed";
 
   const showAccounts = Boolean(viewer) && (travelling || isAdmin);
-  const canReview = trip.status === "COMPLETED" && travelling;
-  const myReview = viewer ? trip.feedbacks.find((f) => f.userId === viewer.user.id) : undefined;
+  const feedbackOpen = Boolean(trip.feedbackForm?.isOpen) && isPublicStatus(trip.status);
+  const reviews = trip.responses.map((r) => reviewToCard(r));
+  const feedbackHref = `/trips/${trip.id}/feedback`;
 
   return (
     <main id="main">
@@ -92,38 +93,48 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             />
           ) : null}
 
-          {trip.status === "COMPLETED" ? (
+          {trip.status === "COMPLETED" || feedbackOpen || reviews.length > 0 ? (
             <section aria-labelledby="reviews-heading">
               <h2 id="reviews-heading" className="stretch-semiwide text-2xl font-bold">
                 From the people who went
               </h2>
-              {trip.feedbacks.length > 0 ? (
+              {feedbackOpen ? (
+                <div className="mt-6 flex max-w-2xl flex-wrap items-center justify-between gap-4 rounded-panel border border-signal/50 bg-basalt p-5">
+                  <p className="text-mist">
+                    <span className="font-semibold">Were you on this trip?</span>{" "}
+                    <span className="text-lichen">Tell us how it went. It takes about three minutes.</span>
+                  </p>
+                  <Link href={feedbackHref} className={buttonVariants({ size: "sm" })}>
+                    <MessageSquareHeart className="size-4" aria-hidden="true" />
+                    Give feedback
+                  </Link>
+                </div>
+              ) : null}
+              {reviews.length > 0 ? (
                 <ul className="mt-8 grid gap-5 sm:grid-cols-2">
-                  {trip.feedbacks.map((f) => (
-                    <li key={f.id}>
-                      <FeedbackCard item={f} showTrip={false} />
+                  {reviews.map((item) => (
+                    <li key={item.id}>
+                      <FeedbackCard item={item} showTrip={false} />
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="mt-4 text-lichen">No reviews yet.</p>
-              )}
-              {canReview ? (
-                <div className="mt-10 max-w-2xl">
-                  <h3 className="text-lg font-bold">{myReview ? "Update your review" : "Review this trip"}</h3>
-                  {myReview ? (
-                    <p className="mt-1 text-sm text-lichen">Posting again replaces your earlier review.</p>
-                  ) : null}
-                  <div className="mt-4">
-                    <FeedbackForm fixedTripId={trip.id} idPrefix="trip-review" />
-                  </div>
-                </div>
+              ) : trip.status === "COMPLETED" ? (
+                <p className="mt-6 text-lichen">No reviews on the site yet.</p>
               ) : null}
             </section>
           ) : null}
         </div>
 
         <aside className="order-first lg:sticky lg:top-24 lg:order-last lg:self-start">
+          {feedbackOpen ? (
+            <Link
+              href={feedbackHref}
+              className="mb-4 flex items-center gap-3 rounded-panel border border-signal/50 bg-basalt p-4 text-sm font-semibold text-mist transition-colors hover:border-signal"
+            >
+              <MessageSquareHeart className="size-5 text-signal" aria-hidden="true" />
+              Were you on this trip? Give feedback
+            </Link>
+          ) : null}
           <RegistrationPanel
             trip={trip}
             registered={trip.registrations.length}

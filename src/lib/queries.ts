@@ -1,5 +1,6 @@
 import "server-only";
 import type { Prisma, TripStatus } from "@prisma/client";
+import type { FeedbackCardItem } from "@/components/members/feedback-card";
 import { prisma } from "@/lib/prisma";
 import { PUBLIC_STATUSES, rosterPosition } from "@/lib/trips";
 
@@ -66,6 +67,18 @@ export async function getPublicTripGroups() {
   };
 }
 
+/** Feedback organisers picked for the website, from writers who allowed it. */
+const FEATURED = { featured: true, shareOk: true, hidden: false, loved: { not: null } } satisfies Prisma.FeedbackResponseWhereInput;
+
+const REVIEW_FIELDS = {
+  id: true,
+  loved: true,
+  anonymous: true,
+  name: true,
+  overall: true,
+  updatedAt: true,
+} satisfies Prisma.FeedbackResponseSelect;
+
 export async function getTripForPage(id: string) {
   return prisma.trip.findUnique({
     where: { id },
@@ -74,17 +87,8 @@ export async function getTripForPage(id: string) {
         select: { id: true, userId: true, createdAt: true, paymentStatus: true, gearChecked: true, vehicleDetails: true },
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       },
-      feedbacks: {
-        select: {
-          id: true,
-          rating: true,
-          comment: true,
-          createdAt: true,
-          userId: true,
-          user: { select: { name: true } },
-        },
-        orderBy: { createdAt: "desc" },
-      },
+      feedbackForm: { select: { isOpen: true } },
+      responses: { where: FEATURED, orderBy: { updatedAt: "desc" }, take: 6, select: REVIEW_FIELDS },
       expenses: { select: { amount: true, paidById: true } },
     },
   });
@@ -164,14 +168,6 @@ export async function getMyTrips(userId: string) {
   }));
 }
 
-/** Completed trips the member had a confirmed seat on: the ones they can review. */
-export async function getReviewableTrips(userId: string) {
-  const mine = await getMyTrips(userId);
-  return mine
-    .filter((r) => r.trip.status === "COMPLETED" && r.position?.kind === "confirmed")
-    .map((r) => ({ id: r.trip.id, title: r.trip.title }));
-}
-
 /** Recent feedback for public display: general notes and reviews of public trips. */
 export async function getRecentFeedback(limit = 30, minRating = 1) {
   return prisma.feedback.findMany({
@@ -193,3 +189,38 @@ export async function getRecentFeedback(limit = 30, minRating = 1) {
 }
 
 export type FeedbackItem = Awaited<ReturnType<typeof getRecentFeedback>>[number];
+
+/** Picked quotes from trip feedback, newest first, from trips visible on the site. */
+export async function getFeaturedReviews(limit = 6) {
+  return prisma.feedbackResponse.findMany({
+    where: { ...FEATURED, trip: { status: { in: PUBLIC_STATUSES } } },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+    select: { ...REVIEW_FIELDS, trip: { select: { id: true, title: true } } },
+  });
+}
+
+/** Trips whose feedback form is open, most recent trip first. */
+export async function getOpenFeedbackTrips() {
+  return prisma.trip.findMany({
+    where: { status: { in: PUBLIC_STATUSES }, feedbackForm: { isOpen: true } },
+    orderBy: { startDate: "desc" },
+    take: 6,
+    select: { id: true, title: true, location: true, startDate: true, endDate: true },
+  });
+}
+
+type Review = { id: string; loved: string | null; anonymous: boolean; name: string | null; overall: number; updatedAt: Date };
+
+/** A picked quote as a feedback card: first name only, never a name for anonymous answers. */
+export function reviewToCard(review: Review & { trip?: { id: string; title: string } | null }): FeedbackCardItem {
+  return {
+    id: `review-${review.id}`,
+    rating: review.overall,
+    comment: review.loved ?? "",
+    createdAt: review.updatedAt,
+    user: { name: review.anonymous ? null : review.name },
+    writer: review.anonymous || !review.name ? "A traveller" : undefined,
+    trip: review.trip ?? null,
+  };
+}

@@ -6,19 +6,22 @@ import { HowATripWorks } from "@/components/site/how-a-trip-works";
 import { InstagramStrip } from "@/components/site/instagram-strip";
 import { DepartureBoard } from "@/components/trips/departure-board";
 import { getLatestPhotos } from "@/lib/drive";
-import { getRecentFeedback, getUpcomingTrips } from "@/lib/queries";
+import { getFeaturedReviews, getRecentFeedback, getUpcomingTrips, reviewToCard } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [user, upcoming, feedback, photos] = await Promise.all([
+  const [user, upcoming, reviews, notes, photos] = await Promise.all([
     getCurrentUserSafe(),
     getUpcomingTrips(6),
+    getFeaturedReviews(3),
     getRecentFeedback(3, 4),
     getLatestPhotos(5),
   ]);
+  // Picked quotes from trip feedback first, topped up with well-rated notes.
+  const feedback = [...reviews.map((r) => reviewToCard(r)), ...notes].slice(0, 3);
 
   return (
     <main id="main">

@@ -38,12 +38,6 @@ export const registrationSchema = profileSchema.extend({
 });
 
 export const feedbackSchema = z.object({
-  tripId: z
-    .string()
-    .trim()
-    .max(40)
-    .optional()
-    .transform((v) => (v ? v : null)),
   rating: z.coerce
     .number({ invalid_type_error: "Pick a rating from 1 to 5." })
     .int()

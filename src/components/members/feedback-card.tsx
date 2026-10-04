@@ -7,6 +7,8 @@ export type FeedbackCardItem = {
   comment: string;
   createdAt: Date;
   user: { name: string | null };
+  /** Shown instead of the first name, e.g. "A traveller" for anonymous trip feedback. */
+  writer?: string;
   trip?: { id: string; title: string } | null;
 };
 
@@ -17,7 +19,7 @@ export function FeedbackCard({ item, showTrip = true }: { item: FeedbackCardItem
       <RatingMarks rating={item.rating} />
       <blockquote className="mt-4 flex-1 whitespace-pre-line leading-relaxed text-mist">{item.comment}</blockquote>
       <figcaption className="mt-5 text-sm text-lichen">
-        <span className="font-semibold text-mist">{firstName(item.user.name)}</span>
+        <span className="font-semibold text-mist">{item.writer ?? firstName(item.user.name)}</span>
         {showTrip && item.trip ? <>, on {item.trip.title}</> : null}
         <span className="block text-xs">{formatDate(item.createdAt)}</span>
       </figcaption>

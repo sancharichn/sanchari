@@ -101,43 +101,21 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
   return done("Your details are saved.");
 }
 
+/** A note about the group in general. Trip feedback goes through each trip's own form. */
 export async function submitFeedback(input: unknown): Promise<ActionResult> {
   const user = await getCurrentUser();
   if (!user) return fail("Sign in to leave feedback.");
 
   const parsed = feedbackSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
-  const { tripId, rating, comment } = parsed.data;
+  const { rating, comment } = parsed.data;
 
-  if (tripId) {
-    const registration = await prisma.tripRegistration.findUnique({
-      where: { userId_tripId: { userId: user.id, tripId } },
-      include: { trip: { select: { status: true, maxCapacity: true } } },
-    });
-    if (!registration || registration.trip.status !== "COMPLETED") {
-      return fail("You can review a trip once it's completed, if you were on it.");
-    }
-    const roster = await prisma.tripRegistration.findMany({ where: { tripId }, select: { id: true, createdAt: true } });
-    if (rosterPosition(roster, registration.trip.maxCapacity, registration.id)?.kind !== "confirmed") {
-      return fail("Only travellers who had a seat on this trip can review it.");
-    }
-
-    // One review per traveller per trip: a second one replaces the first.
-    const existing = await prisma.feedback.findFirst({ where: { userId: user.id, tripId }, select: { id: true } });
-    if (existing) {
-      await prisma.feedback.update({ where: { id: existing.id }, data: { rating, comment } });
-    } else {
-      await prisma.feedback.create({ data: { userId: user.id, tripId, rating, comment } });
-    }
-    revalidatePath(`/trips/${tripId}`);
-  } else {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const today = await prisma.feedback.count({ where: { userId: user.id, tripId: null, createdAt: { gte: since } } });
-    if (today >= 3) return fail("You've sent three notes today already. Send the next one tomorrow.");
-    await prisma.feedback.create({ data: { userId: user.id, tripId: null, rating, comment } });
-  }
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const today = await prisma.feedback.count({ where: { userId: user.id, createdAt: { gte: since } } });
+  if (today >= 3) return fail("You've sent three notes today already. Send the next one tomorrow.");
+  await prisma.feedback.create({ data: { userId: user.id, tripId: null, rating, comment } });
 
   revalidatePath("/feedback");
   revalidatePath("/");
-  return done(tripId ? "Thanks. Your review is posted." : "Thanks. Your feedback is posted.");
+  return done("Thanks. Your feedback is posted.");
 }
