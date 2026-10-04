@@ -70,7 +70,7 @@ In [Google Cloud console](https://console.cloud.google.com), signed in as sancha
 4. **Clients → Create client → Web application.** Authorised redirect URIs:
    - `https://<your-vercel-domain>/api/auth/callback/google`
    - `http://localhost:3000/api/auth/callback/google`
-5. Copy the client ID and secret into `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+5. Copy the client ID and secret into `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` before closing the dialog: Google shows the secret only once. If it's lost, add a new secret to the client and update the variable.
 
 ### 3. Gallery (optional)
 
