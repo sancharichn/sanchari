@@ -26,7 +26,7 @@ export default async function HomePage() {
 
   return (
     <main id="main">
-      <Hero next={upcoming[0] ?? null} signedIn={Boolean(user)} />
+      <Hero next={upcoming[0] ?? null} signedIn={Boolean(user)} photo={upcoming[0]?.cover ?? photos[0] ?? null} />
 
       <section aria-labelledby="upcoming-heading" className="container mt-20 md:mt-28">
         <div className="flex flex-wrap items-end justify-between gap-4">

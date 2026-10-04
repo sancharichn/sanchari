@@ -2,19 +2,48 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { SeatsMeter } from "@/components/trips/trip-status";
 import { formatDateRange } from "@/lib/format";
+import type { GalleryImage } from "@/lib/drive";
 import type { TripListItem } from "@/lib/queries";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
-import { tripTypeLabel } from "@/lib/trips";
+import { KIND_PLURAL, TRIP_KINDS, tripTypeLabel } from "@/lib/trips";
 import { ContourField } from "./contour-field";
 import { TrailClimb } from "./trail-climb";
 
-export function Hero({ next, signedIn }: { next: TripListItem | null; signedIn: boolean }) {
+export function Hero({
+  next,
+  signedIn,
+  photo,
+}: {
+  next: TripListItem | null;
+  signedIn: boolean;
+  /** The next trip's cover, or the newest gallery photo. */
+  photo: GalleryImage | null;
+}) {
   return (
     <section className="relative isolate overflow-hidden border-b border-ridge">
-      <ContourField className="[mask-image:linear-gradient(to_bottom,black_50%,transparent)]" />
+      {photo ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element -- already resized and cached by our own photo proxy */}
+          <img
+            src={photo.src[1600]}
+            srcSet={`${photo.src[960]} 960w, ${photo.src[1600]} 1600w`}
+            sizes="100vw"
+            alt=""
+            fetchPriority="high"
+            className="absolute inset-0 -z-10 size-full object-cover"
+          />
+          {/* Darkens the photo most behind the text, so the headline stays readable on any picture. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 bg-gradient-to-t from-night via-night/70 to-night/30 md:bg-gradient-to-r md:from-night/95 md:via-night/70 md:to-night/20"
+          />
+        </>
+      ) : (
+        <ContourField className="[mask-image:linear-gradient(to_bottom,black_50%,transparent)]" />
+      )}
       <div className="container relative grid gap-12 pb-16 pt-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] md:items-end md:gap-16 md:pb-20 md:pt-20">
         <div>
-          <h1 className="stretch-wide text-[clamp(3.1rem,10vw,8rem)] font-extrabold leading-[0.86] tracking-[-0.02em] text-mist">
+          <h1 className="stretch-wide text-[clamp(3.1rem,8vw,6.5rem)] font-extrabold leading-[0.86] tracking-[-0.02em] text-mist">
             <span className="block">TRAVEL</span>
             <span className="block">WITH</span>
             <span className="block">NATURE</span>
@@ -43,10 +72,49 @@ export function Hero({ next, signedIn }: { next: TripListItem | null; signedIn: 
 
         <div className="flex flex-col">
           <NextDeparture trip={next} />
-          <TrailClimb />
+          {photo ? null : <TrailClimb />}
         </div>
       </div>
+
+      <div className="container relative pb-12 md:pb-16">
+        <TripFinder />
+      </div>
     </section>
+  );
+}
+
+/** A plain GET form to the Trips page, so it works before (and without) JavaScript. */
+function TripFinder() {
+  return (
+    <form
+      action="/trips"
+      method="get"
+      role="search"
+      aria-label="Find a trip"
+      className="grid gap-3 rounded-panel border border-ridge bg-basalt/90 p-4 backdrop-blur-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-5"
+    >
+      <div className="grid gap-1.5">
+        <label htmlFor="finder-type" className="text-sm font-semibold text-mist">
+          What would you like to do?
+        </label>
+        <select
+          id="finder-type"
+          name="type"
+          defaultValue=""
+          className="h-12 w-full rounded-[10px] border border-ridge bg-night px-3.5 text-base text-mist"
+        >
+          <option value="">Everything coming up</option>
+          {TRIP_KINDS.map((k) => (
+            <option key={k} value={k.toLowerCase()}>
+              {KIND_PLURAL[k]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button type="submit" className={buttonVariants({ size: "lg", className: "h-12" })}>
+        Find trips
+      </button>
+    </form>
   );
 }
 
