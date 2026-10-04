@@ -46,7 +46,10 @@ export default function PrivacyPage() {
           <List>
             <li>Signing in with Google gives us your name, email address and profile photo. Nothing else.</li>
             <li>Your phone number, emergency contact and blood group are optional, and only organisers see them.</li>
-            <li>If you post a review or feedback, your first name shows next to it.</li>
+            <li>
+              Trip feedback can be anonymous. Your words go on the site only if you allow it and organisers pick them,
+              with your first name, or as &ldquo;A traveller&rdquo;.
+            </li>
             <li>We don&apos;t sell your details, show ads or use tracking cookies.</li>
           </List>
         </div>
@@ -70,7 +73,11 @@ export default function PrivacyPage() {
               For each trip you register for: how you&apos;re getting to the start point, and the time you registered,
               which sets your place for a seat or on the waitlist.
             </li>
-            <li>Reviews and feedback you write, with your rating.</li>
+            <li>
+              Trip feedback: your ratings and answers and, unless you send it anonymously, your name, an optional
+              WhatsApp number and how many of you came. Anonymous answers keep no name, number or account.
+            </li>
+            <li>Notes you write on the Feedback page, with your rating.</li>
           </List>
           <p>
             Organisers add your payment status and gear check for each trip, and the trip&apos;s shared expenses,
@@ -88,6 +95,7 @@ export default function PrivacyPage() {
               trip
             </li>
             <li>splitting shared trip costs</li>
+            <li>learning from trip feedback what to keep and what to change, and replying on WhatsApp if you left a number</li>
           </List>
           <p>We don&apos;t sell your details or use them for advertising.</p>
         </Section>
@@ -95,17 +103,18 @@ export default function PrivacyPage() {
         <Section id="who" title="Who can see it">
           <List>
             <li>
-              <strong className="font-semibold text-mist">Organisers</strong> see everything above. They can download a
-              trip&apos;s roster as a spreadsheet, with names, contact and emergency details, blood groups, travel,
-              payment and gear check, to use on the trip.
+              <strong className="font-semibold text-mist">Organisers</strong> see everything above, including every trip
+              feedback answer. They can download a trip&apos;s roster as a spreadsheet, with names, contact and emergency
+              details, blood groups, travel, payment and gear check, to use on the trip.
             </li>
             <li>
               <strong className="font-semibold text-mist">Other members</strong> don&apos;t see your contact details,
               your payments or which trips you&apos;ve registered for.
             </li>
             <li>
-              <strong className="font-semibold text-mist">Everyone</strong>, signed in or not, can read reviews and
-              feedback, shown with the writer&apos;s first name and the date.
+              <strong className="font-semibold text-mist">Everyone</strong>, signed in or not, can read notes from the
+              Feedback page and the trip feedback quotes organisers picked (only from people who allowed it), with the
+              writer&apos;s first name and the date. Anonymous quotes say &ldquo;A traveller&rdquo;.
             </li>
           </List>
         </Section>
@@ -124,14 +133,20 @@ export default function PrivacyPage() {
         <Section id="cookies" title="Cookies">
           <p>
             One cookie keeps you signed in, and a few short-lived ones are used while Google sign-in is in progress.
-            There are no analytics, advertising or tracking cookies. The opening animation notes that it has played in
-            your browser&apos;s session storage, which stays on your device.
+            If you send trip feedback without signing in, one more cookie holds a random number, so that sending again
+            from the same phone replaces your answers instead of counting twice. There are no analytics, advertising or
+            tracking cookies. The opening animation notes that it has played in your browser&apos;s session storage,
+            which stays on your device.
+          </p>
+          <p>
+            To keep spam out of trip feedback, we store a scrambled code made from your internet address (never the
+            address itself) and how long the form took.
           </p>
         </Section>
 
         <Section id="keep" title="How long we keep it">
           <p>
-            Your account and trip history stay while the group runs trips, so rosters, trip accounts and reviews of
+            Your account and trip history stay while the group runs trips, so rosters, trip accounts and feedback of
             past trips stay accurate. Ask us and we&apos;ll delete them.
           </p>
         </Section>
@@ -149,7 +164,11 @@ export default function PrivacyPage() {
               Cancel a registration yourself until the trip starts, as long as no payment has been recorded. After that,
               ask the organiser.
             </li>
-            <li>Write to {mail} for a copy of what we hold about you, to correct it, or to delete your account and reviews.</li>
+            <li>
+              Change your trip feedback by opening the same link on the same phone, or signed in to the same account, and
+              sending it again. It replaces your earlier answers.
+            </li>
+            <li>Write to {mail} for a copy of what we hold about you, to correct it, or to delete your account and feedback.</li>
             <li>
               Remove Sanchari from{" "}
               <a className={linkClass} href="https://myaccount.google.com/connections" rel="noopener noreferrer" target="_blank">
