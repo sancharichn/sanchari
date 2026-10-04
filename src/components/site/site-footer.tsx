@@ -11,7 +11,7 @@ export function SiteFooter() {
           <SanchariLogo width={200} />
           <p className="stretch-wide mt-6 text-sm font-extrabold tracking-wide text-mist">TRAVEL WITH NATURE</p>
           <p className="measure mt-3 text-sm text-lichen">
-            A Chennai travel group for treks, forest stays and coastal rides, planned together.
+            The Chennai unit of Sanchari: a voluntary community of travel lovers, not a travel agency.
           </p>
         </div>
 
