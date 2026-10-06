@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CommunityBrochure, CommunityNotebook } from "@/components/site/community-notebook";
 import { FaqQuestions } from "@/components/site/faq-questions";
 import { OpenDetailsOnHash } from "@/components/site/open-details-on-hash";
 import { CONTACT_EMAIL, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
@@ -19,6 +20,11 @@ export default function FaqPage() {
       <p className="measure mt-5 text-lg text-lichen">
         Who we are, how to join our trips, and the guidelines we all travel by.
       </p>
+
+      <nav aria-label="About page sections" className="mt-7 flex flex-wrap gap-3 text-sm font-semibold text-signal">
+        <a href="#notebook" className="rounded-full border border-ridge px-4 py-2 hover:border-signal/60">Sanchari Notebook</a>
+        <a href="#brochure" className="rounded-full border border-ridge px-4 py-2 hover:border-signal/60">Community brochure</a>
+      </nav>
 
       <div className="mt-14 space-y-16">
         <section id="about" aria-labelledby="about-heading" className="scroll-mt-24 border-t border-ridge pt-10">
@@ -105,6 +111,9 @@ export default function FaqPage() {
             </p>
           </div>
         </section>
+
+        <CommunityNotebook />
+        <CommunityBrochure />
 
         <div className="border-t border-ridge pt-10">
           <p className="measure text-lichen">

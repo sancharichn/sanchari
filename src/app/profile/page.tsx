@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FamilySummary } from "@/components/members/family-summary";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ProfileForm } from "@/components/members/profile-form";
 import { Avatar } from "@/components/site/site-header";
@@ -73,6 +74,7 @@ export default async function ProfilePage() {
                       <StatusBadge status={r.trip.status} />
                     </div>
                   </Link>
+                  <FamilySummary companions={r.companions} />
                 </li>
               );
             })}

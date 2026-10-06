@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { countTravellers } from "@/lib/family";
 import { ArrowLeft, MessageSquareHeart } from "lucide-react";
 import { FeedbackCard } from "@/components/members/feedback-card";
 import type { ProfileDefaults } from "@/components/members/register-dialog";
@@ -78,10 +79,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             <Fact label="Where" value={trip.location} />
             <Fact label="Type" value={tripTypeLabel(trip.kind, trip.startDate, trip.endDate)} />
             {trip.budgetEst || !departed ? (
-              <Fact
-                label="Estimated cost"
-                value={trip.budgetEst ? `${formatINR(trip.budgetEst)} per person` : "To be confirmed"}
-              />
+              <Fact label="Estimated cost" value={trip.adultBudgetEst || trip.budgetEst ? `Adult ${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} · Child ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)}` : "To be confirmed"} />
             ) : null}
           </dl>
         </div>
@@ -111,8 +109,11 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             <TripAccounts
               expenses={trip.expenses}
               travellerIds={confirmed.map((r) => r.userId)}
+              travellerSizes={Object.fromEntries(confirmed.map((r) => [r.userId, r.partySize]))}
               viewerId={viewer.user.id}
               budgetEst={trip.budgetEst}
+              adultBudgetEst={trip.adultBudgetEst}
+              childBudgetEst={trip.childBudgetEst}
             />
           ) : null}
 
@@ -160,7 +161,8 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
           ) : null}
           <RegistrationPanel
             trip={trip}
-            registered={trip.registrations.length}
+            registered={countTravellers(trip.registrations)}
+            confirmed={countTravellers(confirmed)}
             started={started}
             viewer={
               viewer

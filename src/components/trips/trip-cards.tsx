@@ -73,7 +73,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
           </p>
         </div>
         {showsSeats(trip.status, trip.registered) ? (
-          <SeatsMeter className="mt-auto" registered={trip.registered} capacity={trip.maxCapacity} status={trip.status} />
+          <SeatsMeter className="mt-auto" registered={trip.registered} confirmed={trip.confirmed} capacity={trip.maxCapacity} status={trip.status} />
         ) : null}
       </div>
     </Link>

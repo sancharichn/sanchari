@@ -1,4 +1,5 @@
 import "server-only";
+import { countTravellers } from "@/lib/family";
 import type { PaymentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { splitRoster } from "@/lib/trips";
@@ -8,7 +9,7 @@ const OUTSTANDING: PaymentStatus[] = ["PENDING", "PARTIAL"];
 /** Numbers and lists for the organiser's overview. */
 export async function getAdminOverview(now = new Date()) {
   const upcoming: Prisma.TripWhereInput = { status: { in: ["OPEN", "WAITLIST", "FULL"] }, startDate: { gte: now } };
-  const rosterSelect = { select: { id: true, createdAt: true, paymentStatus: true, gearChecked: true } } as const;
+  const rosterSelect = { select: { id: true, createdAt: true, partySize: true, paymentStatus: true, gearChecked: true } } as const;
 
   const [members, upcomingTrips, nextTrip, recent] = await Promise.all([
     prisma.user.count(),
@@ -47,8 +48,8 @@ export async function getAdminOverview(now = new Date()) {
   let gearPending = 0;
   for (const trip of upcomingTrips) {
     const { confirmed } = splitRoster(trip.registrations, trip.maxCapacity);
-    unpaid += confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus)).length;
-    gearPending += confirmed.filter((r) => !r.gearChecked).length;
+    unpaid += countTravellers(confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus)));
+    gearPending += countTravellers(confirmed.filter((r) => !r.gearChecked));
   }
 
   return { members, upcomingCount: upcomingTrips.length, unpaid, gearPending, nextTrip, recent };
@@ -66,16 +67,16 @@ export async function getAdminTrips() {
       status: true,
       kind: true,
       maxCapacity: true,
-      registrations: { select: { id: true, createdAt: true, paymentStatus: true } },
+      registrations: { select: { id: true, createdAt: true, partySize: true, paymentStatus: true } },
     },
   });
   return trips.map((trip) => {
     const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
     return {
       ...trip,
-      confirmed: confirmed.length,
-      waitlisted: waitlisted.length,
-      unpaid: confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus)).length,
+      confirmed: countTravellers(confirmed),
+      waitlisted: countTravellers(waitlisted),
+      unpaid: countTravellers(confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus))),
     };
   });
 }
@@ -92,7 +93,14 @@ export async function getAdminTrip(id: string) {
           paymentStatus: true,
           gearChecked: true,
           vehicleDetails: true,
+          carpoolChoice: true,
+          carpoolLocation: true,
+          carpoolSeats: true,
           agreedToGuidelinesAt: true,
+          partySize: true,
+          companions: true,
+          familyConsentAt: true,
+          parentalConsentAt: true,
           user: {
             select: {
               id: true,

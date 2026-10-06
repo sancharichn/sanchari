@@ -1,9 +1,10 @@
 import "server-only";
+import { countTravellers } from "@/lib/family";
 import type { Prisma, TripKind, TripStatus } from "@prisma/client";
 import type { FeedbackCardItem } from "@/components/members/feedback-card";
 import { coverPhoto, type GalleryImage } from "@/lib/drive";
 import { prisma } from "@/lib/prisma";
-import { PUBLIC_STATUSES, rosterPosition } from "@/lib/trips";
+import { PUBLIC_STATUSES, rosterPosition, splitRoster } from "@/lib/trips";
 
 const listSelect = {
   id: true,
@@ -16,7 +17,9 @@ const listSelect = {
   coverPhotoId: true,
   maxCapacity: true,
   budgetEst: true,
-  _count: { select: { registrations: true } },
+  adultBudgetEst: true,
+  childBudgetEst: true,
+  registrations: { select: { id: true, createdAt: true, partySize: true } },
 } satisfies Prisma.TripSelect;
 
 export type TripListItem = {
@@ -30,7 +33,10 @@ export type TripListItem = {
   cover: GalleryImage | null;
   maxCapacity: number;
   budgetEst: string | null;
+  adultBudgetEst: string | null;
+  childBudgetEst: string | null;
   registered: number;
+  confirmed: number;
 };
 
 function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>): TripListItem {
@@ -45,7 +51,10 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
     cover: coverPhoto(trip.coverPhotoId, trip.title),
     maxCapacity: trip.maxCapacity,
     budgetEst: trip.budgetEst?.toString() ?? null,
-    registered: trip._count.registrations,
+    adultBudgetEst: trip.adultBudgetEst?.toString() ?? null,
+    childBudgetEst: trip.childBudgetEst?.toString() ?? null,
+    registered: countTravellers(trip.registrations),
+    confirmed: countTravellers(splitRoster(trip.registrations, trip.maxCapacity).confirmed),
   };
 }
 
@@ -91,7 +100,7 @@ export async function getTripForPage(id: string) {
     where: { id },
     include: {
       registrations: {
-        select: { id: true, userId: true, createdAt: true, paymentStatus: true, gearChecked: true, vehicleDetails: true },
+        select: { id: true, userId: true, createdAt: true, paymentStatus: true, gearChecked: true, vehicleDetails: true, carpoolChoice: true, carpoolLocation: true, carpoolSeats: true, partySize: true, companions: true },
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       },
       feedbackForm: { select: { isOpen: true } },
@@ -155,6 +164,11 @@ export async function getMyTrips(userId: string) {
       paymentStatus: true,
       gearChecked: true,
       vehicleDetails: true,
+      partySize: true,
+      companions: true,
+      carpoolChoice: true,
+      carpoolLocation: true,
+      carpoolSeats: true,
       trip: {
         select: {
           id: true,
@@ -164,7 +178,7 @@ export async function getMyTrips(userId: string) {
           endDate: true,
           status: true,
           maxCapacity: true,
-          registrations: { select: { id: true, createdAt: true } },
+          registrations: { select: { id: true, createdAt: true, partySize: true } },
         },
       },
     },

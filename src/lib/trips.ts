@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { partySize } from "./family";
 import type { PaymentStatus, TripKind, TripStatus } from "@prisma/client";
 import { tripDays } from "./format";
 import { JOIN_STEPS, TREKS_NOTE } from "./joining";
@@ -104,21 +105,31 @@ export function acceptsRegistrations(status: TripStatus) {
   return REGISTRATION_STATUSES.includes(status);
 }
 
-/**
- * Seats go to whoever registered first. The first `capacity` registrations
- * (oldest first) are confirmed; the rest are the waitlist, in order. Nothing
- * is stored for this, so a cancellation moves the next person up on its own.
- */
-export function splitRoster<T extends { createdAt: Date; id: string }>(registrations: T[], capacity: number) {
+/** FIFO by registration; a household is confirmed together or waits together.
+ * Later parties do not jump ahead of a family that is waiting for enough seats. */
+export function splitRoster<T extends { createdAt: Date; id: string; partySize?: number }>(registrations: T[], capacity: number) {
   const ordered = [...registrations].sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
   );
-  const seats = Math.max(0, capacity);
-  return { confirmed: ordered.slice(0, seats), waitlisted: ordered.slice(seats) };
+  let remaining = Math.max(0, capacity);
+  let waiting = false;
+  const confirmed: T[] = [];
+  const waitlisted: T[] = [];
+  for (const registration of ordered) {
+    const size = partySize(registration);
+    if (!waiting && size <= remaining) {
+      confirmed.push(registration);
+      remaining -= size;
+    } else {
+      waiting = true;
+      waitlisted.push(registration);
+    }
+  }
+  return { confirmed, waitlisted };
 }
 
 /** Where a registration sits: a confirmed seat, or its place in the waitlist (1-based). */
-export function rosterPosition<T extends { createdAt: Date; id: string }>(
+export function rosterPosition<T extends { createdAt: Date; id: string; partySize?: number }>(
   registrations: T[],
   capacity: number,
   registrationId: string,
@@ -137,13 +148,13 @@ export function showsSeats(status: TripStatus, registered: number) {
   return registered > 0 || (status !== "ONGOING" && status !== "COMPLETED");
 }
 
-export function seatSummary(registered: number, capacity: number) {
-  const taken = Math.min(registered, capacity);
+export function seatSummary(registered: number, capacity: number, confirmed?: number) {
+  const taken = Math.min(confirmed ?? registered, capacity);
   return {
     taken,
-    left: Math.max(0, capacity - registered),
-    waitlist: Math.max(0, registered - capacity),
-    ratio: capacity > 0 ? Math.min(1, registered / capacity) : 1,
+    left: Math.max(0, capacity - taken),
+    waitlist: Math.max(0, registered - taken),
+    ratio: capacity > 0 ? Math.min(1, taken / capacity) : 1,
   };
 }
 

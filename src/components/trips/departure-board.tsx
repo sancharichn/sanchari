@@ -40,7 +40,7 @@ export function DepartureBoard({ trips, emptyText }: { trips: TripListItem[]; em
               </div>
 
               {showsSeats(trip.status, trip.registered) ? (
-                <SeatsMeter registered={trip.registered} capacity={trip.maxCapacity} status={trip.status} />
+                <SeatsMeter registered={trip.registered} confirmed={trip.confirmed} capacity={trip.maxCapacity} status={trip.status} />
               ) : (
                 // Holds the seats column on wide screens so the status badge stays lined up.
                 <span aria-hidden="true" className="hidden md:block" />

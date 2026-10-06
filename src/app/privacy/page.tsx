@@ -83,6 +83,11 @@ export default function PrivacyPage() {
               WhatsApp number and how many of you came. Anonymous answers keep no name, number or account.
             </li>
             <li>Notes you write on the Feedback page, with your rating.</li>
+            <li>
+              When you register with family: each accompanying person&apos;s name, age, relationship to you and optional blood group;
+              the number of people in your registration; and your permission and parental-supervision confirmations.
+              These details are visible only to you and organisers and are included in the organiser&apos;s trip roster.
+            </li>
           </List>
           <p>
             Organisers add your payment status and gear check for each trip, and the trip&apos;s shared expenses,

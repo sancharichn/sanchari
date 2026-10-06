@@ -135,7 +135,7 @@ function NextDeparture({ trip }: { trip: TripListItem | null }) {
       <p className="text-sm text-lichen">
         {trip.location}, {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
       </p>
-      <SeatsMeter className="mt-5" registered={trip.registered} capacity={trip.maxCapacity} status={trip.status} />
+      <SeatsMeter className="mt-5" registered={trip.registered} confirmed={trip.confirmed} capacity={trip.maxCapacity} status={trip.status} />
     </Link>
   );
 }

@@ -22,17 +22,25 @@ export type Transfer = { from: string; to: string; amount: number };
  * total doesn't divide evenly) go one each to the first travellers in a
  * stable order, so the shares always add up to the total exactly.
  */
-export function computeBalances(travellerIds: string[], expenses: ExpenseLine[]) {
+export function computeBalances(travellerIds: string[], expenses: ExpenseLine[], partySizes: Record<string, number> = {}) {
   const travellers = [...new Set(travellerIds)].sort();
   const total = expenses.reduce((sum, e) => sum + e.amountPaise, 0);
 
+  // Aggregate each family's equal per-person shares onto its registering adult.
+  const sizes = new Map(travellers.map((id) => {
+    const size = partySizes[id];
+    return [id, Number.isInteger(size) && size > 0 ? size : 1] as const;
+  }));
+  const headCount = [...sizes.values()].reduce((sum, size) => sum + size, 0);
   const shares = new Map<string, number>();
-  if (travellers.length > 0) {
-    const base = Math.floor(total / travellers.length);
-    let leftover = total - base * travellers.length;
+  if (headCount > 0) {
+    const base = Math.floor(total / headCount);
+    let leftover = total - base * headCount;
     for (const id of travellers) {
-      shares.set(id, base + (leftover > 0 ? 1 : 0));
-      if (leftover > 0) leftover -= 1;
+      const size = sizes.get(id)!;
+      const extra = Math.min(leftover, size);
+      shares.set(id, base * size + extra);
+      leftover -= extra;
     }
   }
 
@@ -48,8 +56,8 @@ export function computeBalances(travellerIds: string[], expenses: ExpenseLine[])
 
   return {
     total,
-    travellers: travellers.length,
-    perHead: travellers.length > 0 ? Math.round(total / travellers.length) : 0,
+    travellers: headCount,
+    perHead: headCount > 0 ? Math.round(total / headCount) : 0,
     balances,
   };
 }

@@ -1,3 +1,4 @@
+import { countTravellers } from "@/lib/family";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar } from "@/components/site/site-header";
@@ -5,7 +6,7 @@ import { StatusBadge } from "@/components/trips/trip-status";
 import { buttonVariants } from "@/components/ui/button";
 import { getAdminOverview } from "@/lib/admin-queries";
 import { formatDateRange, formatDateTime } from "@/lib/format";
-import { seatSummary, splitRoster } from "@/lib/trips";
+import { splitRoster } from "@/lib/trips";
 
 export const metadata: Metadata = { title: "Organiser" };
 
@@ -47,11 +48,11 @@ export default async function AdminOverviewPage() {
                 <StatusBadge status={next.status} />
               </div>
               <dl className="mt-6 grid grid-cols-3 gap-4 text-sm">
-                <SmallFigure label="Seats taken" value={`${seatSummary(next.registrations.length, next.maxCapacity).taken}/${next.maxCapacity}`} />
-                <SmallFigure label="Waitlist" value={String(nextRoster.waitlisted.length)} />
+                <SmallFigure label="Seats taken" value={`${countTravellers(nextRoster.confirmed)}/${next.maxCapacity}`} />
+                <SmallFigure label="Waitlist" value={String(countTravellers(nextRoster.waitlisted))} />
                 <SmallFigure
                   label="Not fully paid"
-                  value={String(nextRoster.confirmed.filter((r) => r.paymentStatus === "PENDING" || r.paymentStatus === "PARTIAL").length)}
+                  value={String(countTravellers(nextRoster.confirmed.filter((r) => r.paymentStatus === "PENDING" || r.paymentStatus === "PARTIAL")))}
                 />
               </dl>
               <Link href={`/admin/trips/${next.id}`} className={buttonVariants({ variant: "outline", size: "sm", className: "mt-6" })}>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { companionSchema } from "./family";
 
 /** Shapes for member input, shared by the forms (for hints) and the server actions (for enforcement). */
 
@@ -29,6 +30,12 @@ export const profileSchema = z.object({
 });
 
 export const registrationSchema = profileSchema.extend({
+  carpoolChoice: z.enum(["NONE", "NEED_RIDE", "OFFER_RIDE"]).default("NONE"),
+  carpoolLocation: z.string().trim().max(120, "Keep the location under 120 characters.").optional().transform((v) => v || null),
+  carpoolSeats: z.preprocess((v) => v === "" || v === undefined ? null : v, z.coerce.number().int().min(1).max(20).nullable()),
+  companions: z.array(companionSchema).max(19, "For a group larger than 20, contact the organiser.").default([]),
+  familyConsent: z.boolean().optional().default(false),
+  parentalConsent: z.boolean().optional().default(false),
   vehicleDetails: z
     .string()
     .trim()
@@ -39,6 +46,15 @@ export const registrationSchema = profileSchema.extend({
   agreesToGuidelines: z.literal(true, {
     errorMap: () => ({ message: "Tick this box to register. Everyone on a trip agrees to the guidelines." }),
   }),
+}).superRefine((value, ctx) => {
+  if (value.carpoolChoice !== "NONE" && !value.carpoolLocation) ctx.addIssue({ code: "custom", path: ["carpoolLocation"], message: "Add where you are travelling from." });
+  if (value.carpoolChoice !== "NONE" && !value.carpoolSeats) ctx.addIssue({ code: "custom", path: ["carpoolSeats"], message: "Add the number of seats needed or available." });
+  if (value.companions.length && !value.familyConsent) {
+    ctx.addIssue({ code: "custom", path: ["familyConsent"], message: "Confirm permission to register your family and share their details." });
+  }
+  if (value.companions.some((person) => person.age < 18) && !value.parentalConsent) {
+    ctx.addIssue({ code: "custom", path: ["parentalConsent"], message: "Confirm that you are the accompanying parent or legal guardian." });
+  }
 });
 
 export const feedbackSchema = z.object({
@@ -94,6 +110,8 @@ export const tripSchema = z
       .union([z.literal(""), rupees("Enter an amount like 4500 or 4500.50.")])
       .optional()
       .transform((v) => (v ? v : null)),
+    adultBudgetEst: z.union([z.literal(""), rupees("Enter an adult amount like 4500 or 4500.50.")]).optional().transform((v) => (v ? v : null)),
+    childBudgetEst: z.union([z.literal(""), rupees("Enter a child amount like 2500 or 2500.50.")]).optional().transform((v) => (v ? v : null)),
     status: z.enum(TRIP_STATUS_VALUES).optional(),
     itinerary: z
       .array(

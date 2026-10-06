@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FamilySummary } from "@/components/members/family-summary";
 import type { PaymentStatus, TripKind, TripStatus } from "@prisma/client";
 import { CancelRegistrationButton } from "@/components/members/cancel-registration";
 import { RegisterDialog, type ProfileDefaults } from "@/components/members/register-dialog";
@@ -11,19 +12,20 @@ export type ViewerPlace = { kind: "confirmed" } | { kind: "waitlist"; place: num
 export type PanelViewer = {
   isAdmin: boolean;
   profile: ProfileDefaults;
-  registration: { paymentStatus: PaymentStatus; gearChecked: boolean; vehicleDetails: string | null } | null;
+  registration: { paymentStatus: PaymentStatus; gearChecked: boolean; vehicleDetails: string | null; carpoolChoice: string; carpoolLocation: string | null; carpoolSeats: number | null; partySize: number; companions: unknown } | null;
   place: ViewerPlace;
 } | null;
 
 type Props = {
-  trip: { id: string; title: string; status: TripStatus; kind: TripKind; maxCapacity: number };
+  trip: { id: string; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
   registered: number;
+  confirmed?: number;
   started: boolean;
   viewer: PanelViewer;
 };
 
 /** Seats, and what this visitor can do next: sign in, register, or see and manage their place. */
-export function RegistrationPanel({ trip, registered, started, viewer }: Props) {
+export function RegistrationPanel({ trip, registered, confirmed, started, viewer }: Props) {
   const open = acceptsRegistrations(trip.status) && !started;
   const registration = viewer?.registration ?? null;
   const seatsShown = showsSeats(trip.status, registered);
@@ -35,7 +37,7 @@ export function RegistrationPanel({ trip, registered, started, viewer }: Props) 
       {seatsShown ? (
         <>
           <h2 className="stretch-semiwide text-lg font-bold">Seats</h2>
-          <SeatsMeter className="mt-4" registered={registered} capacity={trip.maxCapacity} status={trip.status} />
+          <SeatsMeter className="mt-4" registered={registered} confirmed={confirmed} capacity={trip.maxCapacity} status={trip.status} />
         </>
       ) : null}
 
@@ -61,7 +63,7 @@ export function RegistrationPanel({ trip, registered, started, viewer }: Props) 
           />
         ) : open ? (
           viewer ? (
-            <RegisterDialog tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} />
+            <RegisterDialog tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} />
           ) : (
             <>
               <Link
@@ -125,8 +127,11 @@ function YourPlace({
       <dl className="mt-5 grid gap-3 text-sm">
         <Row label="Payment" value={PAYMENT_LABEL[registration.paymentStatus]} />
         <Row label="Gear check" value={registration.gearChecked ? "Done" : "Not yet"} />
-        <Row label="Getting there" value={registration.vehicleDetails || "Needs a seat"} />
+      <Row label="Getting there" value={registration.vehicleDetails || "Needs a seat"} />
+        {registration.carpoolChoice !== "NONE" ? <Row label="Car pool" value={`${registration.carpoolChoice === "OFFER_RIDE" ? "Offering" : "Needs"} ${registration.carpoolSeats ?? ""} seat(s) from ${registration.carpoolLocation ?? "location not given"}`} /> : null}
       </dl>
+
+      <FamilySummary companions={registration.companions} />
 
       {canCancel ? (
         <div className="mt-6">

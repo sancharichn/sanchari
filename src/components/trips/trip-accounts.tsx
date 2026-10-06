@@ -4,17 +4,21 @@ import { computeBalances } from "@/lib/settle";
 type Props = {
   expenses: Array<{ amount: { toString(): string }; paidById: string }>;
   travellerIds: string[];
+  travellerSizes?: Record<string, number>;
   viewerId: string;
   budgetEst: { toString(): string } | null;
+  adultBudgetEst?: { toString(): string } | null;
+  childBudgetEst?: { toString(): string } | null;
 };
 
 /** What the trip has cost so far, for the people on it. */
-export function TripAccounts({ expenses, travellerIds, viewerId, budgetEst }: Props) {
+export function TripAccounts({ expenses, travellerIds, travellerSizes, viewerId, budgetEst, adultBudgetEst, childBudgetEst }: Props) {
   if (expenses.length === 0) return null;
 
   const accounts = computeBalances(
     travellerIds,
     expenses.map((e) => ({ paidById: e.paidById, amountPaise: toPaise(e.amount) })),
+    travellerSizes,
   );
   const mine = accounts.balances.find((b) => b.userId === viewerId);
 
@@ -30,7 +34,8 @@ export function TripAccounts({ expenses, travellerIds, viewerId, budgetEst }: Pr
           label={`Per person, ${accounts.travellers} ${accounts.travellers === 1 ? "traveller" : "travellers"}`}
           value={accounts.travellers > 0 ? formatINR(paiseToRupees(accounts.perHead)) : "—"}
         />
-        {budgetEst ? <Figure label="Estimate per person" value={formatINR(budgetEst)} /> : null}
+        {(adultBudgetEst ?? budgetEst) ? <Figure label="Adult estimate" value={formatINR(adultBudgetEst ?? budgetEst!)} /> : null}
+        {(childBudgetEst ?? adultBudgetEst ?? budgetEst) ? <Figure label="Child estimate" value={formatINR(childBudgetEst ?? adultBudgetEst ?? budgetEst!)} /> : null}
         {mine && mine.paid > 0 ? <Figure label="You paid for the group" value={formatINR(paiseToRupees(mine.paid))} /> : null}
       </dl>
     </section>

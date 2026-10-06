@@ -20,6 +20,8 @@ export type TripFormValues = {
   endDate: string;
   maxCapacity: string;
   budgetEst: string;
+  adultBudgetEst: string;
+  childBudgetEst: string;
   status: TripStatus;
   itinerary: Array<{ title: string; details: string }>;
 };
@@ -34,6 +36,8 @@ export const EMPTY_TRIP: TripFormValues = {
   endDate: "",
   maxCapacity: "20",
   budgetEst: "",
+  adultBudgetEst: "",
+  childBudgetEst: "",
   status: "DRAFT",
   itinerary: [{ title: "", details: "" }],
 };
@@ -146,14 +150,17 @@ export function TripForm({
               {...aria("trip-capacity", "maxCapacity", true)}
             />
           </Field>
-          <Field label="Estimated cost per person (₹)" htmlFor="trip-budget" hint="Optional." error={err("budgetEst")}>
+          <Field label="Adult cost (₹)" htmlFor="trip-adult-budget" hint="Optional. Used for adults; legacy cost is used if blank." error={err("adultBudgetEst")}>
             <Input
-              id="trip-budget"
+              id="trip-adult-budget"
               inputMode="decimal"
-              value={values.budgetEst}
-              onChange={set("budgetEst")}
-              {...aria("trip-budget", "budgetEst", true)}
+              value={values.adultBudgetEst}
+              onChange={set("adultBudgetEst")}
+              {...aria("trip-adult-budget", "adultBudgetEst", true)}
             />
+          </Field>
+          <Field label="Child cost (₹)" htmlFor="trip-child-budget" hint="Optional. Applies under 18s." error={err("childBudgetEst")}>
+            <Input id="trip-child-budget" inputMode="decimal" value={values.childBudgetEst} onChange={set("childBudgetEst")} {...aria("trip-child-budget", "childBudgetEst", true)} />
           </Field>
         </div>
         {!tripId ? (

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { FamilySummary } from "@/components/members/family-summary";
+import { countTravellers } from "@/lib/family";
 import { ArrowLeft, Download, ExternalLink, Trash2 } from "lucide-react";
 import { deleteExpense, deleteTrip, removeRegistration } from "@/actions/admin";
 import { AddExpenseDialog } from "@/components/admin/add-expense-dialog";
@@ -43,6 +45,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
   const accounts = computeBalances(
     confirmed.map((r) => r.user.id),
     trip.expenses.map((e) => ({ paidById: e.paidById, amountPaise: toPaise(e.amount) })),
+    Object.fromEntries(confirmed.map((r) => [r.user.id, r.partySize])),
   );
   const transfers = settleUp(accounts.balances);
   const canDelete = trip.registrations.length + trip.expenses.length + trip.feedbacks.length + trip._count.responses === 0;
@@ -57,6 +60,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
     endDate: toDateInputValue(trip.endDate),
     maxCapacity: String(trip.maxCapacity),
     budgetEst: trip.budgetEst?.toString() ?? "",
+    adultBudgetEst: trip.adultBudgetEst?.toString() ?? "",
+    childBudgetEst: trip.childBudgetEst?.toString() ?? "",
     status: trip.status,
     itinerary: parseItinerary(trip.itinerary).map((d) => ({ title: d.title, details: d.details ?? "" })),
   };
@@ -99,7 +104,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
       <Tabs defaultValue={defaultTab} className="mt-10">
         <TabsList aria-label="Manage this trip">
           <TabsTrigger value="roster">
-            Roster <Count n={trip.registrations.length} />
+            Roster <Count n={countTravellers(trip.registrations)} />
           </TabsTrigger>
           <TabsTrigger value="expenses">
             Expenses <Count n={trip.expenses.length} />
@@ -113,8 +118,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
         {/* Roster ---------------------------------------------------------- */}
         <TabsContent value="roster">
           <p className="text-sm text-lichen">
-            {confirmed.length} of {trip.maxCapacity} seats taken
-            {waitlisted.length ? `, ${waitlisted.length} on the waitlist` : ""}. Seats go in order of registration;
+            {countTravellers(confirmed)} of {trip.maxCapacity} seats taken
+            {waitlisted.length ? `, ${countTravellers(waitlisted)} on the waitlist` : ""}. Seats go in order of registration;
             removing someone moves the waitlist up.
           </p>
           {roster.length === 0 ? (
@@ -130,6 +135,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
                     <TableHead>Emergency contact</TableHead>
                     <TableHead>Blood</TableHead>
                     <TableHead>Getting there</TableHead>
+                    <TableHead>Car pool</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Gear</TableHead>
                     <TableHead>
@@ -146,6 +152,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
                         <TableCell className="min-w-40">
                           <p className="font-semibold text-mist">{name}</p>
                           <p className="text-xs text-lichen">{r.user.email}</p>
+                          <FamilySummary companions={r.companions} />
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {r.user.phone ? (
@@ -159,6 +166,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
                         <TableCell className="min-w-44">{r.user.emergencyContact ?? <span className="text-lichen">Not given</span>}</TableCell>
                         <TableCell>{r.user.bloodGroup ?? <span className="text-lichen">—</span>}</TableCell>
                         <TableCell className="min-w-40">{r.vehicleDetails ?? <span className="text-lichen">Needs a seat</span>}</TableCell>
+                        <TableCell className="min-w-44">{r.carpoolChoice === "NONE" ? <span className="text-lichen">No car pool</span> : `${r.carpoolChoice === "OFFER_RIDE" ? "Offers" : "Needs"} ${r.carpoolSeats ?? ""} from ${r.carpoolLocation ?? "—"}`}</TableCell>
                         <TableCell>
                           <PaymentSelect registrationId={r.id} status={r.paymentStatus} memberName={name} />
                         </TableCell>
@@ -202,8 +210,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
             <Money label="Spent" paise={accounts.total} />
             <Money label="Per person" paise={accounts.travellers ? accounts.perHead : null} />
             <div className="bg-basalt p-5">
-              <dt className="text-sm text-lichen">Estimate per person</dt>
-              <dd className="stretch-narrow mt-2 text-3xl font-bold tabular-nums">{trip.budgetEst ? formatINR(trip.budgetEst) : "—"}</dd>
+              <dt className="text-sm text-lichen">Adult / child estimate</dt>
+              <dd className="mt-2 text-lg font-bold tabular-nums">{trip.adultBudgetEst ?? trip.budgetEst ? `${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} / ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)}` : "—"}</dd>
             </div>
             <div className="bg-basalt p-5">
               <dt className="text-sm text-lichen">Against the estimate</dt>

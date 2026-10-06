@@ -26,7 +26,8 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   const parsed = registrationSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
-  const { phone, emergencyContact, bloodGroup, vehicleDetails } = parsed.data;
+  const { phone, emergencyContact, bloodGroup, vehicleDetails, carpoolChoice, carpoolLocation, carpoolSeats, companions, familyConsent, parentalConsent } = parsed.data;
+  const partySize = 1 + companions.length;
 
   const trip = await prisma.trip.findUnique({
     where: { id: String(tripId) },
@@ -37,12 +38,19 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
   const started = trip.startDate.getTime() <= Date.now();
   if (!acceptsRegistrations(trip.status) || started) return fail(closedReason(trip.status, started));
 
+  if (partySize > trip.maxCapacity) return fail("Your family is larger than this trip’s capacity. Please contact the organiser.");
+
   let registrationId: string;
   try {
     const [, registration] = await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { phone, emergencyContact, bloodGroup } }),
       prisma.tripRegistration.create({
-        data: { userId: user.id, tripId: trip.id, vehicleDetails, agreedToGuidelinesAt: new Date() },
+        data: {
+          userId: user.id, tripId: trip.id, vehicleDetails, carpoolChoice, carpoolLocation, carpoolSeats, agreedToGuidelinesAt: new Date(),
+          partySize, companions,
+          familyConsentAt: companions.length && familyConsent ? new Date() : null,
+          parentalConsentAt: companions.some((person) => person.age < 18) && parentalConsent ? new Date() : null,
+        },
       }),
     ]);
     registrationId = registration.id;
@@ -55,7 +63,7 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   const roster = await prisma.tripRegistration.findMany({
     where: { tripId: trip.id },
-    select: { id: true, createdAt: true },
+    select: { id: true, createdAt: true, partySize: true },
   });
   const position = rosterPosition(roster, trip.maxCapacity, registrationId);
 

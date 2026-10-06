@@ -78,7 +78,7 @@ export async function isFromTraveller(
 ): Promise<boolean> {
   const registrations = await prisma.tripRegistration.findMany({
     where: { tripId: trip.id },
-    select: { id: true, createdAt: true, userId: true, user: { select: { phone: true } } },
+    select: { id: true, createdAt: true, partySize: true, userId: true, user: { select: { phone: true } } },
   });
   if (registrations.length === 0) return false;
   const { confirmed } = splitRoster(registrations, trip.maxCapacity);

@@ -24,17 +24,19 @@ export function StatusBadge({ status, className }: { status: TripStatus; classNa
 /** Seats as a line that fills up, with the number that matters in words. */
 export function SeatsMeter({
   registered,
+  confirmed,
   capacity,
   status,
   className,
 }: {
   registered: number;
+  confirmed?: number;
   capacity: number;
   status: TripStatus;
   className?: string;
 }) {
   if (!showsSeats(status, registered)) return null;
-  const seats = seatSummary(registered, capacity);
+  const seats = seatSummary(registered, capacity, confirmed);
 
   if (status === "COMPLETED" || status === "ONGOING") {
     return (
@@ -47,6 +49,7 @@ export function SeatsMeter({
 
   let text: string;
   if (status === "FULL") text = "Registrations closed";
+  else if (seats.waitlist > 0) text = `Waitlist open, ${seats.waitlist} waiting`;
   else if (seats.left > 0) text = seats.left === 1 ? "1 seat left" : `${seats.left} seats left`;
   else text = seats.waitlist > 0 ? `Waitlist open, ${seats.waitlist} waiting` : "Waitlist open";
 
