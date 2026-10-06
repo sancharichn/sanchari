@@ -22,7 +22,6 @@ export default function FaqPage() {
       </p>
 
       <nav aria-label="About page sections" className="mt-7 flex flex-wrap gap-3 text-sm font-semibold text-signal">
-        <a href="#notebook" className="rounded-full border border-ridge px-4 py-2 hover:border-signal/60">Sanchari Notebook</a>
         <a href="#brochure" className="rounded-full border border-ridge px-4 py-2 hover:border-signal/60">Community brochure</a>
       </nav>
 
