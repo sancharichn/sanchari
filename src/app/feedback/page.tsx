@@ -25,7 +25,7 @@ export default async function FeedbackPage() {
     .slice(0, 40);
 
   return (
-    <main id="main" className="container py-14 md:py-20">
+    <main id="main" className="mobile-glass-screen container py-14 md:py-20">
       <h1 className="stretch-wide text-4xl font-extrabold leading-none md:text-5xl">Feedback</h1>
       <p className="measure mt-5 text-lg text-lichen">
         What worked, what didn&apos;t, and what you&apos;d like next. After each trip, its feedback form is shared on

@@ -36,7 +36,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
   const feedbackHref = `/trips/${trip.id}/feedback`;
 
   return (
-    <main id="main">
+    <main id="main" className="mobile-glass-screen">
       <header className="relative isolate overflow-hidden border-b border-ridge">
         {cover ? (
           <>

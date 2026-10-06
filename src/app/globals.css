@@ -93,3 +93,236 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Landscape-led home page: shared copy and behaviour, quieter visual surfaces. */
+@layer components {
+  .container {
+    max-width: 1200px;
+    padding-inline: clamp(1.25rem, 8vw, 6rem);
+  }
+
+  .site-header {
+    box-shadow: 0 1px 0 rgb(255 255 255 / 3%);
+  }
+
+  .home-hero .hero-landscape {
+    object-position: center 58%;
+  }
+
+  .hero-shade {
+    background:
+      linear-gradient(0deg, rgb(10 10 10 / 74%), transparent 38%),
+      linear-gradient(90deg, rgb(5 13 17 / 90%) 0%, rgb(5 13 17 / 68%) 48%, rgb(5 13 17 / 25%) 100%);
+  }
+
+  .hero-description {
+    max-width: 55ch;
+  }
+
+  .departure-card,
+  .hero-finder {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%), 0 16px 48px rgb(0 0 0 / 16%);
+  }
+
+  .departure-card {
+    background-image: linear-gradient(145deg, rgb(121 154 170 / 15%), transparent);
+  }
+
+  .hero-finder select {
+    border-color: rgb(255 255 255 / 20%);
+  }
+
+  .home-page > section:not(.home-hero) {
+    margin-top: clamp(4.5rem, 8vw, 7rem);
+  }
+
+  .home-page h2 {
+    letter-spacing: -0.025em;
+  }
+
+  .trip-empty,
+  .travel-principle {
+    background-image: linear-gradient(135deg, rgb(255 255 255 / 3%), transparent 70%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%);
+  }
+
+  .trip-card {
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  }
+
+  .trip-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgb(0 0 0 / 22%);
+  }
+
+  .home-page #join {
+    scroll-margin-top: 6rem;
+  }
+
+  @media (max-width: 767px) {
+    .hero-actions a {
+      padding-inline: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .hero-shade {
+      background: linear-gradient(180deg, rgb(5 13 17 / 78%), rgb(5 13 17 / 65%) 50%, rgb(10 10 10 / 92%));
+    }
+
+    .home-hero .hero-landscape {
+      object-position: 58% center;
+    }
+
+    .home-page h2 {
+      font-size: 1.875rem;
+      line-height: 1.15;
+    }
+  }
+}
+
+/* Mobile screens share a photographic canvas and softly lit glass panes. */
+@media (max-width: 767px) {
+  body {
+    isolation: isolate;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgb(7 18 23 / 50%), rgb(6 14 17 / 72%)),
+      url("/covers/jawadhu-hills-camp.jpg") center / cover no-repeat;
+  }
+
+  .mobile-glass-screen,
+  .home-page > section.container,
+  .hero-content > div:first-child,
+  .home-page .departure-card,
+  .home-page .hero-finder {
+    border: 1px solid rgb(221 240 241 / 22%);
+    border-radius: 24px;
+    background: linear-gradient(140deg, rgb(125 155 162 / 18%), rgb(15 25 29 / 72%));
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
+    backdrop-filter: blur(20px) saturate(120%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 16px 36px rgb(0 0 0 / 18%);
+  }
+
+  .mobile-glass-screen,
+  .home-page > section.container {
+    width: calc(100% - 32px);
+    margin: 20px auto 0;
+    padding: 28px 20px;
+  }
+
+  .mobile-glass-screen > .container {
+    padding: 0;
+  }
+
+  .mobile-glass-screen > section.container {
+    margin-top: 40px;
+  }
+
+  .home-page > section:not(.home-hero) {
+    margin-top: 20px;
+  }
+
+  .home-hero {
+    border: 0;
+    overflow: visible;
+  }
+
+  .home-hero > .hero-landscape,
+  .home-hero > .hero-shade {
+    display: none;
+  }
+
+  .hero-content {
+    gap: 16px;
+    padding: 20px 16px 16px;
+  }
+
+  .hero-content > div:first-child {
+    padding: 28px 20px;
+  }
+
+  .home-hero > .container:last-child {
+    padding: 0 16px;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
+  }
+
+  .hero-description {
+    margin-top: 24px;
+  }
+
+  .home-page .trip-empty,
+  .home-page .travel-principle,
+  .home-page section[aria-labelledby="instagram-heading"] > div:last-child,
+  .mobile-glass-screen .bg-basalt {
+    background: rgb(9 19 23 / 38%);
+    border-color: rgb(221 240 241 / 16%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+  }
+
+  .home-page .trip-empty {
+    padding: 12px;
+    gap: 20px;
+  }
+
+  .home-page .text-lichen,
+  .mobile-glass-screen .text-lichen {
+    color: #bec9c8;
+  }
+
+  .site-header,
+  .mobile-tab-dock,
+  [role="dialog"] {
+    background: rgb(13 24 29 / 78%);
+    border-color: rgb(221 240 241 / 20%);
+    -webkit-backdrop-filter: blur(24px) saturate(130%);
+    backdrop-filter: blur(24px) saturate(130%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+  }
+
+  .mobile-tab-dock {
+    left: 12px;
+    right: 12px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    padding-bottom: 0;
+    border: 1px solid rgb(221 240 241 / 20%);
+    border-radius: 22px;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 8px 32px rgb(0 0 0 / 30%);
+  }
+
+  .mobile-tab-dock a {
+    margin: 5px 3px;
+    height: 54px;
+    border-radius: 16px;
+  }
+
+  .mobile-tab-dock a[aria-current="page"] {
+    background: rgb(255 230 0 / 10%);
+  }
+
+  body > footer,
+  footer {
+    background: rgb(7 16 19 / 78%);
+    margin-top: 32px;
+  }
+
+  /* An opaque fallback keeps text legible on browsers without backdrop blur. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .mobile-glass-screen,
+    .home-page > section.container,
+    .hero-content > div:first-child,
+    .home-page .departure-card,
+    .home-page .hero-finder {
+      background: #172327;
+    }
+  }
+}

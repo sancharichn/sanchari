@@ -18,7 +18,7 @@ export default async function ProfilePage() {
   const [profile, trips] = await Promise.all([getMemberProfile(user.id), getMyTrips(user.id)]);
 
   return (
-    <main id="main" className="container py-14 md:py-20">
+    <main id="main" className="mobile-glass-screen container py-14 md:py-20">
       <div className="flex flex-wrap items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-4">
           <Avatar name={profile?.name ?? user.name} image={profile?.image ?? user.image} size={56} />

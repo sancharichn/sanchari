@@ -35,7 +35,7 @@ export default function PrivacyPage() {
   );
 
   return (
-    <main id="main" className="container py-14 md:py-20">
+    <main id="main" className="mobile-glass-screen container py-14 md:py-20">
       <h1 className="stretch-wide text-4xl font-extrabold leading-none md:text-5xl">Privacy</h1>
       <p className="measure mt-5 text-lg text-lichen">What this website keeps about you, why, and who can see it.</p>
       <p className="mt-2 text-sm text-lichen">Last updated {UPDATED}</p>

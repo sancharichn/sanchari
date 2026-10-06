@@ -34,7 +34,7 @@ export default async function SignInPage({
   const error = searchParams.error ? (errorCopy[searchParams.error] ?? errorCopy.default) : null;
 
   return (
-    <main id="main" className="container flex min-h-[80dvh] items-center py-24">
+    <main id="main" className="mobile-glass-screen container flex min-h-[80dvh] items-center py-24">
       <div className="w-full max-w-lg">
         <h1 className="stretch-semiwide text-3xl font-bold leading-tight">Sign in to Sanchari</h1>
         <p className="measure mt-4 text-lichen">

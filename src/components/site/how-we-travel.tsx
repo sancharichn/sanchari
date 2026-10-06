@@ -29,7 +29,7 @@ export function HowWeTravel() {
       </div>
       <ul className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
         {PRINCIPLES.map((principle) => (
-          <li key={principle.title} className="border-t border-ridge pt-5">
+          <li key={principle.title} className="travel-principle rounded-panel border border-ridge bg-basalt p-6">
             <h3 className="stretch-semiwide text-xl font-bold text-mist">{principle.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-lichen">{principle.body}</p>
           </li>

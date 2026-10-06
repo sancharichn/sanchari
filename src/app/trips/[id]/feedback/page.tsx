@@ -39,7 +39,7 @@ export default async function TripFeedbackPage({ params }: Params) {
   const tripHref = `/trips/${trip.id}`;
 
   return (
-    <main id="main">
+    <main id="main" className="mobile-glass-screen">
       <header className="relative isolate overflow-hidden border-b border-ridge">
         <ContourField className="opacity-60 [mask-image:linear-gradient(to_bottom,black_35%,transparent)]" />
         <div className="container relative max-w-3xl py-12 md:py-14">

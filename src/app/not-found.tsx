@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main id="main" className="container flex min-h-[70dvh] flex-col justify-center py-24">
+    <main id="main" className="mobile-glass-screen container flex min-h-[70dvh] flex-col justify-center py-24">
       <p className="stretch-narrow text-2xl font-semibold tabular-nums text-signal">404</p>
       <h1 className="stretch-semiwide mt-2 text-3xl font-bold">This trail doesn&apos;t go anywhere</h1>
       <p className="measure mt-4 text-lichen">The page you were looking for doesn&apos;t exist, or you don&apos;t have access to it.</p>

@@ -12,7 +12,7 @@ export default async function GalleryPage() {
   const albums = await getGallery();
 
   return (
-    <main id="main">
+    <main id="main" className="mobile-glass-screen">
       <div className="container py-14 md:py-20">
         <h1 className="stretch-wide text-4xl font-extrabold leading-none md:text-5xl">Gallery</h1>
         <p className="measure mt-5 text-lg text-lichen">

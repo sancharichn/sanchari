@@ -24,7 +24,7 @@ export default async function TripsPage({ searchParams }: { searchParams: { view
     requested && VIEWS.includes(requested) ? requested : groups.upcoming.length || !groups.ongoing.length ? "upcoming" : "ongoing";
 
   return (
-    <main id="main" className="container py-14 md:py-20">
+    <main id="main" className="mobile-glass-screen container py-14 md:py-20">
       <h1 className="stretch-wide text-4xl font-extrabold leading-none md:text-5xl">Trips</h1>
       <p className="measure mt-5 text-lg text-lichen">
         Meetups and trips on the calendar, and everywhere the group has been. New to Sanchari? Everyone starts with a

@@ -11,7 +11,7 @@ export function SiteHeader({ user }: { user: CurrentUser | null }) {
   const links = navLinksFor(user?.role === "ADMIN");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-black/80 backdrop-blur-md">
+    <header className="site-header sticky top-0 z-40 border-b border-white/[0.06] bg-black/80 backdrop-blur-md">
       <nav aria-label="Main" className="container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="rounded-md" aria-label="Sanchari Chennai, home">
           <Wordmark />

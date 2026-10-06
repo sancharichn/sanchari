@@ -6,8 +6,6 @@ import type { GalleryImage } from "@/lib/drive";
 import type { TripListItem } from "@/lib/queries";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { KIND_PLURAL, TRIP_KINDS, tripTypeLabel } from "@/lib/trips";
-import { ContourField } from "./contour-field";
-import { TrailClimb } from "./trail-climb";
 
 export function Hero({
   next,
@@ -20,40 +18,31 @@ export function Hero({
   photo: GalleryImage | null;
 }) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-ridge">
-      {photo ? (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element -- already resized and cached by our own photo proxy */}
-          <img
-            src={photo.src[1600]}
-            srcSet={`${photo.src[960]} 960w, ${photo.src[1600]} 1600w`}
-            sizes="100vw"
-            alt=""
-            fetchPriority="high"
-            className="absolute inset-0 -z-10 size-full object-cover"
-          />
-          {/* Darkens the photo most behind the text, so the headline stays readable on any picture. */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-gradient-to-t from-night via-night/70 to-night/30 md:bg-gradient-to-r md:from-night/95 md:via-night/70 md:to-night/20"
-          />
-        </>
-      ) : (
-        <ContourField className="[mask-image:linear-gradient(to_bottom,black_50%,transparent)]" />
-      )}
-      <div className="container relative grid gap-12 pb-16 pt-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] md:items-end md:gap-16 md:pb-20 md:pt-20">
+    <section className="home-hero relative isolate overflow-hidden border-b border-ridge">
+      {/* Keep the landscape present even before the first gallery upload. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- local fallback or our resized photo proxy */}
+      <img
+        src={photo?.src[1600] ?? "/covers/jawadhu-hills-camp.jpg"}
+        srcSet={photo ? `${photo.src[960]} 960w, ${photo.src[1600]} 1600w` : undefined}
+        sizes="100vw"
+        alt=""
+        fetchPriority="high"
+        className="hero-landscape absolute inset-0 -z-20 size-full object-cover"
+      />
+      <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
+      <div className="hero-content container relative grid gap-9 pb-10 pt-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] md:items-end md:gap-16 md:pb-16 md:pt-20">
         <div>
-          <h1 className="stretch-wide text-[clamp(3.1rem,8vw,6.5rem)] font-extrabold leading-[0.86] tracking-[-0.02em] text-mist">
+          <h1 className="stretch-wide text-[clamp(3.1rem,8vw,6.5rem)] font-extrabold leading-[0.92] tracking-[-0.02em] text-mist">
             <span className="block">TRAVEL</span>
             <span className="block">WITH</span>
             <span className="block">NATURE</span>
           </h1>
-          <p className="measure mt-8 text-lg text-mist/85 md:text-xl md:leading-8">
+          <p className="hero-description mt-8 text-base leading-relaxed text-mist/85 md:text-lg md:leading-8">
             We&apos;re the Chennai unit of Sanchari, the community that began online among Malayali travel lovers over a
             decade ago. Anyone in Chennai is welcome. We travel as volunteers, share only the real costs, and look after
             the places we visit.
           </p>
-          <div className="mt-9 flex flex-wrap gap-3">
+          <div className="hero-actions mt-9 flex flex-wrap gap-3">
             <Link href="/trips" className={buttonVariants({ size: "lg" })}>
               See upcoming trips
             </Link>
@@ -72,7 +61,6 @@ export function Hero({
 
         <div className="flex flex-col">
           <NextDeparture trip={next} />
-          {photo ? null : <TrailClimb />}
         </div>
       </div>
 
@@ -91,7 +79,7 @@ function TripFinder() {
       method="get"
       role="search"
       aria-label="Find a trip"
-      className="grid gap-3 rounded-panel border border-ridge bg-basalt/90 p-4 backdrop-blur-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-5"
+      className="hero-finder grid gap-3 rounded-panel border border-white/20 bg-basalt/65 p-4 backdrop-blur-xl sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-5"
     >
       <div className="grid gap-1.5">
         <label htmlFor="finder-type" className="text-sm font-semibold text-mist">
@@ -119,7 +107,7 @@ function TripFinder() {
 }
 
 function NextDeparture({ trip }: { trip: TripListItem | null }) {
-  const cardClass = "relative z-10 block rounded-panel border border-ridge bg-basalt/90 p-6 backdrop-blur-sm";
+  const cardClass = "departure-card relative z-10 block rounded-panel border border-white/20 bg-basalt/55 p-6 backdrop-blur-xl";
 
   if (!trip) {
     return (

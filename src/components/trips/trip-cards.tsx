@@ -8,7 +8,18 @@ import { SeatsMeter, StatusBadge } from "./trip-status";
 /** Trips as photo cards: the cover photo sells the place, the date leads the text. */
 export function TripCards({ trips, emptyText }: { trips: TripListItem[]; emptyText: React.ReactNode }) {
   if (trips.length === 0) {
-    return <div className="border-y border-ridge py-10 text-lichen">{emptyText}</div>;
+    return (
+      <div className="trip-empty grid items-center gap-6 rounded-panel border border-white/15 bg-basalt p-5 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-8 md:p-8">
+        {/* eslint-disable-next-line @next/next/no-img-element -- existing local campsite photograph */}
+        <img
+          src="/covers/jawadhu-hills-camp.jpg"
+          alt=""
+          loading="lazy"
+          className="aspect-[4/3] w-full rounded-xl object-cover"
+        />
+        <div className="text-sm leading-relaxed text-lichen">{emptyText}</div>
+      </div>
+    );
   }
   return (
     <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +38,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-panel border border-ridge bg-basalt transition-colors hover:border-signal/60"
+      className="trip-card group flex h-full flex-col overflow-hidden rounded-panel border border-ridge bg-basalt transition-colors hover:border-signal/60"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-night">
         {trip.cover ? (

@@ -12,7 +12,7 @@ const linkClass = "text-mist underline underline-offset-4 hover:text-signal";
 
 export default function FaqPage() {
   return (
-    <main id="main" className="container py-14 md:py-20">
+    <main id="main" className="mobile-glass-screen container py-14 md:py-20">
       <OpenDetailsOnHash />
 
       <h1 className="stretch-wide text-4xl font-extrabold leading-none md:text-5xl">About &amp; FAQ</h1>

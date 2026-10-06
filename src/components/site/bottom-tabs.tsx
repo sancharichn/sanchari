@@ -22,7 +22,7 @@ export function BottomTabs({ signedIn }: { signedIn: boolean }) {
   return (
     <nav
       aria-label="Sections"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-black/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className="mobile-tab-dock fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-black/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       <ul className="grid grid-cols-5">
         {tabs.map(({ href, label, icon: Icon }) => {

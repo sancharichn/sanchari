@@ -26,7 +26,7 @@ export default async function HomePage() {
   const feedback = [...reviews.map((r) => reviewToCard(r)), ...notes].slice(0, 3);
 
   return (
-    <main id="main">
+    <main id="main" className="home-page">
       <Hero next={upcoming[0] ?? null} signedIn={Boolean(user)} photo={upcoming[0]?.cover ?? photos[0] ?? null} />
 
       <section aria-labelledby="upcoming-heading" className="container mt-20 md:mt-28">
