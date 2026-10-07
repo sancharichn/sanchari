@@ -41,7 +41,6 @@ export const authOptions: NextAuthOptions = {
         },
         update: {
           name: user.name ?? undefined,
-          image: user.image ?? undefined,
           ...(isAdmin ? { role: "ADMIN" as const } : {}),
         },
       });
@@ -71,7 +70,8 @@ export const authOptions: NextAuthOptions = {
       token.uid = dbUser.id;
       token.role = dbUser.role;
       token.name = dbUser.name;
-      token.picture = dbUser.image;
+      // Uploaded images stay in the database; a photo must never inflate the session cookie.
+      token.picture = dbUser.image?.startsWith("data:") ? null : dbUser.image;
       return token;
     },
 

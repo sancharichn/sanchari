@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "What the Sanchari website keeps about you, why, and who can see it.",
 };
 
-const UPDATED = "4 October 2026";
+const UPDATED = "7 October 2026";
 
 const linkClass = "text-mist underline underline-offset-4 hover:text-signal";
 
@@ -56,6 +56,10 @@ export default function PrivacyPage() {
       </div>
 
       <div className="mt-14 space-y-12">
+        <Section id="birthdays" title="Family profiles and birthday wishes">
+          <p>You may add family members, optional birthday days and months, and optional photos. We do not collect a birth year for birthday wishes. Adding a birthday enables a private wish to your account email when sending is configured. Family wishes go to the registering adult. Clear the birthday fields to stop future wishes, or remove the family entry.</p>
+          <p>Uploaded photos are resized and saved with your profile for personalised birthday cards. Organisers can see these details; they are not listed publicly. Add family details and photos only with their permission, or as their parent or guardian. Payment records, attendance and incident follow-up are restricted to organisers.</p>
+        </Section>
         <Section id="sign-in" title="What we get when you sign in">
           <p>
             Sanchari uses Google sign-in. Google shares your name, email address and profile photo with us, and says so

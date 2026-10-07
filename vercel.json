@@ -1,1 +1,1 @@
-{"crons":[{"path":"/api/cron/birthdays","schedule":"0 4 * * *"}]}
+{"crons":[{"path":"/api/cron/birthdays","schedule":"0 4 * * *"},{"path":"/api/cron/trip-messages","schedule":"0 5 * * *"}]}

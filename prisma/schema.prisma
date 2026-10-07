@@ -102,12 +102,22 @@ model FamilyMember {
 }
 
 model BirthdayDelivery {
+  status       String   @default("SENT")
   id           String   @id @default(cuid())
   recipientKey String
   birthdayYear Int
   sentAt       DateTime @default(now())
 
   @@unique([recipientKey, birthdayYear])
+}
+
+model TripMessageDelivery {
+  id          String   @id @default(cuid())
+  deliveryKey String   @unique
+  recipient   String
+  kind        String
+  status      String   @default("SENDING")
+  createdAt   DateTime @default(now())
 }
 
 model Trip {
@@ -139,6 +149,8 @@ model Trip {
 }
 
 model TripRegistration {
+  checkedInCount       Int            @default(0)
+  carpoolMatched       Boolean        @default(false)
   id                   String         @id @default(cuid())
   userId               String
   tripId               String
@@ -164,6 +176,7 @@ model TripRegistration {
 }
 
 model PaymentEvent {
+  requestId      String?          @unique
   id             String           @id @default(cuid())
   tripId         String
   registrationId String
@@ -173,8 +186,8 @@ model PaymentEvent {
   reference      String?
   note           String?
   createdAt      DateTime         @default(now())
-  trip           Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  registration   TripRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  trip           Trip             @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  registration   TripRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
   recordedBy     User             @relation("RecordedBy", fields: [recordedById], references: [id])
 
   @@index([tripId, createdAt])
@@ -251,38 +264,40 @@ model FeedbackForm {
 
 /// One person's (or one family's) answers. Anonymous answers keep no name, number or account.
 model FeedbackResponse {
-  id            String       @id @default(cuid())
-  formId        String
-  tripId        String
-  userId        String?
-  anonymous     Boolean      @default(false)
-  name          String?
-  whatsapp      String?
-  groupSize     Int?
-  overall       Int
-  comeAgain     ComeAgain
+  followUpStatus String       @default("NEW")
+  followUpNote   String?
+  id             String       @id @default(cuid())
+  formId         String
+  tripId         String
+  userId         String?
+  anonymous      Boolean      @default(false)
+  name           String?
+  whatsapp       String?
+  groupSize      Int?
+  overall        Int
+  comeAgain      ComeAgain
   /// The standard aspects: { venue, food, travel, planning, value } -> EXCELLENT | GOOD | NEEDS_WORK | NA
-  ratings       Json
+  ratings        Json
   /// Answers to the trip's extra questions, keyed by question id
-  extras        Json         @default("{}")
-  loved         String?
-  leaderIdea    String?
-  nextPlace     String?
-  shareOk       Boolean      @default(false)
-  featured      Boolean      @default(false)
-  hidden        Boolean      @default(false)
-  verified      Boolean      @default(false)
-  flags         String[]     @default([])
-  secondsToFill Int?
+  extras         Json         @default("{}")
+  loved          String?
+  leaderIdea     String?
+  nextPlace      String?
+  shareOk        Boolean      @default(false)
+  featured       Boolean      @default(false)
+  hidden         Boolean      @default(false)
+  verified       Boolean      @default(false)
+  flags          String[]     @default([])
+  secondsToFill  Int?
   /// Keyed hash of the account or device, so a second submission replaces the first
-  dedupeKey     String
-  ipHash        String?
-  form          FeedbackForm @relation(fields: [formId], references: [id])
-  trip          Trip         @relation(fields: [tripId], references: [id])
-  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  suggestions   Suggestion[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  dedupeKey      String
+  ipHash         String?
+  form           FeedbackForm @relation(fields: [formId], references: [id])
+  trip           Trip         @relation(fields: [tripId], references: [id])
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  suggestions    Suggestion[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@unique([formId, dedupeKey])
   @@index([tripId, createdAt])

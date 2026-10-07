@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/admin/birthdays", label: "Birthdays" },
   { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/suggestions", label: "Suggestions" },
+  { href: "/admin/reports", label: "Reports & delivery" },
 ];
 
 export function AdminNav() {

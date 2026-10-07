@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
+    serverActions: { bodySizeLimit: "4mb" },
     // Prisma's engine is a native library; keep it out of the server bundle.
     serverComponentsExternalPackages: ["@prisma/client", "prisma"],
   },

@@ -48,6 +48,7 @@ export function LaunchIntro() {
     window.addEventListener("keydown", onKey);
 
     if (video) {
+      video.playbackRate = 2;
       video.play().then(
         () => {
           started = true;
@@ -83,7 +84,7 @@ export function LaunchIntro() {
 
   return (
     <div
-      className="launch-intro fixed inset-0 z-[100] items-center justify-center bg-black transition-opacity duration-500 ease-out data-[phase=leaving]:pointer-events-none data-[phase=leaving]:opacity-0"
+      className="launch-intro fixed inset-0 z-[100] items-center justify-center bg-black transition-opacity duration-300 ease-out data-[phase=leaving]:pointer-events-none data-[phase=leaving]:opacity-0"
       data-phase={phase}
     >
       <video

@@ -16,8 +16,10 @@ const phone = z
     return digits >= 10 && digits <= 15;
   }, "A phone number has 10 to 15 digits.");
 
+const optionalBirthday = (max: number) => z.preprocess((v) => v === "" || v === undefined ? null : v, z.coerce.number().int().min(1).max(max).nullable());
+const profileImage = z.preprocess((v) => v === "" ? null : v, z.string().max(400000).refine((v) => /^https:\/\//.test(v) || /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(v), "Choose a JPEG photo or HTTPS image URL.").nullable().optional());
 const profileFields = {
-  image: z.string().url("Use a valid image URL.").nullable().optional(),
+  image: profileImage,
   phone,
   emergencyContact: z
     .string()
@@ -28,19 +30,25 @@ const profileFields = {
     .union([z.enum(BLOOD_GROUPS), z.literal("")])
     .optional()
     .transform((v) => (v ? v : null)),
-  birthdayMonth: z.coerce.number().int().min(1).max(12).nullable().optional(),
-  birthdayDay: z.coerce.number().int().min(1).max(31).nullable().optional(),
+  birthdayMonth: optionalBirthday(12),
+  birthdayDay: optionalBirthday(31),
   familyMembers: z.array(z.object({
     id: z.string().optional(),
     name: z.string().trim().min(2).max(100),
     relationship: z.string().trim().min(2).max(60),
-    birthdayMonth: z.coerce.number().int().min(1).max(12).nullable(),
-    birthdayDay: z.coerce.number().int().min(1).max(31).nullable(),
-    image: z.string().url().nullable().optional(),
+    birthdayMonth: optionalBirthday(12),
+    birthdayDay: optionalBirthday(31),
+    image: profileImage,
   })).max(20).optional().default([]),
 } as const;
 
 export const profileSchema = z.object(profileFields).superRefine((value, ctx) => {
+  if ((value.image?.length ?? 0) + value.familyMembers.reduce((n, member) => n + (member.image?.length ?? 0), 0) > 3000000) ctx.addIssue({ code: "custom", path: ["image"], message: "Combined photos are too large. Use smaller photos." });
+  const check = (month: number | null, day: number | null, path: (string | number)[]) => {
+    if ((month === null) !== (day === null) || (month !== null && day !== null && new Date(Date.UTC(2000, month - 1, day)).getUTCMonth() !== month - 1)) ctx.addIssue({ code: "custom", path, message: "Choose a valid day and month, or leave both blank." });
+  };
+  check(value.birthdayMonth, value.birthdayDay, ["birthdayDay"]);
+  value.familyMembers.forEach((member, index) => check(member.birthdayMonth, member.birthdayDay, ["familyMembers", index, "birthdayDay"]));
   if ((value.birthdayMonth && !value.birthdayDay) || (!value.birthdayMonth && value.birthdayDay)) {
     ctx.addIssue({ code: "custom", path: ["birthdayDay"], message: "Add both birthday month and day, or leave both blank." });
   }

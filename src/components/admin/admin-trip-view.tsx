@@ -18,7 +18,10 @@ import type { AdminTrip, TripResponse } from "@/lib/admin-queries";
 import { formatDate, formatDateRange, formatINR, paiseToRupees, toDateInputValue, toPaise } from "@/lib/format";
 import { computeBalances, settleUp } from "@/lib/settle";
 import { parseExtraQuestions } from "@/lib/feedback";
-import { IncidentClose, IncidentControls, TaskToggle, TripTaskControls } from "@/components/admin/trip-ops-controls";
+import { OperationsPanel } from "@/components/admin/operations-panel";
+import { FeedbackFollowUp } from "@/components/admin/feedback-followup";
+import { expectedPayment } from "@/lib/operations";
+import { IncidentClose, IncidentControls, TaskEditor, TaskToggle, TripTaskControls } from "@/components/admin/trip-ops-controls";
 import { isPublicStatus, parseItinerary, splitRoster, tripTypeLabel } from "@/lib/trips";
 
 type Props = {
@@ -29,9 +32,10 @@ type Props = {
   responses: TripResponse[];
   verifiedOnly?: boolean;
   coverChoices?: CoverOption[];
+  organisers?: Array<{ id: string; label: string }>;
 };
 
-export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false, coverChoices = [] }: Props) {
+export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false, coverChoices = [], organisers = [] }: Props) {
   const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
   const roster = [
     ...confirmed.map((r) => ({ ...r, place: "Seat" })),
@@ -70,8 +74,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
 
   const extras = parseExtraQuestions(trip.feedbackForm?.questions);
 
-  const validTabs = ["roster", "expenses", "feedback", "tasks", "incidents", "details"];
-  const defaultTab = tab && validTabs.includes(tab) ? tab : "roster";
+  const validTabs = ["operations", "roster", "expenses", "feedback", "tasks", "incidents", "details"];
+  const defaultTab = tab && validTabs.includes(tab) ? tab : "operations";
 
   return (
     <main id="main" className="container py-10 md:py-14 xl:max-w-[1360px]">
@@ -104,6 +108,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
 
       <Tabs defaultValue={defaultTab} className="mt-10">
         <TabsList aria-label="Manage this trip">
+          <TabsTrigger value="operations">Trip day & payments</TabsTrigger>
           <TabsTrigger value="roster">
             Roster <Count n={countTravellers(trip.registrations)} />
           </TabsTrigger>
@@ -119,6 +124,10 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
         </TabsList>
 
         {/* Roster ---------------------------------------------------------- */}
+        <TabsContent value="operations">
+          <OperationsPanel people={roster.map((r) => ({ id: r.id, name: r.user.name ?? r.user.email, email: r.user.email, phone: r.user.phone, partySize: r.partySize, checkedInCount: r.checkedInCount, confirmed: r.place === "Seat", expected: expectedPayment(trip, r.companions), net: trip.paymentEvents.filter((p) => p.registrationId === r.id).reduce((n,p) => n+toPaise(p.amount),0), paymentStatus: r.paymentStatus, carpoolChoice: r.carpoolChoice, carpoolLocation: r.carpoolLocation, carpoolSeats: r.carpoolSeats, carpoolMatched: r.carpoolMatched }))} events={trip.paymentEvents.map((p) => ({ id: p.id, name: p.registration.user.name ?? p.registration.user.email, amount: p.amount.toString(), method: p.method, reference: p.reference, note: p.note, by: p.recordedBy.name ?? p.recordedBy.email, date: formatDate(p.createdAt) }))} />
+          <a className="mt-6 inline-block text-signal underline" href={`/admin/trips/${trip.id}/payments.csv`}>Export payment ledger</a>
+        </TabsContent>
         <TabsContent value="roster">
           <p className="text-sm text-lichen">
             {countTravellers(confirmed)} of {trip.maxCapacity} seats taken
@@ -347,6 +356,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
 
         {/* Feedback -------------------------------------------------------- */}
         <TabsContent value="feedback">
+          <details className="mb-6 rounded-panel border border-ridge p-5"><summary className="cursor-pointer font-semibold">Private feedback follow-up ({responses.filter((r) => r.followUpStatus !== "RESOLVED").length} open)</summary><div className="mt-4 grid gap-4 md:grid-cols-2">{responses.map((r) => <article key={r.id} className="rounded-lg border border-ridge p-4"><p className="font-semibold">{r.anonymous ? "Anonymous traveller" : r.name || "Traveller"} · {r.overall}/5</p><p className="text-sm text-lichen">{r.leaderIdea || r.loved || "No written comment"}</p><FeedbackFollowUp id={r.id} status={r.followUpStatus} note={r.followUpNote} /></article>)}</div></details>
           <div className="grid gap-12">
             <FeedbackOpenPanel
               tripId={trip.id}
@@ -376,11 +386,11 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
         </TabsContent>
 
         <TabsContent value="tasks">
-          <section className="rounded-panel border border-ridge bg-basalt p-6"><h2 className="text-xl font-bold">Trip tasks</h2><p className="mt-2 text-sm text-lichen">Keep the departure checklist visible to the whole organising team.</p><TripTaskControls tripId={trip.id} />{trip.tasks.length ? <ul className="mt-6 divide-y divide-ridge border-y border-ridge">{trip.tasks.map((task) => <li key={task.id} className="flex items-center justify-between gap-4 py-4"><div><p className={task.completedAt ? "text-lichen line-through" : "font-semibold text-mist"}>{task.title}</p><p className="mt-1 text-xs text-lichen">{task.owner?.name ?? task.owner?.email ?? "Unassigned"}{task.dueAt ? ` · due ${formatDate(task.dueAt)}` : ""}</p></div><div className="text-right"><span className={`block rounded-full border px-3 py-1 text-xs ${task.completedAt ? "border-emerald-400/40 text-emerald-200" : "border-signal/50 text-signal"}`}>{task.completedAt ? "Done" : "Open"}</span><TaskToggle id={task.id} completed={Boolean(task.completedAt)} /></div></li>)}</ul> : null}</section>
+          <section className="rounded-panel border border-ridge bg-basalt p-6"><h2 className="text-xl font-bold">Trip tasks</h2><p className="mt-2 text-sm text-lichen">Keep the departure checklist visible to the whole organising team.</p><TripTaskControls tripId={trip.id} />{trip.tasks.length ? <ul className="mt-6 divide-y divide-ridge border-y border-ridge">{trip.tasks.map((task) => <li key={task.id} className="flex items-center justify-between gap-4 py-4"><div><p className={task.completedAt ? "text-lichen line-through" : "font-semibold text-mist"}>{task.title}</p><p className="mt-1 text-xs text-lichen">{task.owner?.name ?? task.owner?.email ?? "Unassigned"}{task.dueAt ? ` · due ${formatDate(task.dueAt)}` : ""}</p></div><div className="text-right"><span className={`block rounded-full border px-3 py-1 text-xs ${task.completedAt ? "border-emerald-400/40 text-emerald-200" : "border-signal/50 text-signal"}`}>{task.completedAt ? "Done" : "Open"}</span><TaskEditor id={task.id} title={task.title} ownerId={task.ownerId ?? ""} dueAt={task.dueAt ? toDateInputValue(task.dueAt) : ""} organisers={organisers} /><TaskToggle id={task.id} completed={Boolean(task.completedAt)} /></div></li>)}</ul> : null}</section>
         </TabsContent>
 
         <TabsContent value="incidents">
-          <section className="rounded-panel border border-ridge bg-basalt p-6"><h2 className="text-xl font-bold">Incident log</h2><p className="mt-2 text-sm text-lichen">Record safety, transport, health, or conduct issues with an owner and follow-up action.</p><IncidentControls tripId={trip.id} />{trip.incidents.length ? <ul className="mt-6 divide-y divide-ridge border-y border-ridge">{trip.incidents.map((incident) => <li key={incident.id} className="py-4"><div className="flex items-start justify-between gap-4"><div><p className="font-semibold text-mist">{incident.title}</p><p className="mt-1 text-sm text-lichen">{incident.description}</p><p className="mt-2 text-xs text-lichen">Reported by {incident.reportedBy.name ?? incident.reportedBy.email}</p><IncidentClose id={incident.id} /></div><span className={`rounded-full border px-3 py-1 text-xs ${incident.closedAt ? "border-emerald-400/40 text-emerald-200" : "border-signal/50 text-signal"}`}>{incident.closedAt ? "Closed" : incident.severity}</span></div></li>)}</ul> : null}</section>
+          <section className="rounded-panel border border-ridge bg-basalt p-6"><h2 className="text-xl font-bold">Incident log</h2><p className="mt-2 text-sm text-lichen">Record safety, transport, health, or conduct issues with an owner and follow-up action.</p><IncidentControls tripId={trip.id} />{trip.incidents.length ? <ul className="mt-6 divide-y divide-ridge border-y border-ridge">{trip.incidents.map((incident) => <li key={incident.id} className="py-4"><div className="flex items-start justify-between gap-4"><div><p className="font-semibold text-mist">{incident.title}</p><p className="mt-1 text-sm text-lichen">{incident.description}</p><p className="mt-2 text-xs text-lichen">Reported by {incident.reportedBy.name ?? incident.reportedBy.email}</p><IncidentClose id={incident.id} actionTaken={incident.actionTaken ?? ""} closed={Boolean(incident.closedAt)} /></div><span className={`rounded-full border px-3 py-1 text-xs ${incident.closedAt ? "border-emerald-400/40 text-emerald-200" : "border-signal/50 text-signal"}`}>{incident.closedAt ? "Closed" : incident.severity}</span></div></li>)}</ul> : null}</section>
         </TabsContent>
 
         {/* Details --------------------------------------------------------- */}

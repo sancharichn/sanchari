@@ -90,7 +90,7 @@ export async function cancelRegistration(tripId: string): Promise<ActionResult> 
   if (registration.trip.startDate.getTime() <= Date.now() || registration.trip.status === "ONGOING" || registration.trip.status === "COMPLETED") {
     return fail("This trip has already started, so it can't be cancelled here. Talk to the organiser.");
   }
-  if (registration.paymentStatus !== "PENDING") {
+  if (registration.paymentStatus !== "PENDING" || await prisma.paymentEvent.count({ where: { registrationId: registration.id } })) {
     return fail("A payment is recorded on your registration, so ask the organiser to cancel it and sort out the refund.");
   }
 
@@ -107,11 +107,18 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
   if (!parsed.success) return invalid(parsed.error);
 
   const { familyMembers, ...userData } = parsed.data;
-  await prisma.$transaction([
-    prisma.user.update({ where: { id: user.id }, data: userData }),
-    prisma.familyMember.deleteMany({ where: { userId: user.id } }),
-    ...(familyMembers ?? []).map((member) => prisma.familyMember.create({ data: { name: member.name, relationship: member.relationship, birthdayMonth: member.birthdayMonth, birthdayDay: member.birthdayDay, image: member.image ?? null, userId: user.id } })),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({ where: { id: user.id }, data: userData });
+    const existing = await tx.familyMember.findMany({ where: { userId: user.id }, select: { id: true } });
+    const owned = new Set(existing.map((m) => m.id));
+    const retained = familyMembers.flatMap((m) => m.id && owned.has(m.id) ? [m.id] : []);
+    await tx.familyMember.deleteMany({ where: { userId: user.id, id: { notIn: retained } } });
+    for (const member of familyMembers) {
+      const data = { name: member.name, relationship: member.relationship, birthdayMonth: member.birthdayMonth, birthdayDay: member.birthdayDay, image: member.image ?? null };
+      if (member.id && owned.has(member.id)) await tx.familyMember.update({ where: { id: member.id }, data });
+      else await tx.familyMember.create({ data: { ...data, userId: user.id } });
+    }
+  });
   revalidatePath("/profile");
   return done("Your details are saved.");
 }
