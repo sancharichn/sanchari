@@ -16,7 +16,8 @@ const phone = z
     return digits >= 10 && digits <= 15;
   }, "A phone number has 10 to 15 digits.");
 
-export const profileSchema = z.object({
+const profileFields = {
+  image: z.string().url("Use a valid image URL.").nullable().optional(),
   phone,
   emergencyContact: z
     .string()
@@ -27,9 +28,25 @@ export const profileSchema = z.object({
     .union([z.enum(BLOOD_GROUPS), z.literal("")])
     .optional()
     .transform((v) => (v ? v : null)),
+  birthdayMonth: z.coerce.number().int().min(1).max(12).nullable().optional(),
+  birthdayDay: z.coerce.number().int().min(1).max(31).nullable().optional(),
+  familyMembers: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string().trim().min(2).max(100),
+    relationship: z.string().trim().min(2).max(60),
+    birthdayMonth: z.coerce.number().int().min(1).max(12).nullable(),
+    birthdayDay: z.coerce.number().int().min(1).max(31).nullable(),
+    image: z.string().url().nullable().optional(),
+  })).max(20).optional().default([]),
+} as const;
+
+export const profileSchema = z.object(profileFields).superRefine((value, ctx) => {
+  if ((value.birthdayMonth && !value.birthdayDay) || (!value.birthdayMonth && value.birthdayDay)) {
+    ctx.addIssue({ code: "custom", path: ["birthdayDay"], message: "Add both birthday month and day, or leave both blank." });
+  }
 });
 
-export const registrationSchema = profileSchema.extend({
+export const registrationSchema = z.object({ ...profileFields,
   carpoolChoice: z.enum(["NONE", "NEED_RIDE", "OFFER_RIDE"]).default("NONE"),
   carpoolLocation: z.string().trim().max(120, "Keep the location under 120 characters.").optional().transform((v) => v || null),
   carpoolSeats: z.preprocess((v) => v === "" || v === undefined ? null : v, z.coerce.number().int().min(1).max(20).nullable()),
@@ -47,6 +64,9 @@ export const registrationSchema = profileSchema.extend({
     errorMap: () => ({ message: "Tick this box to register. Everyone on a trip agrees to the guidelines." }),
   }),
 }).superRefine((value, ctx) => {
+  if ((value.birthdayMonth && !value.birthdayDay) || (!value.birthdayMonth && value.birthdayDay)) {
+    ctx.addIssue({ code: "custom", path: ["birthdayDay"], message: "Add both birthday month and day, or leave both blank." });
+  }
   if (value.carpoolChoice !== "NONE" && !value.carpoolLocation) ctx.addIssue({ code: "custom", path: ["carpoolLocation"], message: "Add where you are travelling from." });
   if (value.carpoolChoice !== "NONE" && !value.carpoolSeats) ctx.addIssue({ code: "custom", path: ["carpoolSeats"], message: "Add the number of seats needed or available." });
   if (value.companions.length && !value.familyConsent) {

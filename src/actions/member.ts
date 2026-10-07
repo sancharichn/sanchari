@@ -106,7 +106,12 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
   const parsed = profileSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
 
-  await prisma.user.update({ where: { id: user.id }, data: parsed.data });
+  const { familyMembers, ...userData } = parsed.data;
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: userData }),
+    prisma.familyMember.deleteMany({ where: { userId: user.id } }),
+    ...(familyMembers ?? []).map((member) => prisma.familyMember.create({ data: { name: member.name, relationship: member.relationship, birthdayMonth: member.birthdayMonth, birthdayDay: member.birthdayDay, image: member.image ?? null, userId: user.id } })),
+  ]);
   revalidatePath("/profile");
   return done("Your details are saved.");
 }

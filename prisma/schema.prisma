@@ -72,40 +72,74 @@ model User {
   phone            String?
   bloodGroup       String?
   emergencyContact String?
+  birthdayMonth    Int?
+  birthdayDay      Int?
   registrations    TripRegistration[]
+  familyMembers    FamilyMember[]
   feedbacks        Feedback[]
   expensesPaid     Expense[]          @relation("PaidBy")
+  paymentEvents    PaymentEvent[]     @relation("RecordedBy")
+  tasksOwned       TripTask[]         @relation("TaskOwner")
+  incidentsLogged  TripIncident[]     @relation("IncidentReporter")
   feedbackAnswers  FeedbackResponse[]
   createdAt        DateTime           @default(now())
 }
 
+model FamilyMember {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  relationship  String
+  birthdayMonth Int?
+  birthdayDay   Int?
+  image         String?
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([birthdayMonth, birthdayDay])
+  @@index([userId])
+}
+
+model BirthdayDelivery {
+  id           String   @id @default(cuid())
+  recipientKey String
+  birthdayYear Int
+  sentAt       DateTime @default(now())
+
+  @@unique([recipientKey, birthdayYear])
+}
+
 model Trip {
-  id            String             @id @default(cuid())
-  title         String
-  description   String
-  startDate     DateTime
-  endDate       DateTime
-  location      String
-  maxCapacity   Int
-  status        TripStatus         @default(DRAFT)
-  kind          TripKind           @default(DAY_TRIP)
+  id             String             @id @default(cuid())
+  title          String
+  description    String
+  startDate      DateTime
+  endDate        DateTime
+  location       String
+  maxCapacity    Int
+  status         TripStatus         @default(DRAFT)
+  kind           TripKind           @default(DAY_TRIP)
   // A Drive file id from the gallery folder, shown on trip cards and the trip page.
-  coverPhotoId  String?
-  budgetEst     Decimal?           @db.Decimal(10, 2)
-  adultBudgetEst Decimal?          @db.Decimal(10, 2)
-  childBudgetEst Decimal?          @db.Decimal(10, 2)
-  itinerary     Json?
-  registrations TripRegistration[]
-  expenses      Expense[]
-  feedbacks     Feedback[]
-  feedbackForm  FeedbackForm?
-  responses     FeedbackResponse[]
-  suggestions   Suggestion[]
-  createdAt     DateTime           @default(now())
+  coverPhotoId   String?
+  budgetEst      Decimal?           @db.Decimal(10, 2)
+  adultBudgetEst Decimal?           @db.Decimal(10, 2)
+  childBudgetEst Decimal?           @db.Decimal(10, 2)
+  itinerary      Json?
+  registrations  TripRegistration[]
+  expenses       Expense[]
+  feedbacks      Feedback[]
+  feedbackForm   FeedbackForm?
+  responses      FeedbackResponse[]
+  suggestions    Suggestion[]
+  tasks          TripTask[]
+  incidents      TripIncident[]
+  paymentEvents  PaymentEvent[]
+  createdAt      DateTime           @default(now())
 }
 
 model TripRegistration {
-  id                   String        @id @default(cuid())
+  id                   String         @id @default(cuid())
   userId               String
   tripId               String
   vehicleDetails       String?
@@ -113,19 +147,68 @@ model TripRegistration {
   carpoolLocation      String?
   carpoolSeats         Int?
   // Includes the registering adult. Derived from validated companions on the server.
-  partySize            Int           @default(1)
-  companions           Json          @default("[]")
+  partySize            Int            @default(1)
+  companions           Json           @default("[]")
   familyConsentAt      DateTime?
   parentalConsentAt    DateTime?
-  paymentStatus        PaymentStatus @default(PENDING)
-  gearChecked          Boolean       @default(false)
+  paymentStatus        PaymentStatus  @default(PENDING)
+  gearChecked          Boolean        @default(false)
   // When they ticked "18 or over, and I agree to the guidelines". Empty for registrations made before it was asked.
   agreedToGuidelinesAt DateTime?
-  user                 User          @relation(fields: [userId], references: [id])
-  trip                 Trip          @relation(fields: [tripId], references: [id])
-  createdAt            DateTime      @default(now())
+  paymentEvents        PaymentEvent[]
+  user                 User           @relation(fields: [userId], references: [id])
+  trip                 Trip           @relation(fields: [tripId], references: [id])
+  createdAt            DateTime       @default(now())
 
   @@unique([userId, tripId])
+}
+
+model PaymentEvent {
+  id             String           @id @default(cuid())
+  tripId         String
+  registrationId String
+  recordedById   String
+  amount         Decimal          @db.Decimal(10, 2)
+  method         String
+  reference      String?
+  note           String?
+  createdAt      DateTime         @default(now())
+  trip           Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  registration   TripRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  recordedBy     User             @relation("RecordedBy", fields: [recordedById], references: [id])
+
+  @@index([tripId, createdAt])
+  @@index([registrationId])
+}
+
+model TripTask {
+  id          String    @id @default(cuid())
+  tripId      String
+  title       String
+  ownerId     String?
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  owner       User?     @relation("TaskOwner", fields: [ownerId], references: [id])
+
+  @@index([tripId, completedAt])
+}
+
+model TripIncident {
+  id           String    @id @default(cuid())
+  tripId       String
+  reportedById String
+  severity     String
+  title        String
+  description  String
+  actionTaken  String?
+  closedAt     DateTime?
+  createdAt    DateTime  @default(now())
+  trip         Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  reportedBy   User      @relation("IncidentReporter", fields: [reportedById], references: [id])
+
+  @@index([tripId, closedAt])
 }
 
 model Expense {

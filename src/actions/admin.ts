@@ -170,3 +170,29 @@ export async function deleteFeedback(feedbackId: string): Promise<ActionResult> 
   revalidateTripPages(feedback.tripId ?? undefined);
   return done("Feedback deleted.");
 }
+
+export async function createTripTask(tripId: string, title: string): Promise<ActionResult> {
+  const admin = await getAdmin(); if (!admin) return fail(NO_ACCESS);
+  const clean = title.trim(); if (clean.length < 3 || clean.length > 160) return fail("Task title must be between 3 and 160 characters.");
+  await prisma.tripTask.create({ data: { tripId, title: clean, ownerId: admin.id } }); revalidateTripPages(tripId); return done("Task added.");
+}
+
+export async function toggleTripTask(taskId: string, completed: boolean): Promise<ActionResult> {
+  if (!(await getAdmin())) return fail(NO_ACCESS);
+  const task = await prisma.tripTask.update({ where: { id: taskId }, data: { completedAt: completed ? new Date() : null }, select: { tripId: true } }).catch(() => null);
+  if (!task) return fail("That task no longer exists."); revalidateTripPages(task.tripId); return done(completed ? "Task completed." : "Task reopened.");
+}
+
+export async function createTripIncident(tripId: string, title: string, description: string, severity: string): Promise<ActionResult> {
+  const admin = await getAdmin(); if (!admin) return fail(NO_ACCESS);
+  const cleanTitle = title.trim(), cleanDescription = description.trim();
+  if (cleanTitle.length < 3 || cleanDescription.length < 5) return fail("Add an incident title and description.");
+  if (!["LOW", "MEDIUM", "HIGH", "CRITICAL"].includes(severity)) return fail("Pick a valid incident severity.");
+  await prisma.tripIncident.create({ data: { tripId, reportedById: admin.id, title: cleanTitle, description: cleanDescription, severity } }); revalidateTripPages(tripId); return done("Incident logged.");
+}
+
+export async function closeTripIncident(incidentId: string): Promise<ActionResult> {
+  if (!(await getAdmin())) return fail(NO_ACCESS);
+  const incident = await prisma.tripIncident.update({ where: { id: incidentId }, data: { closedAt: new Date() }, select: { tripId: true } }).catch(() => null);
+  if (!incident) return fail("That incident no longer exists."); revalidateTripPages(incident.tripId); return done("Incident closed.");
+}

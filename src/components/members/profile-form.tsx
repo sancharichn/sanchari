@@ -14,6 +14,10 @@ export function ProfileForm({ profile }: { profile: ProfileDefaults }) {
     phone: profile.phone ?? "",
     emergencyContact: profile.emergencyContact ?? "",
     bloodGroup: profile.bloodGroup ?? "",
+    birthdayMonth: profile.birthdayMonth?.toString() ?? "",
+    birthdayDay: profile.birthdayDay?.toString() ?? "",
+    image: profile.image ?? "",
+    familyMembers: profile.familyMembers ?? [],
   });
   const set = (key: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));
@@ -63,6 +67,28 @@ export function ProfileForm({ profile }: { profile: ProfileDefaults }) {
           ))}
         </NativeSelect>
       </Field>
+      <fieldset className="grid gap-4 rounded-panel border border-ridge bg-night/30 p-5">
+        <legend className="px-1 font-semibold text-mist">Birthday wishes</legend>
+        <p className="text-sm text-lichen">Optional. We store only the day and month so organisers can send a private birthday wish. No birth year is collected.</p>
+        <Field label="Profile photo URL" htmlFor="profile-image" hint="Optional. Your existing Google profile photo can be used automatically."><Input id="profile-image" type="url" placeholder="https://…" value={values.image} onChange={set("image")} /></Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Birthday month" htmlFor="profile-birthday-month" error={fieldErrors.birthdayMonth}>
+            <Input id="profile-birthday-month" type="number" min={1} max={12} value={values.birthdayMonth} onChange={set("birthdayMonth")} />
+          </Field>
+          <Field label="Birthday day" htmlFor="profile-birthday-day" error={fieldErrors.birthdayDay}>
+            <Input id="profile-birthday-day" type="number" min={1} max={31} value={values.birthdayDay} onChange={set("birthdayDay")} />
+          </Field>
+        </div>
+        <p className="text-sm font-semibold text-mist">Family birthdays</p>
+        {values.familyMembers.map((member, index) => <div key={member.id || index} className="grid gap-3 rounded-xl border border-ridge p-4 sm:grid-cols-4">
+          <Input aria-label={`Family member ${index + 1} name`} placeholder="Name" value={member.name} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, name: e.target.value } : m) }))} />
+          <Input aria-label={`Family member ${index + 1} relationship`} placeholder="Relationship" value={member.relationship} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, relationship: e.target.value } : m) }))} />
+          <Input aria-label={`Family member ${index + 1} birthday month`} type="number" min={1} max={12} placeholder="Month" value={member.birthdayMonth ?? ""} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, birthdayMonth: e.target.value ? Number(e.target.value) : null } : m) }))} />
+          <Input aria-label={`Family member ${index + 1} birthday day`} type="number" min={1} max={31} placeholder="Day" value={member.birthdayDay ?? ""} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, birthdayDay: e.target.value ? Number(e.target.value) : null } : m) }))} />
+          <Input aria-label={`Family member ${index + 1} photo URL`} type="url" placeholder="Photo URL (optional)" value={member.image ?? ""} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, image: e.target.value || null } : m) }))} />
+        </div>)}
+        <Button type="button" variant="outline" size="sm" onClick={() => setValues((v) => ({ ...v, familyMembers: [...v.familyMembers, { id: crypto.randomUUID(), name: "", relationship: "", birthdayMonth: null, birthdayDay: null, image: null }] }))}>Add family member</Button>
+      </fieldset>
       <FormMessage result={result} />
       <div>
         <Button type="submit" disabled={pending}>

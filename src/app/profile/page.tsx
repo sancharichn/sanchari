@@ -96,6 +96,10 @@ export default async function ProfilePage() {
               phone: profile?.phone ?? null,
               emergencyContact: profile?.emergencyContact ?? null,
               bloodGroup: profile?.bloodGroup ?? null,
+              birthdayMonth: profile?.birthdayMonth ?? null,
+      birthdayDay: profile?.birthdayDay ?? null,
+      image: profile?.image ?? null,
+              familyMembers: profile?.familyMembers ?? [],
             }}
           />
         </div>

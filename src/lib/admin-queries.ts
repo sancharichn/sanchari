@@ -55,6 +55,20 @@ export async function getAdminOverview(now = new Date()) {
   return { members, upcomingCount: upcomingTrips.length, unpaid, gearPending, nextTrip, recent };
 }
 
+/** Operational signals for the trip control room. Kept in one query so the dashboard stays fast. */
+export async function getTripControlRoom(now = new Date()) {
+  const trips = await prisma.trip.findMany({
+    where: { startDate: { gte: now }, status: { in: ["DRAFT", "OPEN", "WAITLIST", "FULL"] } },
+    orderBy: { startDate: "asc" }, take: 8,
+    select: { id: true, title: true, location: true, startDate: true, endDate: true, status: true, maxCapacity: true, registrations: { select: { id: true, createdAt: true, partySize: true, paymentStatus: true, gearChecked: true, agreedToGuidelinesAt: true, familyConsentAt: true, parentalConsentAt: true, carpoolChoice: true, carpoolLocation: true } } },
+  });
+  return trips.map((trip) => {
+    const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
+    const people = countTravellers(confirmed);
+    return { ...trip, confirmed: people, waitlisted: countTravellers(waitlisted), unpaid: countTravellers(confirmed.filter((item) => OUTSTANDING.includes(item.paymentStatus))), gearPending: countTravellers(confirmed.filter((item) => !item.gearChecked)), missingConsent: confirmed.filter((item) => !item.agreedToGuidelinesAt || (item.partySize > 1 && !item.familyConsentAt)).length, carpoolNeeds: confirmed.filter((item) => item.carpoolChoice === "NEED_RIDE" && !item.carpoolLocation).length, readiness: { minimum: people > 0, payments: confirmed.every((item) => item.paymentStatus === "PAID"), gear: confirmed.every((item) => item.gearChecked), consent: confirmed.every((item) => item.agreedToGuidelinesAt && (item.partySize === 1 || item.familyConsentAt)) } };
+  });
+}
+
 export async function getAdminTrips() {
   const trips = await prisma.trip.findMany({
     orderBy: { startDate: "desc" },
@@ -130,6 +144,9 @@ export async function getAdminTrip(id: string) {
       },
       feedbacks: { select: { id: true } },
       feedbackForm: { select: { isOpen: true, intro: true, questions: true } },
+      tasks: { orderBy: { createdAt: "desc" }, select: { id: true, title: true, dueAt: true, completedAt: true, owner: { select: { name: true, email: true } } } },
+      incidents: { orderBy: { createdAt: "desc" }, select: { id: true, title: true, severity: true, description: true, actionTaken: true, closedAt: true, createdAt: true, reportedBy: { select: { name: true, email: true } } } },
+      paymentEvents: { orderBy: { createdAt: "desc" }, select: { id: true, amount: true, method: true, reference: true, note: true, createdAt: true, recordedBy: { select: { name: true, email: true } } } },
       _count: { select: { responses: true } },
     },
   });

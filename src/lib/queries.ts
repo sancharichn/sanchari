@@ -149,6 +149,9 @@ export async function getMemberProfile(userId: string) {
       emergencyContact: true,
       bloodGroup: true,
       createdAt: true,
+      birthdayMonth: true,
+      birthdayDay: true,
+      familyMembers: { orderBy: { name: "asc" }, select: { id: true, name: true, relationship: true, birthdayMonth: true, birthdayDay: true, image: true } },
     },
   });
 }

@@ -23,9 +23,13 @@ import { BLOOD_GROUPS } from "@/lib/validation";
 import { formatINR } from "@/lib/format";
 
 export type ProfileDefaults = {
+  image?: string | null;
   phone: string | null;
   emergencyContact: string | null;
   bloodGroup: string | null;
+  birthdayMonth?: number | null;
+  birthdayDay?: number | null;
+  familyMembers?: Array<{ id: string; name: string; relationship: string; birthdayMonth: number | null; birthdayDay: number | null; image: string | null }>;
 };
 
 export function RegisterDialog({
