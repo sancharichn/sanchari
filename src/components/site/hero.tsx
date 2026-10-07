@@ -30,6 +30,9 @@ export function Hero({
         className="hero-landscape absolute inset-0 -z-20 size-full object-cover"
       />
       <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
+      <div aria-hidden="true" className="hero-aurora absolute -right-20 top-16 -z-10 h-80 w-80 rounded-full bg-signal/20 blur-3xl" />
+      <div aria-hidden="true" className="hero-contours absolute inset-x-0 bottom-0 -z-10 h-64 opacity-60" />
+      <div aria-hidden="true" className="hero-stamp absolute right-[9%] top-24 hidden size-32 rotate-6 items-center justify-center rounded-full border-2 border-signal p-4 text-center text-[0.65rem] font-black uppercase leading-tight tracking-[0.18em] text-signal md:flex">Travel with nature</div>
       <div className="hero-content container relative grid gap-9 pb-10 pt-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] md:items-end md:gap-16 md:pb-16 md:pt-20">
         <div>
           <h1 className="stretch-wide text-[clamp(3.1rem,8vw,6.5rem)] font-extrabold leading-[0.92] tracking-[-0.02em] text-mist">

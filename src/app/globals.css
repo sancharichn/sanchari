@@ -115,6 +115,14 @@
       linear-gradient(90deg, rgb(5 13 17 / 90%) 0%, rgb(5 13 17 / 68%) 48%, rgb(5 13 17 / 25%) 100%);
   }
 
+  .hero-aurora { animation: hero-float 12s ease-in-out infinite alternate; }
+  .hero-contours {
+    background: radial-gradient(ellipse at 10% 120%, transparent 0 34%, rgb(255 230 0 / 20%) 35% 35.5%, transparent 36% 40%, rgb(255 255 255 / 10%) 40.5% 41%, transparent 41.5% 48%, rgb(255 230 0 / 13%) 48.5% 49%, transparent 49.5%);
+    mask-image: linear-gradient(to top, black, transparent 90%);
+  }
+  .hero-stamp { box-shadow: 0 0 0 4px rgb(255 230 0 / 8%), inset 0 0 0 3px rgb(255 230 0 / 18%), 0 18px 40px rgb(0 0 0 / 25%); backdrop-filter: blur(8px); }
+  @keyframes hero-float { from { transform: translate3d(-4%, 0, 0) scale(.95); } to { transform: translate3d(4%, 8%, 0) scale(1.08); } }
+
   .hero-description {
     max-width: 55ch;
   }

@@ -35,12 +35,12 @@ export function LaunchIntro() {
     const video = videoRef.current;
     let started = false;
 
-    // If the video hasn't started within 3.5s (slow connection), skip it.
+    // If the video hasn't started within 1.75s (slow connection), skip it.
     const slowStart = window.setTimeout(() => {
       if (!started) finish();
-    }, 3500);
+    }, 1750);
     // Never hold the page longer than this, whatever happens.
-    const ceiling = window.setTimeout(finish, 14000);
+    const ceiling = window.setTimeout(finish, 7000);
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") finish();
@@ -75,7 +75,7 @@ export function LaunchIntro() {
       root.setAttribute("data-intro", "done");
       window.dispatchEvent(new Event(INTRO_DONE_EVENT));
       setPhase("gone");
-    }, 600);
+    }, 300);
     return () => window.clearTimeout(timer);
   }, [phase]);
 
