@@ -56,7 +56,7 @@ export function ContourField({ className }: { className?: string }) {
       preserveAspectRatio="xMidYMid slice"
       className={cn("pointer-events-none absolute inset-0 h-full w-full", className)}
     >
-      <g fill="none" stroke="#FFE600" strokeLinejoin="round">
+      <g fill="none" stroke="#E6D65C" strokeLinejoin="round">
         {RINGS.map((ring, i) => (
           <path
             key={i}

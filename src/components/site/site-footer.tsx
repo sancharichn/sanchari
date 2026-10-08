@@ -5,8 +5,9 @@ import { SanchariLogo } from "./wordmark";
 export function SiteFooter() {
   const year = new Date().getFullYear();
   return (
-    <footer className="mt-24 border-t border-ridge">
-      <div className="container grid gap-10 py-14 sm:grid-cols-3 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+    <footer className="site-footer mt-24">
+      <div aria-hidden="true" className="site-footer-orbit" />
+      <div className="site-footer-glass container grid gap-10 py-12 sm:grid-cols-3 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div className="sm:col-span-3 md:col-span-1">
           <SanchariLogo width={200} />
           <p className="stretch-wide mt-6 text-sm font-extrabold tracking-wide text-mist">TRAVEL WITH NATURE</p>
@@ -68,7 +69,7 @@ export function SiteFooter() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-ridge">
+      <div className="site-footer-bottom">
         <div className="container flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-5 text-xs text-lichen">
           <p>© {year} Sanchari Chennai</p>
           <Link className="inline-block py-1 hover:text-mist" href="/privacy">

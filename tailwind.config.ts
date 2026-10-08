@@ -15,7 +15,7 @@ const config: Config = {
         // Brand palette
         night: "#0A0A0A", // canvas
         basalt: "#121212", // cards
-        signal: "#FFE600", // the trail: primary actions, focus, line art
+        signal: "#E6D65C", // the trail: primary actions, focus, line art
         mist: "#F2F2EC", // body text
         lichen: "#9A9A90", // secondary text
         ridge: "#2A2A2A", // borders

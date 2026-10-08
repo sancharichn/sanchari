@@ -71,7 +71,7 @@ export function GearToggle({
       <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
         <input
           type="checkbox"
-          className="size-4 accent-[#FFE600]"
+          className="size-4 accent-[#E6D65C]"
           checked={value}
           disabled={pending}
           onChange={async (e) => {

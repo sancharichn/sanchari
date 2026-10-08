@@ -30,6 +30,8 @@ export default async function ProfilePage() {
     { label: "Birthday", done: Boolean(profile?.birthdayMonth && profile?.birthdayDay) },
   ];
   const completeChecks = profileChecks.filter((check) => check.done).length;
+  const upcomingTrips = trips.filter((item) => !["COMPLETED", "ARCHIVED"].includes(item.trip.status)).length;
+  const completedTrips = trips.filter((item) => item.trip.status === "COMPLETED").length;
 
   return (
     <main id="main" className="mobile-glass-screen container py-14 md:py-20">
@@ -52,6 +54,12 @@ export default async function ProfilePage() {
         <ul className="mt-5 grid gap-2 sm:grid-cols-2">
           {profileChecks.map((check) => <li key={check.label} className="flex items-center gap-2 rounded-lg border border-ridge px-3 py-2 text-sm"><span aria-hidden="true" className={check.done ? "text-signal" : "text-lichen"}>{check.done ? "✓" : "○"}</span><span className={check.done ? "text-mist" : "text-lichen"}>{check.label}</span></li>)}
         </ul>
+      </section>
+
+      <section className="profile-journey mt-6 grid gap-3 sm:grid-cols-3" aria-label="Your travel snapshot">
+        <div><span>Upcoming</span><strong>{upcomingTrips}</strong><small>trip{upcomingTrips === 1 ? "" : "s"} ahead</small></div>
+        <div><span>Travelled</span><strong>{completedTrips}</strong><small>shared journeys</small></div>
+        <div><span>Family</span><strong>{profile?.familyMembers.length ?? 0}</strong><small>saved profiles</small></div>
       </section>
 
       <section aria-labelledby="my-trips-heading" className="mt-14">
@@ -98,6 +106,9 @@ export default async function ProfilePage() {
                     </div>
                   </Link>
                   <FamilySummary companions={r.companions} />
+                  <Link href={`${tripPath(r.trip)}/passport`} className="mb-5 inline-flex text-sm font-semibold text-signal underline-offset-4 hover:underline">
+                    Open trip passport
+                  </Link>
                 </li>
               );
             })}

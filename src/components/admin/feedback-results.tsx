@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
  * protanopia/deuteranopia (worst ΔE 12.5) and for full-colour vision (27.1),
  * and every fill clears 3:1. Labels and numbers always sit beside the colour.
  */
-const LEVEL_COLOR = { top: "#FFE600", middle: "#71670B", low: "#FF6B57" } as const;
+const LEVEL_COLOR = { top: "#E6D65C", middle: "#71670B", low: "#FF6B57" } as const;
 
 type Segment = { key: string; label: string; count: number; color: string };
 

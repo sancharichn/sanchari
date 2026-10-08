@@ -136,6 +136,10 @@ function YourPlace({
 
       <FamilySummary companions={registration.companions} />
 
+      <Link href={`${tripPath(trip)}/passport`} className={buttonVariants({ variant: "outline", size: "sm", className: "mt-6 w-full" })}>
+        Open your trip passport
+      </Link>
+
       {canCancel ? (
         <div className="mt-6">
           <CancelRegistrationButton tripId={trip.id} tripTitle={trip.title} />

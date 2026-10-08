@@ -34,11 +34,11 @@ function Trail({ d, viewBox, className, go }: { d: string; viewBox: string; clas
   return (
     <div className={className}>
       <svg aria-hidden="true" focusable="false" viewBox={viewBox} className="absolute inset-0 h-full w-full overflow-visible">
-        <path d={d} fill="none" stroke="#FFE600" strokeOpacity={0.14} strokeWidth={10} strokeLinecap="round" />
+        <path d={d} fill="none" stroke="#E6D65C" strokeOpacity={0.14} strokeWidth={10} strokeLinecap="round" />
         <motion.path
           d={d}
           fill="none"
-          stroke="#FFE600"
+          stroke="#E6D65C"
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"

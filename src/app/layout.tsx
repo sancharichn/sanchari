@@ -52,7 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         <MotionProvider>
           <SiteHeader user={user} />
-          <div className="flex-1">{children}</div>
+          <div className="site-page-shell flex-1">{children}</div>
           <SiteFooter />
           <BottomTabs signedIn={Boolean(user)} />
         </MotionProvider>

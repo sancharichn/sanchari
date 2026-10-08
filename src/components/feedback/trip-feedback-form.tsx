@@ -427,7 +427,7 @@ export function TripFeedbackForm({ tripId, tripHref, extras, token, defaultName,
                 type="checkbox"
                 checked={values.shareOk}
                 onChange={(e) => set("shareOk", e.target.checked)}
-                className="mt-0.5 size-5 shrink-0 accent-[#FFE600]"
+                className="mt-0.5 size-5 shrink-0 accent-[#E6D65C]"
               />
               <span>
                 <span className="block font-semibold text-mist">Sanchari may quote what I loved on the website</span>
@@ -765,8 +765,8 @@ function ThankYou({ replaced, tripHref, onEdit }: { replaced: boolean; tripHref:
   return (
     <div className="rounded-panel border border-ridge bg-basalt p-6 text-center sm:p-10" role="status">
       <svg aria-hidden="true" viewBox="0 0 64 64" className="mx-auto size-16" fill="none">
-        <circle cx="32" cy="32" r="29" stroke="#FFE600" strokeOpacity="0.25" strokeWidth="2" />
-        <path d="M19 33.5 28 42l17-19" stroke="#FFE600" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="32" cy="32" r="29" stroke="#E6D65C" strokeOpacity="0.25" strokeWidth="2" />
+        <path d="M19 33.5 28 42l17-19" stroke="#E6D65C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <h2 className="stretch-wide mt-6 text-4xl font-extrabold">Nanni!</h2>
       <p className="mt-2 text-lg font-semibold text-mist">Feedback received</p>

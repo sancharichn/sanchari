@@ -118,7 +118,7 @@ function Consent({ id, checked, onChange, error, children }: { id: string; check
   return (
     <div>
       <label className="flex cursor-pointer items-start gap-3 text-sm text-mist" htmlFor={id}>
-        <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} className="mt-1 size-4 shrink-0 accent-[#FFE600]" />
+        <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} className="mt-1 size-4 shrink-0 accent-[#E6D65C]" />
         <span>{children}</span>
       </label>
       {error ? <p id={`${id}-error`} className="mt-2 text-sm text-ember">{error}</p> : null}

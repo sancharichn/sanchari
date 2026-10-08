@@ -76,7 +76,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             {trip.title}
           </h1>
 
-          <dl className="mt-10 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-4">
+          <dl className="trip-facts-panel mt-10 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-6 p-5 md:grid-cols-4 md:p-6">
             <Fact label="When" value={formatDateRange(trip.startDate, trip.endDate)} />
             <Fact label="Where" value={trip.location} />
             <Fact label="Type" value={tripTypeLabel(trip.kind, trip.startDate, trip.endDate)} />
@@ -161,6 +161,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
               Were you on this trip? Give feedback
             </Link>
           ) : null}
+          <div id="register" className="scroll-mt-24">
           <RegistrationPanel
             trip={trip}
             registered={countTravellers(trip.registrations)}
@@ -177,8 +178,10 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
                 : null
             }
           />
+          </div>
         </aside>
       </div>
+      <div className="trip-mobile-action lg:hidden"><a href="#register">{myRegistration ? "Your trip status" : "Register for this trip"}</a></div>
     </main>
   );
 }

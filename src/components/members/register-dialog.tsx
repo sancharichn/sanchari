@@ -48,6 +48,7 @@ export function RegisterDialog({
   paymentsEnabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(1);
   const [members, setMembers] = useState<FamilyMemberInput[]>([]);
   const [familyConsent, setFamilyConsent] = useState(false);
   const [parentalConsent, setParentalConsent] = useState(false);
@@ -77,7 +78,7 @@ export function RegisterDialog({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (!next) setResult(null);
+        if (!next) { setResult(null); setStep(1); }
       }}
     >
       <DialogTrigger asChild>
@@ -115,6 +116,8 @@ export function RegisterDialog({
               void run(() => registerForTrip(tripId, input));
             }}
           >
+            <RegistrationProgress step={step} />
+            {step === 1 ? <div className="grid gap-5">
             <Field label="Phone" htmlFor="reg-phone" error={fieldErrors.phone}>
               <Input
                 id="reg-phone"
@@ -165,7 +168,9 @@ export function RegisterDialog({
                 ))}
               </NativeSelect>
             </Field>
+            </div> : null}
 
+            {step === 2 ? <div className="grid gap-5">
             <Field
               label="Getting there"
               htmlFor="reg-vehicle"
@@ -214,6 +219,8 @@ export function RegisterDialog({
                 </> : null}
               </div>
             </section>
+            </div> : null}
+            {step === 3 ? <div className="grid gap-5">
             {paymentsEnabled && (adultPrice || childPrice) ? <p className="rounded-xl border border-signal/30 bg-signal/5 p-4 text-sm text-mist">Estimated trip cost: <strong>{formatINR(String(familyTotal))}</strong><span className="block mt-1 text-xs text-lichen">Adult: {adultPrice ? formatINR(adultPrice) : "—"} · Child: {childPrice ? formatINR(childPrice) : "same as adult"}</span></p> : null}
 
             <div>
@@ -225,7 +232,7 @@ export function RegisterDialog({
                   onChange={(e) => setValues((v) => ({ ...v, agreesToGuidelines: e.target.checked }))}
                   aria-invalid={Boolean(fieldErrors.agreesToGuidelines)}
                   aria-describedby={fieldErrors.agreesToGuidelines ? "reg-guidelines-error" : undefined}
-                  className="mt-0.5 size-4 shrink-0 accent-[#FFE600]"
+                  className="mt-0.5 size-4 shrink-0 accent-[#E6D65C]"
                 />
                 <span className="text-sm text-mist">
                   I&apos;m 18 or over, and I agree to follow Sanchari&apos;s guidelines: no alcohol, tobacco or drugs, no
@@ -248,22 +255,24 @@ export function RegisterDialog({
                 </p>
               ) : null}
             </div>
+            </div> : null}
 
             <FormMessage result={result} />
 
             <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="ghost">
-                  Not now
-                </Button>
-              </DialogClose>
-              <Button type="submit" disabled={pending}>
-                {pending ? "Registering…" : "Register"}
-              </Button>
+              {step > 1 ? <Button type="button" variant="ghost" onClick={() => setStep((current) => current - 1)}>Back</Button> : <DialogClose asChild><Button type="button" variant="ghost">Not now</Button></DialogClose>}
+              {step < 3 ? <Button type="button" onClick={() => setStep((current) => current + 1)}>Continue</Button> : <Button type="submit" disabled={pending}>{pending ? "Registering…" : "Register"}</Button>}
             </DialogFooter>
           </form>
         )}
       </DialogContent>
     </Dialog>
   );
+}
+
+function RegistrationProgress({ step }: { step: number }) {
+  const steps = ["Your details", "Travel party", "Review"];
+  return <ol className="registration-progress" aria-label={`Registration step ${step} of ${steps.length}`}>
+    {steps.map((label, index) => <li key={label} className={index + 1 <= step ? "registration-progress-current" : undefined}><span>{index + 1}</span><small>{label}</small></li>)}
+  </ol>;
 }

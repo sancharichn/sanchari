@@ -359,7 +359,7 @@ export function FeedbackQuestionsEditor({
                       type="checkbox"
                       checked={q.required}
                       onChange={(e) => update(i, { required: e.target.checked })}
-                      className="size-4 accent-[#FFE600]"
+                      className="size-4 accent-[#E6D65C]"
                     />
                     Required
                   </label>
