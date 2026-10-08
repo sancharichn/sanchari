@@ -23,6 +23,13 @@ export default async function ProfilePage() {
 
   const preferences = await prisma.user.findUnique({ where: { id: user.id }, select: { whatsappOptIn: true, whatsappNumber: true } });
   const requests = await prisma.dataRequest.findMany({ where: { userId: user.id, kind: "DELETE" }, orderBy: { createdAt: "desc" }, take: 5 });
+  const profileChecks = [
+    { label: "Phone", done: Boolean(profile?.phone) },
+    { label: "Emergency contact", done: Boolean(profile?.emergencyContact) },
+    { label: "Profile photo", done: Boolean(profile?.image) },
+    { label: "Birthday", done: Boolean(profile?.birthdayMonth && profile?.birthdayDay) },
+  ];
+  const completeChecks = profileChecks.filter((check) => check.done).length;
 
   return (
     <main id="main" className="mobile-glass-screen container py-14 md:py-20">
@@ -36,6 +43,16 @@ export default async function ProfilePage() {
         </div>
         <SignOutButton size="sm" />
       </div>
+
+      <section aria-labelledby="profile-ready-heading" className="mt-8 rounded-panel border border-ridge bg-basalt/70 p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <div><h2 id="profile-ready-heading" className="font-bold text-mist">Profile readiness</h2><p className="mt-1 text-sm text-lichen">These details help organisers support you on a trip.</p></div>
+          <p className="stretch-narrow text-2xl font-bold text-signal">{completeChecks}/{profileChecks.length}</p>
+        </div>
+        <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+          {profileChecks.map((check) => <li key={check.label} className="flex items-center gap-2 rounded-lg border border-ridge px-3 py-2 text-sm"><span aria-hidden="true" className={check.done ? "text-signal" : "text-lichen"}>{check.done ? "✓" : "○"}</span><span className={check.done ? "text-mist" : "text-lichen"}>{check.label}</span></li>)}
+        </ul>
+      </section>
 
       <section aria-labelledby="my-trips-heading" className="mt-14">
         <h2 id="my-trips-heading" className="stretch-semiwide text-2xl font-bold">

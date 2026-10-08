@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Plus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, NativeSelect } from "@/components/ui/form";
-import { FAMILY_BLOOD_GROUPS, type CompanionInput } from "@/lib/family";
+import { FAMILY_BLOOD_GROUPS, FAMILY_RELATIONSHIPS, type CompanionInput } from "@/lib/family";
 
 export type FamilyMemberInput = CompanionInput & { key: string; savedMemberId?: string };
 
@@ -66,7 +66,7 @@ export function FamilyFields({ members, onChange, errors, familyConsent, parenta
               </Button>
             </div>
             <div className="grid gap-4">
-              {([['name', 'Full name'], ['age', 'Age in completed years'], ['relationship', 'Relationship to you']] as const).map(([field, label]) => {
+              {([['name', 'Full name'], ['age', 'Age in completed years']] as const).map(([field, label]) => {
                 const id = `family-${member.key}-${field}`;
                 const error = errors[`companions.${index}.${field}`];
                 return (
@@ -75,6 +75,13 @@ export function FamilyFields({ members, onChange, errors, familyConsent, parenta
                   </Field>
                 );
               })}
+              <Field label="Relationship to you" htmlFor={`family-${member.key}-relationship`} error={errors[`companions.${index}.relationship`]}>
+                <NativeSelect id={`family-${member.key}-relationship`} value={member.relationship} required onChange={(event) => update(member.key, "relationship", event.target.value)}>
+                  <option value="">Choose relationship</option>
+                  {!FAMILY_RELATIONSHIPS.includes(member.relationship as typeof FAMILY_RELATIONSHIPS[number]) && member.relationship ? <option value={member.relationship}>{member.relationship}</option> : null}
+                  {FAMILY_RELATIONSHIPS.map((relationship) => <option key={relationship} value={relationship}>{relationship}</option>)}
+                </NativeSelect>
+              </Field>
               <Field label="Blood group (optional)" htmlFor={`family-${member.key}-blood`} error={errors[`companions.${index}.bloodGroup`]}>
                 <NativeSelect id={`family-${member.key}-blood`} value={member.bloodGroup} onChange={(event) => update(member.key, 'bloodGroup', event.target.value)}>
                   <option value="">Prefer not to say</option>

@@ -298,13 +298,15 @@
 /* A stable application shell turns organiser pages into one workspace. */
 .admin-workspace { min-height: 100dvh; background: #0c1112; }
 .admin-sidebar { border-bottom: 1px solid rgb(221 240 241 / 12%); background: rgb(12 18 20 / 94%); }
-.admin-nav { width: min(100%, 1200px); margin: 0 auto; padding: .85rem 1.25rem; }
-.admin-nav-brand { display: none; }
-.admin-nav-groups { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: thin; }
-.admin-nav-group { display: contents; }
-.admin-nav-group-label, .admin-nav-foot { display: none; }
-.admin-nav-links { display: flex; gap: .25rem; flex: 0 0 auto; }
-.admin-nav-link { flex: 0 0 auto; border-radius: .7rem; padding: .65rem .8rem; color: #9a9a90; font-size: .8125rem; font-weight: 650; transition: background-color 160ms ease, color 160ms ease; }
+.admin-nav { width: min(100%, 1200px); margin: 0 auto; padding: .75rem 1rem; }
+.admin-nav-brand { display: flex; align-items: center; gap: .55rem; padding: .15rem .2rem .65rem; }
+.admin-nav-mark { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: .55rem; color: #0a0a0a; background: #ffe600; font-size: .78rem; font-weight: 900; }
+.admin-nav-groups { display: grid; gap: .4rem; }
+.admin-nav-group { display: block; }
+.admin-nav-group-label { display: block; margin: 0 0 .2rem .25rem; color: #758082; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.admin-nav-foot { display: none; }
+.admin-nav-links { display: flex; flex-wrap: wrap; gap: .25rem; }
+.admin-nav-link { flex: 0 0 auto; border-radius: .7rem; padding: .6rem .7rem; color: #9a9a90; font-size: .8125rem; font-weight: 650; transition: background-color 160ms ease, color 160ms ease; }
 .admin-nav-link:hover { color: #f2f2ec; background: rgb(255 255 255 / 5%); }
 .admin-nav-link-active { color: #0a0a0a; background: #ffe600; }
 .admin-mobile-bar { display: none; }

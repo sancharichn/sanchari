@@ -9,6 +9,7 @@ import { BLOOD_GROUPS } from "@/lib/validation";
 import type { ProfileDefaults } from "./register-dialog";
 import { PhotoUpload } from "./photo-upload";
 import { BirthdayPicker } from "./birthday-picker";
+import { FAMILY_RELATIONSHIPS } from "@/lib/family";
 
 export function ProfileForm({ profile }: { profile: ProfileDefaults }) {
   const { pending, result, run, fieldErrors } = useActionRunner();
@@ -77,8 +78,9 @@ export function ProfileForm({ profile }: { profile: ProfileDefaults }) {
         <BirthdayPicker id="profile-birthday" month={values.birthdayMonth} day={values.birthdayDay} onChange={(birthdayMonth, birthdayDay) => setValues((value) => ({ ...value, birthdayMonth, birthdayDay }))} error={fieldErrors.birthdayMonth ?? fieldErrors.birthdayDay} />
         <p className="text-sm font-semibold text-mist">Family birthdays</p>
         {values.familyMembers.map((member, index) => <div key={member.id || index} className="grid gap-3 rounded-xl border border-ridge p-4 sm:grid-cols-2">
-          <Input aria-label={`Family member ${index + 1} name`} placeholder="Name" value={member.name} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, name: e.target.value } : m) }))} />
-          <Input aria-label={`Family member ${index + 1} relationship`} placeholder="Relationship" value={member.relationship} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, relationship: e.target.value } : m) }))} />
+          <p className="sm:col-span-2 text-sm font-semibold text-mist">Family member {index + 1}</p>
+          <Field label="Name" htmlFor={`profile-family-${member.id || index}-name`}><Input id={`profile-family-${member.id || index}-name`} placeholder="Full name" value={member.name} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, name: e.target.value } : m) }))} /></Field>
+          <Field label="Relationship" htmlFor={`profile-family-${member.id || index}-relationship`}><NativeSelect id={`profile-family-${member.id || index}-relationship`} value={member.relationship} onChange={(e) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, relationship: e.target.value } : m) }))}><option value="">Choose relationship</option>{!FAMILY_RELATIONSHIPS.includes(member.relationship as typeof FAMILY_RELATIONSHIPS[number]) && member.relationship ? <option value={member.relationship}>{member.relationship}</option> : null}{FAMILY_RELATIONSHIPS.map((relationship) => <option key={relationship} value={relationship}>{relationship}</option>)}</NativeSelect></Field>
           <div className="sm:col-span-2"><BirthdayPicker compact id={`family-${member.id || index}-birthday`} month={member.birthdayMonth} day={member.birthdayDay} error={fieldErrors[`familyMembers.${index}.birthdayDay`]} onChange={(birthdayMonth, birthdayDay) => setValues((value) => ({ ...value, familyMembers: value.familyMembers.map((item, itemIndex) => itemIndex === index ? { ...item, birthdayMonth, birthdayDay } : item) }))} /></div>
           <div className="sm:col-span-2"><PhotoUpload label={`Photo for family member ${index + 1}`} value={member.image} onChange={(image) => setValues((v) => ({ ...v, familyMembers: v.familyMembers.map((m, i) => i === index ? { ...m, image } : m) }))} /></div>
           <Button type="button" variant="outline" size="sm" onClick={() => setValues((v) => ({ ...v, familyMembers: v.familyMembers.filter((_, i) => i !== index) }))}>Remove</Button>

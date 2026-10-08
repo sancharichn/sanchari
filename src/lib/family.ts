@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const FAMILY_BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+export const FAMILY_RELATIONSHIPS = ["Spouse or partner", "Child", "Parent", "Sibling", "Grandparent", "Grandchild", "Relative", "Friend", "Other"] as const;
 export const companionSchema = z.object({
   name: z.string().trim().min(2, "Add their full name.").max(100, "Keep the name under 100 characters."),
   age: z.preprocess(

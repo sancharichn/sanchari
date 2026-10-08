@@ -57,6 +57,10 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
   );
   const transfers = settleUp(accounts.balances);
   const canDelete = trip.registrations.length + trip.expenses.length + trip.feedbacks.length + trip._count.responses === 0;
+  const pendingApproval = trip.registrations.filter((registration) => registration.approvalStatus === "PENDING");
+  const pendingPayment = isMeetup ? [] : confirmed.filter((registration) => registration.paymentStatus !== "PAID");
+  const pendingArrival = confirmed.filter((registration) => registration.checkedInCount < registration.partySize);
+  const unresolvedRides = confirmed.filter((registration) => registration.carpoolChoice === "NEED_RIDE" && !registration.carpoolMatched);
 
   const initialForm: TripFormValues = {
     title: trip.title,
@@ -110,9 +114,19 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
         <StatusSwitcher tripId={trip.id} status={trip.status} />
       </div>
 
+      <section aria-labelledby="trip-desk-heading" className="mt-8">
+        <div className="flex flex-wrap items-baseline justify-between gap-3"><div><h2 id="trip-desk-heading" className="stretch-semiwide text-xl font-bold">Trip desk</h2><p className="mt-1 text-sm text-lichen">The few things that need an organiser&apos;s attention.</p></div><p className="text-sm text-lichen">{countTravellers(confirmed)} confirmed of {trip.maxCapacity} seats</p></div>
+        <div className="mt-4 grid gap-px overflow-hidden rounded-panel border border-ridge bg-ridge sm:grid-cols-2 xl:grid-cols-4">
+          <DeskSignal href={`/admin/trips/${trip.id}?tab=roster`} label="Awaiting approval" value={pendingApproval.length} note={pendingApproval.length ? "Review new requests" : "All requests reviewed"} urgent={pendingApproval.length > 0} />
+          {!isMeetup ? <DeskSignal href={`/admin/trips/${trip.id}?tab=operations`} label="Payment to check" value={pendingPayment.length} note={pendingPayment.length ? "Review receipts" : "No pending payments"} urgent={pendingPayment.length > 0} /> : <DeskSignal href={`/admin/trips/${trip.id}?tab=operations`} label="Meetup readiness" value={pendingArrival.length} note="Check in attendees on the day" />}
+          <DeskSignal href={`/admin/trips/${trip.id}?tab=operations`} label="Ride requests" value={unresolvedRides.length} note={unresolvedRides.length ? "Match a shared ride" : "No rides to arrange"} urgent={unresolvedRides.length > 0} />
+          <DeskSignal href={`/admin/trips/${trip.id}?tab=tasks`} label="Open tasks" value={trip.tasks.filter((task) => !task.completedAt).length} note="Keep the departure plan moving" urgent={trip.tasks.some((task) => !task.completedAt)} />
+        </div>
+      </section>
+
       <Tabs defaultValue={defaultTab} className="mt-10">
-        <TabsList aria-label="Manage this trip">
-          <TabsTrigger value="operations">{isMeetup ? "Meetup day" : "Trip day & payments"}</TabsTrigger>
+        <TabsList aria-label="Manage this trip" className="flex h-auto w-full flex-wrap justify-start">
+          <TabsTrigger value="operations">{isMeetup ? "Run meetup" : "Run trip"}</TabsTrigger>
           <TabsTrigger value="roster">
             Roster <Count n={countTravellers(trip.registrations)} />
           </TabsTrigger>
@@ -426,6 +440,10 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
       </Tabs>
     </main>
   );
+}
+
+function DeskSignal({ href, label, value, note, urgent = false }: { href: string; label: string; value: number; note: string; urgent?: boolean }) {
+  return <Link href={href} className="block bg-basalt p-4 transition-colors hover:bg-white/[0.04]"><p className="text-sm text-lichen">{label}</p><p className={`stretch-narrow mt-2 text-3xl font-bold ${urgent ? "text-signal" : "text-mist"}`}>{value}</p><p className="mt-1 text-xs text-lichen">{note}</p></Link>;
 }
 
 function Count({ n }: { n: number }) {
