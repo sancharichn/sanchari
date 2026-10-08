@@ -6,16 +6,21 @@ import type { GalleryImage } from "@/lib/drive";
 import type { TripListItem } from "@/lib/queries";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { KIND_PLURAL, TRIP_KINDS, tripTypeLabel } from "@/lib/trips";
+import { RevealNumber } from "@/components/site/reveal-number";
 
 export function Hero({
   next,
   signedIn,
   photo,
+  tripsCount,
+  photoCount,
 }: {
   next: TripListItem | null;
   signedIn: boolean;
   /** The next trip's cover, or the newest gallery photo. */
   photo: GalleryImage | null;
+  tripsCount: number;
+  photoCount: number;
 }) {
   return (
     <section className="home-hero relative isolate overflow-hidden border-b border-ridge">
@@ -60,6 +65,10 @@ export function Hero({
               </Link>
             )}
           </div>
+          <dl className="hero-signals mt-9 flex flex-wrap gap-5 text-sm text-mist/80">
+            <div><dt>Upcoming trips</dt><dd><RevealNumber value={tripsCount} /></dd></div>
+            <div><dt>Shared trail photos</dt><dd><RevealNumber value={photoCount} /></dd></div>
+          </dl>
         </div>
 
         <div className="flex flex-col">

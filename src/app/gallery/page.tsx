@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { GalleryGrid } from "@/components/gallery/gallery-grid";
+import { GalleryJournal } from "@/components/gallery/gallery-journal";
 import { InstagramStrip } from "@/components/site/instagram-strip";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getGallery } from "@/lib/drive";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 
@@ -31,24 +30,8 @@ export default async function GalleryPage() {
                 .
               </p>
             </div>
-          ) : albums.length === 1 ? (
-            <GalleryGrid images={albums[0].images} />
           ) : (
-            <Tabs defaultValue={albums[0].id}>
-              <TabsList aria-label="Albums">
-                {albums.map((album) => (
-                  <TabsTrigger key={album.id} value={album.id}>
-                    {album.name}
-                    <span className="stretch-narrow tabular-nums opacity-70">{album.images.length}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {albums.map((album) => (
-                <TabsContent key={album.id} value={album.id}>
-                  <GalleryGrid images={album.images} />
-                </TabsContent>
-              ))}
-            </Tabs>
+            <GalleryJournal albums={albums} />
           )}
         </div>
       </div>

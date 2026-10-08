@@ -19,7 +19,7 @@ export default async function AdminOverviewPage() {
   return (
     <main id="main" className="container py-10 md:py-14">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div><p className="text-sm text-signal">Operations</p><h1 className="stretch-semiwide text-3xl font-bold">Trip control room</h1><p className="mt-2 text-sm text-lichen">Run every departure from one place.</p></div>
+        <div><p className="admin-live-signal text-sm text-signal">Operations</p><h1 className="stretch-semiwide text-3xl font-bold">Trip control room</h1><p className="mt-2 text-sm text-lichen">Run every departure from one place.</p></div>
         <Link href="/admin/trips/new" className={buttonVariants({ size: "sm" })}>
           New trip
         </Link>

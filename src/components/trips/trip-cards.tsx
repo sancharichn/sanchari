@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { ContourField } from "@/components/site/contour-field";
 import { dateBlock } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
@@ -62,6 +63,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
           <span className="stretch-narrow block text-4xl font-bold leading-none tabular-nums">{when.days}</span>
           <span className="mt-1 block text-sm text-mist/85">{when.label}</span>
         </p>
+        <span className="trip-card-open absolute bottom-4 right-4 inline-flex size-10 items-center justify-center rounded-full border border-white/35 bg-black/30 text-mist backdrop-blur-md"><ArrowUpRight className="size-5" /></span>
       </div>
       <div className="flex flex-1 flex-col gap-4 p-5">
         <div>
@@ -75,6 +77,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
         {showsSeats(trip.status, trip.registered) ? (
           <SeatsMeter className="mt-auto" registered={trip.registered} confirmed={trip.confirmed} capacity={trip.maxCapacity} status={trip.status} />
         ) : null}
+        <p className="trip-card-discover mt-auto inline-flex items-center gap-1 text-sm font-semibold text-signal">Explore this trip <ArrowUpRight className="size-4" /></p>
       </div>
     </Link>
   );
