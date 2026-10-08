@@ -9,13 +9,13 @@ const OUTSTANDING: PaymentStatus[] = ["PENDING", "PARTIAL"];
 /** Numbers and lists for the organiser's overview. */
 export async function getAdminOverview(now = new Date()) {
   const upcoming: Prisma.TripWhereInput = { status: { in: ["OPEN", "WAITLIST", "FULL"] }, startDate: { gte: now } };
-  const rosterSelect = { select: { id: true, createdAt: true, partySize: true, paymentStatus: true, gearChecked: true } } as const;
+  const rosterSelect = { select: { id: true, createdAt: true, partySize: true, approvalStatus: true, paymentStatus: true, gearChecked: true } } as const;
 
   const [members, upcomingTrips, nextTrip, recent] = await Promise.all([
     prisma.user.count(),
     prisma.trip.findMany({
       where: upcoming,
-      select: { id: true, maxCapacity: true, registrations: rosterSelect },
+      select: { id: true, kind: true, maxCapacity: true, registrations: rosterSelect },
     }),
     prisma.trip.findFirst({
       where: upcoming,
@@ -26,6 +26,7 @@ export async function getAdminOverview(now = new Date()) {
         location: true,
         startDate: true,
         endDate: true,
+        kind: true,
         status: true,
         maxCapacity: true,
         registrations: rosterSelect,
@@ -47,6 +48,7 @@ export async function getAdminOverview(now = new Date()) {
   let unpaid = 0;
   let gearPending = 0;
   for (const trip of upcomingTrips) {
+    if (trip.kind === "MEETUP") continue;
     const { confirmed } = splitRoster(trip.registrations, trip.maxCapacity);
     unpaid += countTravellers(confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus)));
     gearPending += countTravellers(confirmed.filter((r) => !r.gearChecked));
@@ -60,12 +62,13 @@ export async function getTripControlRoom(now = new Date()) {
   const trips = await prisma.trip.findMany({
     where: { startDate: { gte: now }, status: { in: ["DRAFT", "OPEN", "WAITLIST", "FULL"] } },
     orderBy: { startDate: "asc" }, take: 8,
-    select: { id: true, title: true, location: true, startDate: true, endDate: true, status: true, maxCapacity: true, registrations: { select: { id: true, createdAt: true, partySize: true, paymentStatus: true, gearChecked: true, agreedToGuidelinesAt: true, familyConsentAt: true, parentalConsentAt: true, carpoolChoice: true, carpoolLocation: true } } },
+    select: { id: true, title: true, location: true, startDate: true, endDate: true, kind: true, status: true, maxCapacity: true, registrations: { select: { id: true, createdAt: true, partySize: true, approvalStatus: true, paymentStatus: true, gearChecked: true, agreedToGuidelinesAt: true, familyConsentAt: true, parentalConsentAt: true, carpoolChoice: true, carpoolLocation: true } } },
   });
   return trips.map((trip) => {
     const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
     const people = countTravellers(confirmed);
-    return { ...trip, confirmed: people, waitlisted: countTravellers(waitlisted), unpaid: countTravellers(confirmed.filter((item) => OUTSTANDING.includes(item.paymentStatus))), gearPending: countTravellers(confirmed.filter((item) => !item.gearChecked)), missingConsent: confirmed.filter((item) => !item.agreedToGuidelinesAt || (item.partySize > 1 && !item.familyConsentAt)).length, carpoolNeeds: confirmed.filter((item) => item.carpoolChoice === "NEED_RIDE" && !item.carpoolLocation).length, readiness: { minimum: people > 0, payments: confirmed.every((item) => item.paymentStatus === "PAID"), gear: confirmed.every((item) => item.gearChecked), consent: confirmed.every((item) => item.agreedToGuidelinesAt && (item.partySize === 1 || item.familyConsentAt)) } };
+    const lightweight = trip.kind === "MEETUP";
+    return { ...trip, confirmed: people, waitlisted: countTravellers(waitlisted), unpaid: lightweight ? 0 : countTravellers(confirmed.filter((item) => OUTSTANDING.includes(item.paymentStatus))), gearPending: lightweight ? 0 : countTravellers(confirmed.filter((item) => !item.gearChecked)), missingConsent: confirmed.filter((item) => !item.agreedToGuidelinesAt || (item.partySize > 1 && !item.familyConsentAt)).length, carpoolNeeds: confirmed.filter((item) => item.carpoolChoice === "NEED_RIDE" && !item.carpoolLocation).length, readiness: { minimum: people > 0, payments: lightweight || confirmed.every((item) => item.paymentStatus === "PAID"), gear: lightweight || confirmed.every((item) => item.gearChecked), consent: confirmed.every((item) => item.agreedToGuidelinesAt && (item.partySize === 1 || item.familyConsentAt)) } };
   });
 }
 
@@ -81,16 +84,17 @@ export async function getAdminTrips() {
       status: true,
       kind: true,
       maxCapacity: true,
-      registrations: { select: { id: true, createdAt: true, partySize: true, paymentStatus: true } },
+      registrations: { select: { id: true, createdAt: true, partySize: true, approvalStatus: true, paymentStatus: true } },
     },
   });
   return trips.map((trip) => {
     const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
     return {
       ...trip,
+      paymentRequired: trip.kind !== "MEETUP",
       confirmed: countTravellers(confirmed),
       waitlisted: countTravellers(waitlisted),
-      unpaid: countTravellers(confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus))),
+      unpaid: trip.kind === "MEETUP" ? 0 : countTravellers(confirmed.filter((r) => OUTSTANDING.includes(r.paymentStatus))),
     };
   });
 }
@@ -105,6 +109,7 @@ export async function getAdminTrip(id: string) {
           id: true,
           createdAt: true,
           paymentStatus: true,
+          approvalStatus: true,
           gearChecked: true,
           checkedInCount: true,
           carpoolMatched: true,

@@ -61,6 +61,7 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
       prisma.tripRegistration.create({
         data: {
           userId: user.id, tripId: trip.id, vehicleDetails, carpoolChoice, carpoolLocation, carpoolSeats, agreedToGuidelinesAt: new Date(),
+          approvalStatus: "PENDING",
           partySize, companions,
           familyConsentAt: companions.length && familyConsent ? new Date() : null,
           parentalConsentAt: companions.some((person) => person.age < 18) && parentalConsent ? new Date() : null,
@@ -87,10 +88,10 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   if (position?.kind === "waitlist") {
     return done(
-      `You're on the waitlist at number ${position.place}. ${companions.length ? "Your family is saved for future trips; you can add birthdays and photos on your profile. " : ""}If someone drops out, you move up automatically and it shows here.`,
+      `Your registration is waiting for organiser approval. ${companions.length ? "Your family is saved for future trips; you can add birthdays and photos on your profile. " : ""}The organiser will confirm your place or contact you if anything is needed.`,
     );
   }
-  return done(companions.length ? "You're in. Your family is saved for future trips; you can add birthdays and photos on your profile. Pay the organiser as usual; your payment status shows on your profile once it's recorded." : "You're in. Pay the organiser as usual; your payment status shows on your profile once it's recorded.");
+  return done(companions.length ? "Your registration is waiting for organiser approval. Your family is saved for future trips; you can add birthdays and photos on your profile." : "Your registration is waiting for organiser approval. The organiser will confirm your place or contact you if anything is needed.");
 
   });
 }
@@ -156,6 +157,9 @@ export async function submitFeedback(input: unknown): Promise<ActionResult> {
   const parsed = feedbackSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const { rating, comment } = parsed.data;
+
+  const attended = await prisma.tripRegistration.count({ where: { userId: user.id, approvalStatus: "APPROVED", checkedInCount: { gt: 0 }, trip: { status: "COMPLETED" } } });
+  if (!attended) return fail("Group feedback is available after you have attended a Sanchari event.");
 
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const today = await prisma.feedback.count({ where: { userId: user.id, createdAt: { gte: since } } });

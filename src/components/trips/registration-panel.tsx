@@ -12,7 +12,7 @@ export type ViewerPlace = { kind: "confirmed" } | { kind: "waitlist"; place: num
 export type PanelViewer = {
   isAdmin: boolean;
   profile: ProfileDefaults;
-  registration: { paymentStatus: PaymentStatus; gearChecked: boolean; vehicleDetails: string | null; carpoolChoice: string; carpoolLocation: string | null; carpoolSeats: number | null; partySize: number; companions: unknown } | null;
+  registration: { approvalStatus: string; paymentStatus: PaymentStatus; gearChecked: boolean; vehicleDetails: string | null; carpoolChoice: string; carpoolLocation: string | null; carpoolSeats: number | null; partySize: number; companions: unknown } | null;
   place: ViewerPlace;
 } | null;
 
@@ -63,7 +63,7 @@ export function RegistrationPanel({ trip, registered, confirmed, started, viewer
           />
         ) : open ? (
           viewer ? (
-            <RegisterDialog tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} />
+            <RegisterDialog tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} paymentsEnabled={trip.kind !== "MEETUP"} />
           ) : (
             <>
               <Link
@@ -104,13 +104,15 @@ function YourPlace({
   started: boolean;
 }) {
   const confirmed = place?.kind !== "waitlist";
+  const pendingApproval = registration.approvalStatus === "PENDING";
+  const declined = registration.approvalStatus === "DECLINED";
   const over = trip.status === "COMPLETED";
   const canCancel = !started && trip.status !== "ONGOING" && !over && registration.paymentStatus === "PENDING";
 
   return (
     <div>
       <p className="stretch-semiwide text-lg font-bold leading-snug text-signal">
-        {over
+        {declined ? "Registration not approved" : pendingApproval ? "Awaiting organiser approval" : over
           ? confirmed
             ? "You were on this trip"
             : "You were on the waitlist"
@@ -120,13 +122,12 @@ function YourPlace({
       </p>
       {!over ? (
         <p className="mt-1 text-sm text-lichen">
-          {confirmed ? "Your seat is confirmed." : "If someone drops out, you move up automatically."}
+          {declined ? "Contact the organiser if you need more information." : pendingApproval ? "The organiser will review your registration before confirming your place." : confirmed ? "Your seat is confirmed." : "If someone drops out, you move up automatically."}
         </p>
       ) : null}
 
       <dl className="mt-5 grid gap-3 text-sm">
-        <Row label="Payment" value={PAYMENT_LABEL[registration.paymentStatus]} />
-        <Row label="Gear check" value={registration.gearChecked ? "Done" : "Not yet"} />
+        {trip.kind !== "MEETUP" ? <><Row label="Payment" value={PAYMENT_LABEL[registration.paymentStatus]} /><Row label="Gear check" value={registration.gearChecked ? "Done" : "Not yet"} /></> : null}
       <Row label="Getting there" value={registration.vehicleDetails || "Needs a seat"} />
         {registration.carpoolChoice !== "NONE" ? <Row label="Car pool" value={`${registration.carpoolChoice === "OFFER_RIDE" ? "Offering" : "Needs"} ${registration.carpoolSeats ?? ""} seat(s) from ${registration.carpoolLocation ?? "location not given"}`} /> : null}
       </dl>

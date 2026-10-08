@@ -100,7 +100,7 @@ export async function getTripForPage(id: string) {
     where: { id },
     include: {
       registrations: {
-        select: { id: true, userId: true, createdAt: true, paymentStatus: true, gearChecked: true, vehicleDetails: true, carpoolChoice: true, carpoolLocation: true, carpoolSeats: true, partySize: true, companions: true },
+        select: { id: true, userId: true, createdAt: true, approvalStatus: true, paymentStatus: true, gearChecked: true, vehicleDetails: true, carpoolChoice: true, carpoolLocation: true, carpoolSeats: true, partySize: true, companions: true },
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       },
       feedbackForm: { select: { isOpen: true } },
@@ -165,6 +165,7 @@ export async function getMyTrips(userId: string) {
       id: true,
       createdAt: true,
       paymentStatus: true,
+      approvalStatus: true,
       gearChecked: true,
       vehicleDetails: true,
       partySize: true,

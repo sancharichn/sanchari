@@ -150,7 +150,7 @@ export function TripForm({
               {...aria("trip-capacity", "maxCapacity", true)}
             />
           </Field>
-          <Field label="Adult cost (₹)" htmlFor="trip-adult-budget" hint="Optional. Used for adults; legacy cost is used if blank." error={err("adultBudgetEst")}>
+          {values.kind !== "MEETUP" ? <><Field label="Adult cost (₹)" htmlFor="trip-adult-budget" hint="Optional. Used for adults; legacy cost is used if blank." error={err("adultBudgetEst")}>
             <Input
               id="trip-adult-budget"
               inputMode="decimal"
@@ -162,6 +162,7 @@ export function TripForm({
           <Field label="Child cost (₹)" htmlFor="trip-child-budget" hint="Optional. Applies under 18s." error={err("childBudgetEst")}>
             <Input id="trip-child-budget" inputMode="decimal" value={values.childBudgetEst} onChange={set("childBudgetEst")} {...aria("trip-child-budget", "childBudgetEst", true)} />
           </Field>
+          </> : <p className="self-end rounded-xl border border-signal/25 bg-signal/5 p-4 text-sm text-mist sm:col-span-2">Meetups are free two-hour gatherings. Payment and gear checks are not used.</p>}
         </div>
         {!tripId ? (
           <Field label="Status" htmlFor="trip-status" hint={STATUS_HELP[values.status]} error={err("status")}>

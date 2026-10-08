@@ -107,8 +107,8 @@ export function acceptsRegistrations(status: TripStatus) {
 
 /** FIFO by registration; a household is confirmed together or waits together.
  * Later parties do not jump ahead of a family that is waiting for enough seats. */
-export function splitRoster<T extends { createdAt: Date; id: string; partySize?: number }>(registrations: T[], capacity: number) {
-  const ordered = [...registrations].sort(
+export function splitRoster<T extends { createdAt: Date; id: string; partySize?: number; approvalStatus?: string }>(registrations: T[], capacity: number) {
+  const ordered = registrations.filter((registration) => registration.approvalStatus === undefined || registration.approvalStatus === "APPROVED").sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
   );
   let remaining = Math.max(0, capacity);

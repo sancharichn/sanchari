@@ -295,6 +295,35 @@
   }
 }
 
+/* A stable application shell turns organiser pages into one workspace. */
+.admin-workspace { min-height: 100dvh; background: #0c1112; }
+.admin-sidebar { border-bottom: 1px solid rgb(221 240 241 / 12%); background: rgb(12 18 20 / 94%); }
+.admin-nav { width: min(100%, 1200px); margin: 0 auto; padding: .85rem 1.25rem; }
+.admin-nav-brand { display: none; }
+.admin-nav-groups { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: thin; }
+.admin-nav-group { display: contents; }
+.admin-nav-group-label, .admin-nav-foot { display: none; }
+.admin-nav-links { display: flex; gap: .25rem; flex: 0 0 auto; }
+.admin-nav-link { flex: 0 0 auto; border-radius: .7rem; padding: .65rem .8rem; color: #9a9a90; font-size: .8125rem; font-weight: 650; transition: background-color 160ms ease, color 160ms ease; }
+.admin-nav-link:hover { color: #f2f2ec; background: rgb(255 255 255 / 5%); }
+.admin-nav-link-active { color: #0a0a0a; background: #ffe600; }
+.admin-mobile-bar { display: none; }
+
+@media (min-width: 1024px) {
+  .admin-workspace { display: grid; grid-template-columns: 16.75rem minmax(0, 1fr); }
+  .admin-sidebar { position: sticky; top: 0; height: 100dvh; border-right: 1px solid rgb(221 240 241 / 12%); border-bottom: 0; background: linear-gradient(180deg, #10191b, #0b1012); }
+  .admin-nav { display: flex; height: 100%; width: auto; margin: 0; padding: 1.4rem 1rem; flex-direction: column; }
+  .admin-nav-brand { display: flex; align-items: center; gap: .7rem; padding: .35rem .55rem 1.6rem; }
+  .admin-nav-mark { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: .7rem; color: #0a0a0a; background: #ffe600; font-size: .9rem; font-weight: 900; }
+  .admin-nav-groups { display: grid; gap: 1.25rem; overflow: visible; }
+  .admin-nav-group { display: block; }
+  .admin-nav-group-label { display: block; margin: 0 0 .35rem .6rem; color: #758082; font-size: .66rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+  .admin-nav-links { display: grid; gap: .1rem; }
+  .admin-nav-link { display: block; padding: .68rem .7rem; }
+  .admin-nav-foot { display: block; margin-top: auto; padding: 1rem .6rem .25rem; color: #758082; font-size: .7rem; }
+  .admin-workspace-content > main.container { max-width: 1360px; }
+}
+
 /* Mobile screens share a photographic canvas and softly lit glass panes. */
 @media (max-width: 767px) {
   body {

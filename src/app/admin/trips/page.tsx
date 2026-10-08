@@ -61,7 +61,7 @@ export default async function AdminTripsPage() {
                     {trip.confirmed}/{trip.maxCapacity}
                   </TableCell>
                   <TableCell className="stretch-narrow text-right tabular-nums">{trip.waitlisted}</TableCell>
-                  <TableCell className="stretch-narrow text-right tabular-nums">{trip.unpaid}</TableCell>
+                  <TableCell className="stretch-narrow text-right tabular-nums">{trip.paymentRequired ? trip.unpaid : <span className="text-lichen">—</span>}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

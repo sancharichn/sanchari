@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { PaymentStatus } from "@prisma/client";
-import { updateRegistration } from "@/actions/admin";
+import { setRegistrationApproval, updateRegistration } from "@/actions/admin";
 import { useActionRunner } from "@/components/forms/use-action-runner";
 import { PAYMENT_LABEL, PAYMENT_STATUSES } from "@/lib/trips";
 import { cn } from "@/lib/utils";
@@ -91,4 +91,9 @@ export function GearToggle({
       ) : null}
     </div>
   );
+}
+
+export function ApprovalSelect({ registrationId, status }: { registrationId: string; status: "PENDING" | "APPROVED" | "DECLINED" }) {
+  const { run, pending, result } = useActionRunner();
+  return <div className="grid gap-1"><select aria-label="Registration approval" disabled={pending} value={status} className="rounded border border-ridge bg-night px-2 py-1 text-sm" onChange={(event) => void run(() => setRegistrationApproval(registrationId, event.target.value))}><option value="PENDING">Pending review</option><option value="APPROVED">Approved</option><option value="DECLINED">Declined</option></select>{result && !result.ok ? <span className="text-xs text-ember">{result.message}</span> : null}</div>;
 }

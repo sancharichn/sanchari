@@ -17,7 +17,7 @@ import {
   readFormToken,
 } from "@/lib/feedback-server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUserSafe } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session";
 import { isPublicStatus } from "@/lib/trips";
 
 /*
@@ -35,6 +35,8 @@ type Payload = { token?: unknown; website?: unknown; answers?: unknown };
 
 export async function submitTripFeedback(tripId: string, payload: Payload): Promise<ActionResult> {
   return withAudit(async () => {
+  const user = await getCurrentUser();
+  if (!user) return fail("Sign in with the account that attended this event to share feedback.");
   const trip = await prisma.trip.findUnique({
     where: { id: String(tripId) },
     select: {
@@ -47,6 +49,8 @@ export async function submitTripFeedback(tripId: string, payload: Payload): Prom
   const form = trip?.feedbackForm;
   if (!trip || !form || !isPublicStatus(trip.status)) return fail("This feedback form isn't available.");
   if (!form.isOpen) return fail("Feedback for this trip is closed now. Thank you for wanting to share!");
+  const attendance = await prisma.tripRegistration.findUnique({ where: { userId_tripId: { userId: user.id, tripId: trip.id } }, select: { approvalStatus: true, checkedInCount: true } });
+  if (!attendance || attendance.approvalStatus !== "APPROVED" || attendance.checkedInCount < 1) return fail("Feedback is available only to members whose attendance was recorded for this event.");
 
   // Only bots fill in the hidden field. Tell them it worked and keep nothing.
   if (typeof payload?.website === "string" && payload.website.trim()) return done("Nanni! Your feedback is in.");
@@ -74,27 +78,11 @@ export async function submitTripFeedback(tripId: string, payload: Payload): Prom
     }
   }
 
-  const user = await getCurrentUserSafe();
-  let deviceId: string | undefined;
-  if (!user) {
-    const jar = cookies();
-    deviceId = jar.get(DEVICE_COOKIE)?.value;
-    if (!isDeviceId(deviceId)) {
-      deviceId = newDeviceId();
-      jar.set(DEVICE_COOKIE, deviceId, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: DEVICE_COOKIE_MAX_AGE,
-        path: "/",
-      });
-    }
-  }
-  const key = dedupeKey(form.id, user ? { userId: user.id } : { deviceId: deviceId! });
+  const key = dedupeKey(form.id, { userId: user.id });
 
   const whatsapp = !answers.anonymous && answers.whatsapp ? normaliseWhatsApp(answers.whatsapp) : null;
   // Anonymous answers can still be verified for a signed-in traveller; the account just isn't stored.
-  const verified = await isFromTraveller(trip, { userId: user?.id ?? null, whatsapp });
+  const verified = true;
 
   const extraTexts = extras.filter((q) => q.type === "text").map((q) => answers.extras[q.id] as string | null);
   const flags = qualityFlags([answers.loved, answers.leaderIdea, answers.nextPlace, ...extraTexts], secondsToFill);
@@ -103,7 +91,7 @@ export async function submitTripFeedback(tripId: string, payload: Payload): Prom
     anonymous: answers.anonymous,
     name: answers.anonymous ? null : answers.name,
     whatsapp,
-    userId: answers.anonymous ? null : (user?.id ?? null),
+    userId: answers.anonymous ? null : user.id,
     groupSize: answers.groupSize,
     overall: answers.overall,
     comeAgain: answers.comeAgain,

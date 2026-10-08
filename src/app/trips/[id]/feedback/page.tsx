@@ -8,7 +8,7 @@ import { parseExtraQuestions } from "@/lib/feedback";
 import { signFormToken } from "@/lib/feedback-server";
 import { formatDateRange } from "@/lib/format";
 import { getFeedbackFormTrip } from "@/lib/queries";
-import { getCurrentUserSafe } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { isPublicStatus } from "@/lib/trips";
 
@@ -30,7 +30,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function TripFeedbackPage({ params }: Params) {
-  const [trip, user] = await Promise.all([getFeedbackFormTrip(params.id), getCurrentUserSafe()]);
+  const user = await requireUser(`/trips/${params.id}/feedback`);
+  const [trip, attendance] = await Promise.all([getFeedbackFormTrip(params.id), (await import("@/lib/prisma")).prisma.tripRegistration.findUnique({ where: { userId_tripId: { userId: user.id, tripId: params.id } }, select: { approvalStatus: true, checkedInCount: true } })]);
   const isAdmin = user?.role === "ADMIN";
   if (!trip || (!isPublicStatus(trip.status) && !isAdmin)) notFound();
 
@@ -59,7 +60,7 @@ export default async function TripFeedbackPage({ params }: Params) {
       </header>
 
       <div className="container max-w-3xl py-10 md:py-14">
-        {open ? (
+        {open && (attendance?.approvalStatus === "APPROVED" && attendance.checkedInCount > 0) ? (
           <TripFeedbackForm
             tripId={trip.id}
             tripHref={tripHref}
@@ -92,9 +93,9 @@ export default async function TripFeedbackPage({ params }: Params) {
           </>
         ) : (
           <div className="rounded-panel border border-ridge bg-basalt p-6 sm:p-8">
-            <h2 className="stretch-semiwide text-2xl font-bold">Feedback isn&apos;t open for this trip</h2>
+            <h2 className="stretch-semiwide text-2xl font-bold">Feedback is for attendees</h2>
             <p className="measure mt-3 text-lichen">
-              The organisers open it after the trip. If there&apos;s something you&apos;d like them to know now, write to{" "}
+              {open ? "Your attendance has not been recorded for this event yet." : "The organisers open feedback after the event."} If there&apos;s something you&apos;d like them to know now, write to{" "}
               <a className="text-mist underline underline-offset-4 hover:text-signal" href={`mailto:${CONTACT_EMAIL}`}>
                 {CONTACT_EMAIL}
               </a>

@@ -39,6 +39,12 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum RegistrationApproval {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
 enum CarpoolChoice {
   NONE
   NEED_RIDE
@@ -155,6 +161,9 @@ model Trip {
 }
 
 model TripRegistration {
+  // Existing registrations are retained as approved; new requests enter the organiser approval pipeline.
+  approvalStatus      RegistrationApproval @default(APPROVED)
+  approvedAt          DateTime?
   promotionVersion     Int            @default(0)
   checkedInCount       Int            @default(0)
   carpoolMatched       Boolean        @default(false)

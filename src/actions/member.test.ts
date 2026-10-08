@@ -55,11 +55,11 @@ describe("registerForTrip families", () => {
     expect((await registerForTrip("trip", input)).ok).toBe(false);
     expect(mocks.createRegistration).not.toHaveBeenCalled();
   });
-  it("reports the whole family's waitlist position when remaining capacity is insufficient", async () => {
+  it("places a family into organiser review before allocating a seat or waitlist place", async () => {
     mocks.findRoster.mockResolvedValue([
       { id: "earlier", partySize: 3, createdAt: new Date(1) },
       { id: "registration", partySize: 2, createdAt: new Date(2) },
     ]);
-    expect(await registerForTrip("trip", input)).toMatchObject({ ok: true, message: expect.stringContaining("waitlist at number 1") });
+    expect(await registerForTrip("trip", input)).toMatchObject({ ok: true, message: expect.stringContaining("waiting for organiser approval") });
   });
 });

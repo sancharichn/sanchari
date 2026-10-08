@@ -38,12 +38,14 @@ export function RegisterDialog({
   profile,
   adultPrice,
   childPrice,
+  paymentsEnabled = true,
 }: {
   tripId: string;
   tripTitle: string;
   profile: ProfileDefaults;
   adultPrice: string | null;
   childPrice: string | null;
+  paymentsEnabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<FamilyMemberInput[]>([]);
@@ -212,7 +214,7 @@ export function RegisterDialog({
                 </> : null}
               </div>
             </section>
-            {adultPrice || childPrice ? <p className="rounded-xl border border-signal/30 bg-signal/5 p-4 text-sm text-mist">Estimated trip cost: <strong>{formatINR(String(familyTotal))}</strong><span className="block mt-1 text-xs text-lichen">Adult: {adultPrice ? formatINR(adultPrice) : "—"} · Child: {childPrice ? formatINR(childPrice) : "same as adult"}</span></p> : null}
+            {paymentsEnabled && (adultPrice || childPrice) ? <p className="rounded-xl border border-signal/30 bg-signal/5 p-4 text-sm text-mist">Estimated trip cost: <strong>{formatINR(String(familyTotal))}</strong><span className="block mt-1 text-xs text-lichen">Adult: {adultPrice ? formatINR(adultPrice) : "—"} · Child: {childPrice ? formatINR(childPrice) : "same as adult"}</span></p> : null}
 
             <div>
               <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-ridge p-4 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal">

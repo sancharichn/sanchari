@@ -34,6 +34,7 @@ export async function recordPayment(input: unknown): Promise<ActionResult> {
       if (duplicate) return;
       const registration = await tx.tripRegistration.findUnique({ where: { id: v.registrationId }, include: { trip: true, paymentEvents: true } });
       if (!registration) throw new Error("Registration no longer exists.");
+      if (registration.trip.kind === "MEETUP") throw new Error("Meetups do not use payments.");
       const net = registration.paymentEvents.reduce((sum, event) => sum + toPaise(event.amount), 0);
       const delta = toPaise(v.amount) * (v.kind === "REFUND" ? -1 : 1);
       if (net + delta < 0) throw new Error("Refund cannot exceed the receipts recorded in this ledger.");
@@ -44,7 +45,7 @@ export async function recordPayment(input: unknown): Promise<ActionResult> {
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") return fail("Another payment changed this ledger. Please retry.");
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return done("This payment was already recorded.");
-    return fail(error instanceof Error && ["Registration no longer exists.", "Refund cannot exceed the receipts recorded in this ledger."].includes(error.message) ? error.message : "Payment could not be recorded. Please retry.");
+    return fail(error instanceof Error && ["Registration no longer exists.", "Meetups do not use payments.", "Refund cannot exceed the receipts recorded in this ledger."].includes(error.message) ? error.message : "Payment could not be recorded. Please retry.");
   }
 
   });

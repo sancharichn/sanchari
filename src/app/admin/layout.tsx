@@ -12,16 +12,12 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
   return (
-    <>
-      <div className="border-b border-ridge bg-basalt/60">
-        <div className="container pt-8">
-          <p className="text-sm text-lichen">Organiser tools</p>
-          <div className="mt-3">
-            <AdminNav />
-          </div>
-        </div>
+    <div className="admin-workspace">
+      <aside className="admin-sidebar"><AdminNav /></aside>
+      <div className="admin-workspace-content">
+        <header className="admin-mobile-bar"><p className="font-bold text-mist">Sanchari Ops</p><p className="text-xs text-lichen">Organiser workspace</p></header>
+        {children}
       </div>
-      {children}
-    </>
+    </div>
   );
 }

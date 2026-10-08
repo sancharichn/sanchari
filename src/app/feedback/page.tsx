@@ -6,19 +6,23 @@ import { FeedbackForm } from "@/components/members/feedback-form";
 import { buttonVariants } from "@/components/ui/button";
 import { formatDateRange } from "@/lib/format";
 import { getFeaturedReviews, getOpenFeedbackTrips, getRecentFeedback, reviewToCard } from "@/lib/queries";
-import { getCurrentUserSafe } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Feedback" };
 
 export default async function FeedbackPage() {
-  const [user, notes, reviews, openTrips] = await Promise.all([
-    getCurrentUserSafe(),
+  const user = await requireUser("/feedback");
+  const [notes, reviews, openTrips, attendedTrips] = await Promise.all([
     getRecentFeedback(40),
     getFeaturedReviews(40),
     getOpenFeedbackTrips(),
+    prisma.tripRegistration.findMany({ where: { userId: user.id, approvalStatus: "APPROVED", checkedInCount: { gt: 0 }, trip: { status: "COMPLETED" } }, select: { tripId: true } }),
   ]);
 
+  const attendedTripIds = new Set(attendedTrips.map((registration) => registration.tripId));
+  const eligibleTrips = openTrips.filter((trip) => attendedTripIds.has(trip.id));
   // Picked quotes from trip feedback and members' notes, newest first.
   const items: FeedbackCardItem[] = [...reviews.map((r) => reviewToCard(r)), ...notes]
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -32,13 +36,13 @@ export default async function FeedbackPage() {
         WhatsApp; for anything else, write to us here.
       </p>
 
-      {openTrips.length > 0 ? (
+      {eligibleTrips.length > 0 ? (
         <section aria-labelledby="open-heading" className="mt-12">
           <h2 id="open-heading" className="stretch-semiwide text-2xl font-bold">
             Tell us about a trip
           </h2>
           <ul className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {openTrips.map((trip) => (
+            {eligibleTrips.map((trip) => (
               <li key={trip.id} className="flex flex-col gap-4 rounded-panel border border-signal/50 bg-basalt p-5">
                 <div>
                   <p className="font-bold text-mist">{trip.title}</p>
@@ -80,19 +84,7 @@ export default async function FeedbackPage() {
           </h2>
           <p className="mt-2 text-sm text-lichen">About the group in general: ideas, praise, things to fix.</p>
           <div className="mt-6">
-            {user ? (
-              <FeedbackForm />
-            ) : (
-              <div className="rounded-panel border border-ridge bg-basalt p-6">
-                <p className="text-mist">Sign in with Google to write to us here.</p>
-                <Link
-                  href={`/signin?callbackUrl=${encodeURIComponent("/feedback")}`}
-                  className={buttonVariants({ size: "sm", className: "mt-4" })}
-                >
-                  Sign in
-                </Link>
-              </div>
-            )}
+            {attendedTrips.length ? <FeedbackForm /> : <div className="rounded-panel border border-ridge bg-basalt p-6"><p className="text-mist">General feedback opens after you have attended a Sanchari event.</p><p className="mt-2 text-sm text-lichen">Trip feedback is available only after an organiser records your attendance.</p></div>}
           </div>
         </section>
       </div>

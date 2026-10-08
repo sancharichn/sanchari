@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/session";
 import { PAYMENT_STATUSES } from "@/lib/trips";
 import { expenseSchema, TRIP_STATUS_VALUES, tripSchema } from "@/lib/validation";
-import type { PaymentStatus, TripStatus } from "@prisma/client";
+import type { PaymentStatus, RegistrationApproval, TripStatus } from "@prisma/client";
 
 /*
  * Organiser actions. Every one re-checks the ADMIN role against the database
@@ -43,9 +43,9 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
     startDate: fromDateInputValue(v.startDate),
     endDate: fromDateInputValue(v.endDate),
     maxCapacity: v.maxCapacity,
-    budgetEst: v.budgetEst,
-    adultBudgetEst: v.adultBudgetEst,
-    childBudgetEst: v.childBudgetEst,
+    budgetEst: v.kind === "MEETUP" ? null : v.budgetEst,
+    adultBudgetEst: v.kind === "MEETUP" ? null : v.adultBudgetEst,
+    childBudgetEst: v.kind === "MEETUP" ? null : v.childBudgetEst,
     itinerary: v.itinerary,
   };
 
@@ -111,6 +111,10 @@ export async function updateRegistration(
   return withAudit(async () => {
   if (!(await getAdmin())) return fail(NO_ACCESS);
 
+  const scope = await prisma.tripRegistration.findUnique({ where: { id: registrationId }, select: { trip: { select: { kind: true } } } });
+  if (!scope) return fail("That registration no longer exists.");
+  if (scope.trip.kind === "MEETUP" && (change.paymentStatus !== undefined || change.gearChecked !== undefined)) return fail("Meetups do not use payment or gear checks.");
+
   const data: { paymentStatus?: PaymentStatus; gearChecked?: boolean } = {};
   if (change.paymentStatus !== undefined) {
     if (await prisma.paymentEvent.count({ where: { registrationId } })) return fail("Payment status is calculated from the ledger. Record a receipt or refund in Trip day & payments.");
@@ -128,6 +132,17 @@ export async function updateRegistration(
   revalidateTripPages(registration.tripId);
   return done(data.paymentStatus ? "Payment status saved." : "Gear check saved.");
 
+  });
+}
+
+export async function setRegistrationApproval(registrationId: string, approvalStatus: string): Promise<ActionResult> {
+  return withAudit(async () => {
+    if (!(await getAdmin())) return fail(NO_ACCESS);
+    if (!(["PENDING", "APPROVED", "DECLINED"] as RegistrationApproval[]).includes(approvalStatus as RegistrationApproval)) return fail("Choose a valid approval status.");
+    const registration = await prisma.tripRegistration.update({ where: { id: registrationId }, data: { approvalStatus: approvalStatus as RegistrationApproval, approvedAt: approvalStatus === "APPROVED" ? new Date() : null }, select: { tripId: true } }).catch(() => null);
+    if (!registration) return fail("That registration no longer exists.");
+    revalidateTripPages(registration.tripId);
+    return done(approvalStatus === "APPROVED" ? "Registration approved." : approvalStatus === "DECLINED" ? "Registration declined." : "Registration returned to pending review.");
   });
 }
 
