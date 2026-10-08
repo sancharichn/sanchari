@@ -3,16 +3,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ admin: null as null | { id: string }, user: null as null | { id: string } }));
 vi.mock("@/lib/session", () => ({ getAdmin: async () => state.admin, getCurrentUser: async () => state.user }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("@/lib/prisma", async () => {
-  const { PrismaClient } = await import("@prisma/client");
-  return { prisma: new PrismaClient({ datasourceUrl: process.env.TEST_DATABASE_URL }) };
-});
 import { prisma } from "@/lib/prisma";
 import { recordPayment, saveAttendance, resolveIncident, saveTaskDetails, saveCarpool } from "./operations";
 import { createTripTask, createTripIncident, removeRegistration } from "./admin";
 import { updateProfile } from "./member";
 
-const enabled = Boolean(process.env.TEST_DATABASE_URL?.includes("localhost") && process.env.TEST_DATABASE_URL?.includes("verify"));
+const enabled = Boolean(process.env.TEST_DATABASE_URL?.includes("localhost") && process.env.TEST_DATABASE_URL?.includes("verify") && process.env.DATABASE_URL === process.env.TEST_DATABASE_URL);
 describe.skipIf(!enabled)("real local database operational workflows", () => {
   let adminId: string, memberId: string, tripId: string, registrationId: string;
   beforeAll(async () => {

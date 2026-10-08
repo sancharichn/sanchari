@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { permits, type Capability } from "@/lib/permissions";
 
 export type CurrentUser = {
   id: string;
@@ -10,6 +12,7 @@ export type CurrentUser = {
   email: string | null;
   name: string | null;
   image: string | null;
+  staffRole?: string | null;
 };
 
 /** The signed-in member, with the role freshly read from the database, or null. */
@@ -23,6 +26,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     email: user.email ?? null,
     name: user.name ?? null,
     image: user.image ?? null,
+    staffRole: user.staffRole ?? null,
   };
 }
 
@@ -58,9 +62,17 @@ export async function requireAdmin(): Promise<CurrentUser> {
 }
 
 /** For server actions, which should answer rather than throw: the admin, or null. */
-export async function getAdmin(): Promise<CurrentUser | null> {
+export async function getAdmin(capability: Capability = "admin", tripId?: string): Promise<CurrentUser | null> {
   const user = await getCurrentUser();
-  return user?.role === "ADMIN" ? user : null;
+  if (!user) return null;
+  const assigned = capability === "lead" && user.staffRole === "LEADER" && tripId ? Boolean(await prisma.staffTrip.findUnique({ where: { userId_tripId: { userId: user.id, tripId } } })) : false;
+  return permits(user.role, user.staffRole, capability, assigned) ? user : null;
+}
+
+export async function requireStaff(): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  if (!user || (user.role !== "ADMIN" && !["FINANCE", "LEADER", "MODERATOR"].includes(user.staffRole ?? ""))) notFound();
+  return user;
 }
 
 export function isAdmin(user: CurrentUser | null): boolean {

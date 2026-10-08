@@ -12,6 +12,11 @@ const LINKS = [
   { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/suggestions", label: "Suggestions" },
   { href: "/admin/reports", label: "Reports & delivery" },
+  { href: "/admin/access", label: "Staff access" },
+  { href: "/admin/activity", label: "Activity" },
+  { href: "/admin/notifications", label: "Notifications" },
+  { href: "/admin/data-requests", label: "Data requests" },
+  { href: "/admin/analytics", label: "Analytics" },
 ];
 
 export function AdminNav() {

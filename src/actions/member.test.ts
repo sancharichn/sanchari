@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   currentUser: vi.fn(), findTrip: vi.fn(), updateUser: vi.fn(), createRegistration: vi.fn(), findRoster: vi.fn(), transaction: vi.fn(), revalidate: vi.fn(),
 }));
+vi.mock("@/lib/action-audit", () => ({ withAudit: (fn: () => Promise<unknown>) => fn() }));
 vi.mock("@/lib/session", () => ({ getCurrentUser: mocks.currentUser }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
 vi.mock("@/lib/prisma", () => ({ prisma: {

@@ -64,6 +64,11 @@ enum SuggestionStatus {
 }
 
 model User {
+  staffRole        String?
+  whatsappOptIn    Boolean            @default(false)
+  whatsappNumber   String?
+  deletedAt        DateTime?
+  staffTrips       StaffTrip[]
   id               String             @id @default(cuid())
   name             String?
   email            String             @unique
@@ -121,6 +126,7 @@ model TripMessageDelivery {
 }
 
 model Trip {
+  staffTrips     StaffTrip[]
   id             String             @id @default(cuid())
   title          String
   description    String
@@ -149,6 +155,7 @@ model Trip {
 }
 
 model TripRegistration {
+  promotionVersion     Int            @default(0)
   checkedInCount       Int            @default(0)
   carpoolMatched       Boolean        @default(false)
   id                   String         @id @default(cuid())
@@ -320,4 +327,71 @@ model Suggestion {
   updatedAt  DateTime          @updatedAt
 
   @@index([status, topic])
+}
+
+model StaffTrip {
+  id     String @id @default(cuid())
+  userId String
+  tripId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tripId])
+}
+
+model ActivityLog {
+  id            String   @id @default(cuid())
+  actorId       String?
+  entity        String
+  entityId      String?
+  operation     String
+  changedFields String[] @default([])
+  before        Json?
+  after         Json?
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}
+
+model Cancellation {
+  id           String   @id @default(cuid())
+  tripId       String
+  userId       String
+  partySize    Int
+  wasConfirmed Boolean
+  reason       String
+  createdAt    DateTime @default(now())
+
+  @@index([tripId, createdAt])
+}
+
+model DataRequest {
+  id         String    @id @default(cuid())
+  userId     String
+  kind       String
+  status     String    @default("OPEN")
+  note       String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([userId, status])
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  userId         String
+  registrationId String
+  tripId         String?
+  channel        String
+  kind           String
+  status         String   @default("QUEUED")
+  providerId     String?
+  error          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([providerId])
 }

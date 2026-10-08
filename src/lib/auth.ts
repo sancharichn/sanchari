@@ -1,6 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider, { type GoogleProfile } from "next-auth/providers/google";
-import { prisma } from "@/lib/prisma";
+import { auditedTransaction, prisma } from "@/lib/prisma";
 
 /** The one account that is promoted to ADMIN. Everyone else signs in as MEMBER. */
 export function adminEmail() {
@@ -31,7 +31,9 @@ export const authOptions: NextAuthOptions = {
       if (!email || googleProfile?.email_verified === false) return false;
 
       const isAdmin = email === adminEmail();
-      await prisma.user.upsert({
+      const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, deletedAt: true } });
+      if (existing?.deletedAt) return false;
+      await auditedTransaction(existing?.id ?? null, () => prisma.user.upsert({
         where: { email },
         create: {
           email,
@@ -43,7 +45,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name ?? undefined,
           ...(isAdmin ? { role: "ADMIN" as const } : {}),
         },
-      });
+      }));
       return true;
     },
 
@@ -57,18 +59,20 @@ export const authOptions: NextAuthOptions = {
 
       const dbUser = await prisma.user.findUnique({
         where: { email },
-        select: { id: true, role: true, name: true, image: true },
+        select: { id: true, role: true, staffRole: true, deletedAt: true, name: true, image: true },
       });
 
-      if (!dbUser) {
+      if (!dbUser || dbUser.deletedAt) {
         // The member record was removed: keep the cookie inert.
         delete token.uid;
         delete token.role;
+        delete token.staffRole;
         return token;
       }
 
       token.uid = dbUser.id;
       token.role = dbUser.role;
+      token.staffRole = dbUser.staffRole;
       token.name = dbUser.name;
       // Uploaded images stay in the database; a photo must never inflate the session cookie.
       token.picture = dbUser.image?.startsWith("data:") ? null : dbUser.image;
@@ -79,6 +83,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.uid;
         session.user.role = token.role;
+        session.user.staffRole = token.staffRole;
         session.user.name = token.name ?? session.user.name;
         session.user.image = (token.picture as string | null | undefined) ?? session.user.image;
       }

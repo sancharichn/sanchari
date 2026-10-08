@@ -35,11 +35,11 @@ export function OperationsPanel({ people, events }: { people: OperationsPerson[]
   </section>;
 }
 function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-panel border border-ridge bg-basalt p-4"><p className="text-sm text-lichen">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div>; }
-function Attendance({ person }: { person: OperationsPerson }) {
+export function Attendance({ person }: { person: Pick<OperationsPerson, "id" | "checkedInCount" | "partySize" | "confirmed"> }) {
   const { run, pending, result } = useActionRunner();
   return <form className="mt-4 grid gap-3" onSubmit={(e) => { e.preventDefault(); const count = Number(new FormData(e.currentTarget).get("count")); void run(() => saveAttendance(person.id, count)); }}><label>Travellers present<Input key={person.checkedInCount} name="count" type="number" min={0} max={person.partySize} required defaultValue={person.checkedInCount} disabled={!person.confirmed} /></label><Button size="sm" disabled={pending || !person.confirmed}>Save check-in</Button><FormMessage result={result} /></form>;
 }
-function Payment({ person }: { person: OperationsPerson }) {
+export function Payment({ person }: { person: Pick<OperationsPerson, "id" | "expected" | "net"> }) {
   const { run, pending, result } = useActionRunner();
   const [requestId, setRequestId] = useState<string | null>(null);
   return <div className="mt-4"><p className="text-sm">Expected: {person.expected === null ? "Not set" : formatINR(person.expected/100)} · Recorded: {formatINR(person.net/100)}</p><p className="mt-1 text-sm text-signal">Balance: {person.expected === null ? "Set trip prices first" : formatINR((person.expected-person.net)/100)}</p>
@@ -51,7 +51,7 @@ function Payment({ person }: { person: OperationsPerson }) {
       <Button disabled={pending}>Record entry</Button><FormMessage result={result} />
     </form></details></div>;
 }
-function Carpool({ person }: { person: OperationsPerson }) {
+export function Carpool({ person }: { person: Pick<OperationsPerson, "id" | "carpoolChoice" | "carpoolSeats" | "carpoolLocation" | "carpoolMatched" | "phone" | "confirmed"> }) {
   const { run, pending, result } = useActionRunner();
   return <div className="mt-4 space-y-3"><p>{person.carpoolChoice === "OFFER_RIDE" ? "Offers" : "Needs"} {person.carpoolSeats ?? "unspecified"} seats · {person.carpoolLocation || "Location missing"}</p>{!person.confirmed && <p className="text-sm text-lichen">Waitlisted; do not allocate a ride until confirmed.</p>}{person.phone && <a className="block text-signal underline" href={"tel:" + person.phone}>Call organiser contact: {person.phone}</a>}{person.carpoolChoice === "NEED_RIDE" && <Button variant="outline" disabled={pending || !person.confirmed} onClick={() => void run(() => saveCarpool(person.id, !person.carpoolMatched))}>{person.carpoolMatched ? "Reopen ride request" : "Mark ride arranged"}</Button>}<FormMessage result={result} /></div>;
 }

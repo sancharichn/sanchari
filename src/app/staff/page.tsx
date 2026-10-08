@@ -1,0 +1,44 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireStaff } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { expectedPayment } from "@/lib/operations";
+import { formatINR, toPaise, toDateInputValue } from "@/lib/format";
+import { splitRoster } from "@/lib/trips";
+import { Attendance, Carpool, Payment } from "@/components/admin/operations-panel";
+import { AddExpenseDialog } from "@/components/admin/add-expense-dialog";
+import { IncidentClose, IncidentControls, TaskEditor, TaskToggle, TripTaskControls } from "@/components/admin/trip-ops-controls";
+import { FeedbackFollowUp } from "@/components/admin/feedback-followup";
+import { ResponseActions } from "@/components/admin/response-actions";
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Staff workspace", robots: { index: false, follow: false } };
+
+export default async function StaffPage({ searchParams }: { searchParams: { trip?: string; view?: string } }) {
+  const user = await requireStaff();
+  const role = user.role === "ADMIN" ? (["FINANCE", "MODERATOR", "LEADER"].includes(searchParams.view ?? "") ? searchParams.view! : "LEADER") : user.staffRole!;
+  const scope = user.role !== "ADMIN" && role === "LEADER" ? { staffTrips: { some: { userId: user.id } } } : {};
+  const trips = await prisma.trip.findMany({ where: scope, select: { id: true, title: true }, orderBy: { startDate: "desc" } });
+  const tripId = searchParams.trip ?? trips[0]?.id;
+  if (tripId && !trips.some(t => t.id === tripId)) notFound();
+  return <main id="main" className="mobile-glass-screen container space-y-8 py-12"><div><p className="text-sm uppercase tracking-widest text-signal">Sanchari · Organiser tools</p><h1 className="mt-2 text-3xl font-bold">Staff workspace</h1><p className="mt-2 text-lichen">{role === "FINANCE" ? "Finance organiser · receipts, refunds and expenses" : role === "MODERATOR" ? "Feedback moderator · review, publish and follow up" : "Trip leader · assigned departures and traveller coordination"}</p></div>
+    {user.role === "ADMIN" && <nav className="flex flex-wrap gap-4">{["LEADER", "FINANCE", "MODERATOR"].map(v => <Link className="text-signal underline" key={v} href={"/staff?view="+v}>{v}</Link>)}<Link href="/admin" className="underline">Full admin console</Link></nav>}
+    <form className="flex flex-wrap items-end gap-3"><input type="hidden" name="view" value={role} /><label className="min-w-0 flex-1">Departure<select className="mt-2 block w-full rounded-xl border border-ridge bg-basalt p-3" name="trip" defaultValue={tripId}>{trips.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select></label><button className="rounded-xl bg-signal px-5 py-3 font-bold text-black">Open trip</button></form>
+    {!tripId ? <p>No trips assigned yet. Ask a full administrator to assign a departure.</p> : role === "FINANCE" ? <FinanceTrip tripId={tripId} userId={user.id} /> : role === "MODERATOR" ? <ModerationTrip tripId={tripId} /> : <LeaderTrip tripId={tripId} />}
+  </main>;
+}
+
+async function FinanceTrip({ tripId, userId }: { tripId: string; userId: string }) {
+  const trip = await prisma.trip.findUniqueOrThrow({ where: { id: tripId }, select: { adultBudgetEst: true, childBudgetEst: true, budgetEst: true, registrations: { select: { id: true, companions: true, user: { select: { name: true } }, paymentEvents: { select: { id: true, amount: true, method: true, reference: true, createdAt: true } } } }, expenses: { select: { id: true, title: true, amount: true, category: true } } } });
+  const payers = await prisma.user.findMany({ where: { deletedAt: null }, select: { id: true, name: true }, orderBy: { name: "asc" } });
+  return <><div className="rounded-panel border border-ridge bg-basalt p-6"><h2 className="text-xl font-bold">Trip accounts</h2><p className="my-3 text-sm text-lichen">Record manual receipts and refunds. No money is charged here.</p><AddExpenseDialog tripId={tripId} payers={payers.map(p => ({ id: p.id, label: p.name ?? "Member" }))} defaultPayerId={userId} /><h3 className="mt-5 font-bold">Expenses · {formatINR(trip.expenses.reduce((n,e) => n+Number(e.amount),0))}</h3>{trip.expenses.map(e => <p key={e.id} className="mt-2">{e.title} · {e.category} · {formatINR(e.amount)}</p>)}</div><div className="grid gap-4 md:grid-cols-2">{trip.registrations.map(r => <article key={r.id} className="rounded-panel border border-ridge p-5"><h2 className="font-bold">{r.user.name ?? "Member"}</h2><Payment person={{ id: r.id, expected: expectedPayment(trip,r.companions), net: r.paymentEvents.reduce((n,e) => n+toPaise(e.amount),0) }} /><details className="mt-4"><summary>Ledger history</summary>{r.paymentEvents.map(e => <p key={e.id} className="mt-2 text-sm">{formatINR(e.amount)} · {e.method} · {e.reference} · {e.createdAt.toLocaleDateString("en-IN")}</p>)}</details></article>)}</div>{!trip.registrations.length && <p>No registrations.</p>}</>;
+}
+async function LeaderTrip({ tripId }: { tripId: string }) {
+  const trip = await prisma.trip.findUniqueOrThrow({ where: { id: tripId }, select: { maxCapacity: true, registrations: { select: { id: true, partySize: true, createdAt: true, checkedInCount: true, carpoolChoice: true, carpoolLocation: true, carpoolSeats: true, carpoolMatched: true, user: { select: { name: true, phone: true, emergencyContact: true } } } }, tasks: true, incidents: true } });
+  const organisers = await prisma.user.findMany({ where: { deletedAt: null, OR: [{ role: "ADMIN" }, { staffRole: "LEADER", staffTrips: { some: { tripId } } }] }, select: { id: true, name: true } });
+  const confirmed = new Set(splitRoster(trip.registrations,trip.maxCapacity).confirmed.map(r => r.id));
+  return <><section><h2 className="mb-4 text-xl font-bold">Attendance & travel</h2><div className="grid gap-4 md:grid-cols-2">{trip.registrations.map(r => <article key={r.id} className="rounded-panel border border-ridge bg-basalt p-5"><h3 className="font-bold">{r.user.name ?? "Member"} · {r.partySize} traveller(s)</h3><p className="text-sm text-lichen">{confirmed.has(r.id) ? "Confirmed" : "Waitlist"}</p><Attendance person={{ id: r.id, checkedInCount: r.checkedInCount, partySize: r.partySize, confirmed: confirmed.has(r.id) }} />{r.carpoolChoice !== "NONE" && <Carpool person={{ id: r.id, carpoolChoice: r.carpoolChoice, carpoolLocation: r.carpoolLocation, carpoolSeats: r.carpoolSeats, carpoolMatched: r.carpoolMatched, phone: r.user.phone, confirmed: confirmed.has(r.id) }} />}<details className="mt-3 text-sm"><summary>Emergency contact</summary><p>{r.user.emergencyContact ?? "Not provided"}</p></details></article>)}</div></section><section className="rounded-panel border border-ridge p-6"><h2 className="text-xl font-bold">Departure checklist</h2>{trip.tasks.map(t => <article className="mt-4 border-b border-ridge pb-4" key={t.id}><h3 className="mb-2 font-semibold">{t.title}</h3><TaskToggle id={t.id} completed={Boolean(t.completedAt)} /><TaskEditor id={t.id} title={t.title} ownerId={t.ownerId ?? ""} dueAt={t.dueAt ? toDateInputValue(t.dueAt) : ""} organisers={organisers.map(p => ({ id: p.id, label: p.name ?? "Organiser" }))} /></article>)}<TripTaskControls tripId={tripId} /></section><section className="rounded-panel border border-ridge p-6"><h2 className="text-xl font-bold">Incident follow-up</h2>{trip.incidents.map(i => <article className="mt-4 border-b border-ridge pb-4" key={i.id}><h3 className="font-bold">{i.title} · {i.severity}</h3><p>{i.description}</p><IncidentClose id={i.id} actionTaken={i.actionTaken ?? ""} closed={Boolean(i.closedAt)} /></article>)}<IncidentControls tripId={tripId} /></section></>;
+}
+async function ModerationTrip({ tripId }: { tripId: string }) {
+  const responses = await prisma.feedbackResponse.findMany({ where: { tripId }, select: { id: true, anonymous: true, name: true, overall: true, loved: true, leaderIdea: true, nextPlace: true, shareOk: true, hidden: true, featured: true, followUpStatus: true, followUpNote: true }, orderBy: { createdAt: "desc" }, take: 200 });
+  return <section className="space-y-4"><h2 className="text-xl font-bold">Feedback review</h2><p className="text-sm text-lichen">Latest 200 responses for this departure. Anonymous submissions remain anonymous.</p>{responses.map(r => <article key={r.id} className="space-y-3 rounded-panel border border-ridge bg-basalt p-5"><h3 className="font-bold">{r.anonymous ? "Anonymous traveller" : r.name ?? "Traveller"} · {r.overall}/5</h3><p>{r.loved}</p><p>{r.leaderIdea}</p><p>{r.nextPlace}</p><ResponseActions responseId={r.id} featured={r.featured} hidden={r.hidden} featureBlockedBecause={!r.shareOk || !r.loved ? "Writer has not authorised this quote." : null} /><FeedbackFollowUp id={r.id} status={r.followUpStatus} note={r.followUpNote} /></article>)}{!responses.length && <p>No feedback yet.</p>}</section>;
+}

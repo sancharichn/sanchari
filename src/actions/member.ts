@@ -1,5 +1,7 @@
 "use server";
+import { withAudit } from "@/lib/action-audit";
 
+import { cancelBooking } from "@/lib/waitlist";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { done, fail, invalid, type ActionResult } from "@/lib/action-result";
@@ -21,6 +23,7 @@ function revalidateTrip(tripId: string) {
 }
 
 export async function registerForTrip(tripId: string, input: unknown): Promise<ActionResult> {
+  return withAudit(async () => {
   const user = await getCurrentUser();
   if (!user) return fail("Sign in to register for trips.");
 
@@ -75,9 +78,12 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
     );
   }
   return done("You're in. Pay the organiser as usual; your payment status shows on your profile once it's recorded.");
+
+  });
 }
 
 export async function cancelRegistration(tripId: string): Promise<ActionResult> {
+  return withAudit(async () => {
   const user = await getCurrentUser();
   if (!user) return fail("Sign in to manage your registrations.");
 
@@ -94,12 +100,15 @@ export async function cancelRegistration(tripId: string): Promise<ActionResult> 
     return fail("A payment is recorded on your registration, so ask the organiser to cancel it and sort out the refund.");
   }
 
-  await prisma.tripRegistration.delete({ where: { id: registration.id } });
+  await cancelBooking(registration.id, "MEMBER_CANCELLED");
   revalidateTrip(registration.trip.id);
   return done("Your registration is cancelled.");
+
+  });
 }
 
 export async function updateProfile(input: unknown): Promise<ActionResult> {
+  return withAudit(async () => {
   const user = await getCurrentUser();
   if (!user) return fail("Sign in to update your details.");
 
@@ -121,10 +130,13 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
   });
   revalidatePath("/profile");
   return done("Your details are saved.");
+
+  });
 }
 
 /** A note about the group in general. Trip feedback goes through each trip's own form. */
 export async function submitFeedback(input: unknown): Promise<ActionResult> {
+  return withAudit(async () => {
   const user = await getCurrentUser();
   if (!user) return fail("Sign in to leave feedback.");
 
@@ -140,4 +152,6 @@ export async function submitFeedback(input: unknown): Promise<ActionResult> {
   revalidatePath("/feedback");
   revalidatePath("/");
   return done("Thanks. Your feedback is posted.");
+
+  });
 }

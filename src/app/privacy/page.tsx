@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "What the Sanchari website keeps about you, why, and who can see it.",
 };
 
-const UPDATED = "7 October 2026";
+const UPDATED = "8 October 2026";
 
 const linkClass = "text-mist underline underline-offset-4 hover:text-signal";
 
@@ -56,6 +56,11 @@ export default function PrivacyPage() {
       </div>
 
       <div className="mt-14 space-y-12">
+        <Section id="notifications-data" title="Trip notifications, staff access and your data">
+          <p>When a waitlisted booking becomes confirmed, we queue a trip notification for your account email. You can also opt in to WhatsApp trip updates on your profile by providing your full international number. When enabled, WhatsApp delivery shares your number and the trip message with Meta&apos;s WhatsApp Business service. Turn this off on your profile or reply STOP or UNSUBSCRIBE to our WhatsApp messages.</p>
+          <p>Full administrators manage the website. Finance organisers have access to trip accounts; trip leaders coordinate travellers only on their assigned trips; feedback moderators review responses. We record who changes website records and which fields they change, with sensitive values redacted from the activity history. Cancellation and repeat-participation reports help organisers plan trips.</p>
+          <p>You can download the personal information linked to your account and request account deletion from <Link className={linkClass} href="/profile">your profile</Link>. Deletion is reviewed by an organiser, including any outstanding trips. Completed removal clears profile and family details, photos and linked feedback; accounting records keep a removed-member reference. Organisers also review operational notes and separately held copies. Anonymous feedback without an account link cannot be attributed to you for removal.</p>
+        </Section>
         <Section id="birthdays" title="Family profiles and birthday wishes">
           <p>You may add family members, optional birthday days and months, and optional photos. We do not collect a birth year for birthday wishes. Adding a birthday enables a private wish to your account email when sending is configured. Family wishes go to the registering adult. Clear the birthday fields to stop future wishes, or remove the family entry.</p>
           <p>Uploaded photos are resized and saved with your profile for personalised birthday cards. Organisers can see these details; they are not listed publicly. Add family details and photos only with their permission, or as their parent or guardian. Payment records, attendance and incident follow-up are restricted to organisers.</p>
@@ -162,7 +167,8 @@ export default function PrivacyPage() {
         <Section id="keep" title="How long we keep it">
           <p>
             Your account and trip history stay while the group runs trips, so rosters, trip accounts and feedback of
-            past trips stay accurate. Ask us and we&apos;ll delete them.
+            past trips stay accurate. Request account removal from your profile; organisers review the request and
+            remove personal details while preserving accounting records with a removed-member reference, as explained above.
           </p>
         </Section>
 

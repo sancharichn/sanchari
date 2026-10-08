@@ -1,3 +1,4 @@
+import { deliverPromotions } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +11,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (process.env.TRIP_EMAILS_ENABLED !== "true" || !gmailConfigured() || !process.env.NEXTAUTH_URL) return NextResponse.json({ status: "not_configured", sent: 0 });
+  const promotions = await deliverPromotions();
+  if (process.env.TRIP_EMAILS_ENABLED !== "true" || !gmailConfigured() || !process.env.NEXTAUTH_URL) return NextResponse.json({ status: "not_configured", sent: 0, promotions });
   const now = new Date();
   const today = Date.parse(toDateInputValue(now) + "T00:00:00Z");
   const trips = await prisma.trip.findMany({ where: { status: { in: ["OPEN", "WAITLIST", "FULL", "COMPLETED"] }, endDate: { gte: new Date(now.getTime() - 3*86400000) }, startDate: { lte: new Date(now.getTime() + 5*86400000) } }, include: { registrations: { include: { user: true } }, feedbackForm: true } });
@@ -34,5 +36,5 @@ export async function GET(request: Request) {
       } catch { await prisma.tripMessageDelivery.update({ where: { id: claim.id }, data: { status: "REVIEW_REQUIRED" } }); failed++; }
     }
   }
-  return NextResponse.json({ sent, failed });
+  return NextResponse.json({ sent, failed, promotions });
 }

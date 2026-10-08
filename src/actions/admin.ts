@@ -1,5 +1,7 @@
 "use server";
+import { withAudit } from "@/lib/action-audit";
 
+import { cancelBooking, rosterSnapshot, queuePromotions } from "@/lib/waitlist";
 import { revalidatePath } from "next/cache";
 import { done, fail, invalid, type ActionResult } from "@/lib/action-result";
 import { fromDateInputValue } from "@/lib/format";
@@ -20,11 +22,12 @@ function revalidateTripPages(tripId?: string) {
   revalidatePath("/admin", "layout");
   revalidatePath("/trips");
   revalidatePath("/");
-  revalidatePath("/profile");
+  revalidatePath("/profile"); revalidatePath("/staff");
   if (tripId) revalidatePath(`/trips/${tripId}`);
 }
 
 export async function saveTrip(tripId: string | null, input: unknown): Promise<ActionResult> {
+  return withAudit(async () => {
   if (!(await getAdmin())) return fail(NO_ACCESS);
 
   const parsed = tripSchema.safeParse(input);
@@ -50,7 +53,9 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
     const existing = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true } });
     if (!existing) return fail("That trip no longer exists.");
     // Status has its own control on the trip page; only change it here if it was sent.
+    const before = await rosterSnapshot(tripId);
     await prisma.trip.update({ where: { id: tripId }, data: { ...data, ...(v.status ? { status: v.status } : {}) } });
+    await queuePromotions(tripId, before);
     revalidateTripPages(tripId);
     return done("Trip saved.", { id: tripId });
   }
@@ -58,9 +63,12 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
   const created = await prisma.trip.create({ data: { ...data, status: v.status ?? "DRAFT" }, select: { id: true } });
   revalidateTripPages(created.id);
   return done("Trip created.", { id: created.id });
+
+  });
 }
 
 export async function setTripStatus(tripId: string, status: string): Promise<ActionResult> {
+  return withAudit(async () => {
   if (!(await getAdmin())) return fail(NO_ACCESS);
   if (!TRIP_STATUS_VALUES.includes(status as TripStatus)) return fail("Pick a status from the list.");
 
@@ -68,10 +76,13 @@ export async function setTripStatus(tripId: string, status: string): Promise<Act
   if (updated.count === 0) return fail("That trip no longer exists.");
   revalidateTripPages(tripId);
   return done("Status updated.");
+
+  });
 }
 
 /** Only trips nobody has registered for, spent on or reviewed can be deleted; archive the rest. */
 export async function deleteTrip(tripId: string): Promise<ActionResult> {
+  return withAudit(async () => {
   if (!(await getAdmin())) return fail(NO_ACCESS);
   const operationalRecords = await Promise.all([prisma.tripTask.count({ where: { tripId } }), prisma.tripIncident.count({ where: { tripId } }), prisma.paymentEvent.count({ where: { tripId } })]);
   if (operationalRecords.some(Boolean)) return fail("This trip has operational history. Archive it to preserve the records.");
@@ -89,12 +100,15 @@ export async function deleteTrip(tripId: string): Promise<ActionResult> {
   await prisma.trip.delete({ where: { id: tripId } });
   revalidateTripPages();
   return done("Trip deleted.");
+
+  });
 }
 
 export async function updateRegistration(
   registrationId: string,
   change: { paymentStatus?: string; gearChecked?: boolean },
 ): Promise<ActionResult> {
+  return withAudit(async () => {
   if (!(await getAdmin())) return fail(NO_ACCESS);
 
   const data: { paymentStatus?: PaymentStatus; gearChecked?: boolean } = {};
@@ -113,23 +127,27 @@ export async function updateRegistration(
 
   revalidateTripPages(registration.tripId);
   return done(data.paymentStatus ? "Payment status saved." : "Gear check saved.");
+
+  });
 }
 
 export async function removeRegistration(registrationId: string): Promise<ActionResult> {
+  return withAudit(async () => {
   if (!(await getAdmin())) return fail(NO_ACCESS);
   if (await prisma.paymentEvent.count({ where: { registrationId } })) return fail("This registration has a payment ledger. Keep it for the financial record; record any refund in Trip day & payments.");
 
-  const registration = await prisma.tripRegistration
-    .delete({ where: { id: registrationId }, select: { tripId: true } })
-    .catch(() => null);
+  const registration = await cancelBooking(registrationId, "ORGANISER_CANCELLED");
   if (!registration) return fail("That registration no longer exists.");
 
   revalidateTripPages(registration.tripId);
   return done("Registration removed. The waitlist has moved up.");
+
+  });
 }
 
 export async function addExpense(tripId: string, input: unknown): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("finance"))) return fail(NO_ACCESS);
 
   const parsed = expenseSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
@@ -156,48 +174,66 @@ export async function addExpense(tripId: string, input: unknown): Promise<Action
   });
   revalidateTripPages(tripId);
   return done("Expense added.");
+
+  });
 }
 
 export async function deleteExpense(expenseId: string): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("finance"))) return fail(NO_ACCESS);
 
   const expense = await prisma.expense.delete({ where: { id: expenseId }, select: { tripId: true } }).catch(() => null);
   if (!expense) return fail("That expense no longer exists.");
   revalidateTripPages(expense.tripId);
   return done("Expense deleted.");
+
+  });
 }
 
 export async function deleteFeedback(feedbackId: string): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const feedback = await prisma.feedback.delete({ where: { id: feedbackId }, select: { tripId: true } }).catch(() => null);
   if (!feedback) return fail("That feedback no longer exists.");
   revalidatePath("/feedback");
   revalidateTripPages(feedback.tripId ?? undefined);
   return done("Feedback deleted.");
+
+  });
 }
 
 export async function createTripTask(tripId: string, title: string): Promise<ActionResult> {
-  const admin = await getAdmin(); if (!admin) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  const admin = await getAdmin("lead", tripId); if (!admin) return fail(NO_ACCESS);
   if (typeof title !== "string") return fail("Enter a task title.");
   if (!await prisma.trip.findUnique({ where: { id: tripId } })) return fail("Trip no longer exists.");
   const clean = title.trim(); if (clean.length < 3 || clean.length > 160) return fail("Task title must be between 3 and 160 characters.");
   await prisma.tripTask.create({ data: { tripId, title: clean, ownerId: admin.id } }); revalidateTripPages(tripId); return done("Task added.");
+
+  });
 }
 
 export async function toggleTripTask(taskId: string, completed: boolean): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  const scope = await prisma.tripTask.findUnique({ where: { id: taskId }, select: { tripId: true } });
+  if (!scope || !(await getAdmin("lead", scope.tripId))) return fail(NO_ACCESS);
   if (typeof completed !== "boolean") return fail("Invalid completion status.");
   const task = await prisma.tripTask.update({ where: { id: taskId }, data: { completedAt: completed ? new Date() : null }, select: { tripId: true } }).catch(() => null);
   if (!task) return fail("That task no longer exists."); revalidateTripPages(task.tripId); return done(completed ? "Task completed." : "Task reopened.");
+
+  });
 }
 
 export async function createTripIncident(tripId: string, title: string, description: string, severity: string): Promise<ActionResult> {
-  const admin = await getAdmin(); if (!admin) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  const admin = await getAdmin("lead", tripId); if (!admin) return fail(NO_ACCESS);
   if (typeof title !== "string" || typeof description !== "string" || title.length > 160 || description.length > 4000) return fail("Use a title under 160 characters and description under 4000.");
   if (!await prisma.trip.findUnique({ where: { id: tripId } })) return fail("Trip no longer exists.");
   const cleanTitle = title.trim(), cleanDescription = description.trim();
   if (cleanTitle.length < 3 || cleanDescription.length < 5) return fail("Add an incident title and description.");
   if (!["LOW", "MEDIUM", "HIGH", "CRITICAL"].includes(severity)) return fail("Pick a valid incident severity.");
   await prisma.tripIncident.create({ data: { tripId, reportedById: admin.id, title: cleanTitle, description: cleanDescription, severity } }); revalidateTripPages(tripId); return done("Incident logged.");
+
+  });
 }

@@ -1,4 +1,5 @@
 "use server";
+import { withAudit } from "@/lib/action-audit";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -9,18 +10,22 @@ import { expectedPayment, ledgerStatus, paymentInput } from "@/lib/operations";
 import { toPaise } from "@/lib/format";
 import { splitRoster } from "@/lib/trips";
 
-function refresh() { revalidatePath("/admin", "layout"); revalidatePath("/profile"); }
+function refresh() { revalidatePath("/admin", "layout"); revalidatePath("/profile"); revalidatePath("/staff"); }
 
 export async function saveFeedbackFollowUp(id: string, status: string, note: string): Promise<ActionResult> {
-  if (!await getAdmin()) return fail("Admin access required.");
+  return withAudit(async () => {
+  if (!await getAdmin("moderate")) return fail("Admin access required.");
   if (!["NEW", "IN_PROGRESS", "RESOLVED"].includes(status) || typeof note !== "string" || note.length > 4000) return fail("Choose a status and keep notes under 4000 characters.");
   const result = await prisma.feedbackResponse.updateMany({ where: { id }, data: { followUpStatus: status, followUpNote: note.trim() || null } });
   if (!result.count) return fail("Feedback no longer exists.");
   refresh(); return done("Private follow-up saved.");
+
+  });
 }
 
 export async function recordPayment(input: unknown): Promise<ActionResult> {
-  const admin = await getAdmin(); if (!admin) return fail("Admin access required.");
+  return withAudit(async () => {
+  const admin = await getAdmin("finance"); if (!admin) return fail("Admin access required.");
   const parsed = paymentInput.safeParse(input); if (!parsed.success) return invalid(parsed.error);
   const v = parsed.data;
   try {
@@ -41,41 +46,59 @@ export async function recordPayment(input: unknown): Promise<ActionResult> {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return done("This payment was already recorded.");
     return fail(error instanceof Error && ["Registration no longer exists.", "Refund cannot exceed the receipts recorded in this ledger."].includes(error.message) ? error.message : "Payment could not be recorded. Please retry.");
   }
+
+  });
 }
 
 export async function saveAttendance(id: string, count: number): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail("Admin access required.");
+  return withAudit(async () => {
+  const scope = await prisma.tripRegistration.findUnique({ where: { id }, select: { tripId: true } });
+  if (!scope || !(await getAdmin("lead", scope.tripId))) return fail("Staff access required.");
   if (!Number.isInteger(count) || count < 0) return fail("Enter a whole number of travellers.");
   const registration = await prisma.tripRegistration.findUnique({ where: { id }, include: { trip: { include: { registrations: true } } } });
   if (!registration || count > registration.partySize) return fail("Count must fit this registration.");
   const confirmed = splitRoster(registration.trip.registrations, registration.trip.maxCapacity).confirmed;
   if (!confirmed.some((r) => r.id === id)) return fail("Waitlisted registrations cannot check in.");
   await prisma.tripRegistration.update({ where: { id }, data: { checkedInCount: count } }); refresh(); return done("Attendance saved.");
+
+  });
 }
 
 export async function saveCarpool(id: string, matched: boolean): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail("Admin access required.");
+  return withAudit(async () => {
+  const scope = await prisma.tripRegistration.findUnique({ where: { id }, select: { tripId: true } });
+  if (!scope || !(await getAdmin("lead", scope.tripId))) return fail("Staff access required.");
   if (typeof matched !== "boolean") return fail("Invalid carpool status.");
   const updated = await prisma.tripRegistration.updateMany({ where: { id, carpoolChoice: "NEED_RIDE" }, data: { carpoolMatched: matched } });
   if (!updated.count) return fail("Ride request no longer exists.");
   refresh(); return done("Carpool coordination updated.");
+
+  });
 }
 
 export async function saveTaskDetails(id: string, input: unknown): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail("Admin access required.");
+  return withAudit(async () => {
+  const scope = await prisma.tripTask.findUnique({ where: { id }, select: { tripId: true } });
+  if (!scope || !(await getAdmin("lead", scope.tripId))) return fail("Staff access required.");
   const parsed = z.object({ title: z.string().trim().min(3).max(160), ownerId: z.string(), dueAt: z.string().refine((v) => !v || /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)), "Choose a valid date.") }).safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const v = parsed.data;
-  if (v.ownerId && !await prisma.user.findFirst({ where: { id: v.ownerId, role: "ADMIN" } })) return fail("Choose an organiser.");
+  if (v.ownerId && !await prisma.user.findFirst({ where: { id: v.ownerId, deletedAt: null, OR: [{ role: "ADMIN" }, { staffRole: "LEADER", staffTrips: { some: { tripId: scope.tripId } } }] } })) return fail("Choose an organiser.");
   const updated = await prisma.tripTask.updateMany({ where: { id }, data: { title: v.title, ownerId: v.ownerId || null, dueAt: v.dueAt ? new Date(v.dueAt + "T00:00:00+05:30") : null } });
   if (!updated.count) return fail("Task no longer exists.");
   refresh(); return done("Task details saved.");
+
+  });
 }
 
 export async function resolveIncident(id: string, actionTaken: string, close: boolean): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail("Admin access required.");
+  return withAudit(async () => {
+  const scope = await prisma.tripIncident.findUnique({ where: { id }, select: { tripId: true } });
+  if (!scope || !(await getAdmin("lead", scope.tripId))) return fail("Staff access required.");
   if (typeof actionTaken !== "string" || actionTaken.trim().length < 5 || actionTaken.length > 4000 || typeof close !== "boolean") return fail("Describe the follow-up action (5–4000 characters).");
   const updated = await prisma.tripIncident.updateMany({ where: { id }, data: { actionTaken: actionTaken.trim(), closedAt: close ? new Date() : null } });
   if (!updated.count) return fail("Incident no longer exists.");
   refresh(); return done(close ? "Incident resolved." : "Follow-up saved; incident open.");
+
+  });
 }

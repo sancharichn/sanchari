@@ -1,3 +1,5 @@
+import { MemberDataControls } from "@/components/admin/governance-controls";
+import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FamilySummary } from "@/components/members/family-summary";
@@ -17,6 +19,9 @@ export const metadata: Metadata = { title: "Your trips", robots: { index: false 
 export default async function ProfilePage() {
   const user = await requireUser("/profile");
   const [profile, trips] = await Promise.all([getMemberProfile(user.id), getMyTrips(user.id)]);
+
+  const preferences = await prisma.user.findUnique({ where: { id: user.id }, select: { whatsappOptIn: true, whatsappNumber: true } });
+  const requests = await prisma.dataRequest.findMany({ where: { userId: user.id, kind: "DELETE" }, orderBy: { createdAt: "desc" }, take: 5 });
 
   return (
     <main id="main" className="mobile-glass-screen container py-14 md:py-20">
@@ -104,6 +109,9 @@ export default async function ProfilePage() {
           />
         </div>
       </section>
+      {(user.role === "ADMIN" || user.staffRole) && <Link className="mt-8 block text-signal underline" href="/staff">Open staff workspace</Link>}
+      <MemberDataControls optIn={preferences?.whatsappOptIn ?? false} number={preferences?.whatsappNumber ?? null} />
+      {requests.map(r => <div className="mt-4 rounded-panel border border-ridge p-4" key={r.id}><p>Deletion request · {r.status} · {r.createdAt.toLocaleDateString("en-IN")}</p><p className="text-lichen">{r.note ?? "Awaiting organiser review."}</p></div>)}
     </main>
   );
 }

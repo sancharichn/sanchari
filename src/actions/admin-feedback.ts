@@ -1,4 +1,5 @@
 "use server";
+import { withAudit } from "@/lib/action-audit";
 
 import { revalidatePath } from "next/cache";
 import { done, fail, invalid, type ActionResult } from "@/lib/action-result";
@@ -16,6 +17,7 @@ import { isPublicStatus } from "@/lib/trips";
 const NO_ACCESS = "You don't have access to that.";
 
 function revalidateFeedback(tripId: string) {
+  revalidatePath("/staff");
   revalidatePath(`/admin/trips/${tripId}`);
   revalidatePath(`/trips/${tripId}`);
   revalidatePath(`/trips/${tripId}/feedback`);
@@ -23,7 +25,8 @@ function revalidateFeedback(tripId: string) {
 
 /** Saves the welcome note and the trip's extra questions. */
 export async function saveFeedbackForm(tripId: string, input: unknown): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const parsed = formSettingsSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
@@ -38,11 +41,14 @@ export async function saveFeedbackForm(tripId: string, input: unknown): Promise<
   });
   revalidateFeedback(tripId);
   return done("Form saved.", { intro: parsed.data.intro, questions: parsed.data.questions });
+
+  });
 }
 
 /** Opens or closes the form. Only trips visible on the site can take answers. */
 export async function setFeedbackOpen(tripId: string, open: boolean): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true, status: true } });
   if (!trip) return fail("That trip no longer exists.");
@@ -57,11 +63,14 @@ export async function setFeedbackOpen(tripId: string, open: boolean): Promise<Ac
   });
   revalidateFeedback(tripId);
   return done(open ? "Feedback is open. Share the link with the group." : "Feedback is closed.");
+
+  });
 }
 
 /** Picks (or un-picks) a response's "what I loved" for the website. Only with the writer's permission. */
 export async function setResponseFeatured(responseId: string, featured: boolean): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const response = await prisma.feedbackResponse.findUnique({
     where: { id: responseId },
@@ -78,11 +87,14 @@ export async function setResponseFeatured(responseId: string, featured: boolean)
   revalidatePath("/");
   revalidatePath("/feedback");
   return done(featured ? "Shown on the website." : "Taken off the website.");
+
+  });
 }
 
 /** Hides a response (spam, a joke, a duplicate) from the scores and the website without deleting it. */
 export async function setResponseHidden(responseId: string, hidden: boolean): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const response = await prisma.feedbackResponse.findUnique({ where: { id: responseId }, select: { tripId: true } });
   if (!response) return fail("That response no longer exists.");
@@ -95,11 +107,14 @@ export async function setResponseHidden(responseId: string, hidden: boolean): Pr
   revalidatePath("/");
   revalidatePath("/feedback");
   return done(hidden ? "Hidden. It no longer counts in the scores." : "Back in the scores.");
+
+  });
 }
 
 /** Deletes a response and the suggestions that came from it. */
 export async function deleteResponse(responseId: string): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const response = await prisma.feedbackResponse
     .delete({ where: { id: responseId }, select: { tripId: true } })
@@ -109,6 +124,8 @@ export async function deleteResponse(responseId: string): Promise<ActionResult> 
   revalidatePath("/");
   revalidatePath("/feedback");
   return done("Response deleted.");
+
+  });
 }
 
 const SUGGESTION_STATUSES: SuggestionStatus[] = ["NEW", "PLANNED", "DONE", "NOT_NOW"];
@@ -118,7 +135,8 @@ export async function updateSuggestion(
   suggestionId: string,
   change: { status?: string; topic?: string; note?: string },
 ): Promise<ActionResult> {
-  if (!(await getAdmin())) return fail(NO_ACCESS);
+  return withAudit(async () => {
+  if (!(await getAdmin("moderate"))) return fail(NO_ACCESS);
 
   const data: { status?: SuggestionStatus; topic?: string; note?: string | null } = {};
   if (change.status !== undefined) {
@@ -140,4 +158,6 @@ export async function updateSuggestion(
   if (updated.count === 0) return fail("That suggestion no longer exists.");
   revalidatePath("/admin/suggestions");
   return done(data.note !== undefined ? "Note saved." : "Saved.");
+
+  });
 }

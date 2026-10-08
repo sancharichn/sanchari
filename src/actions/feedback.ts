@@ -1,4 +1,5 @@
 "use server";
+import { withAnonymousAudit as withAudit } from "@/lib/action-audit";
 
 import { Prisma, type SuggestionKind } from "@prisma/client";
 import { cookies, headers } from "next/headers";
@@ -33,6 +34,7 @@ const HOURLY_LIMIT_PER_ADDRESS = 30;
 type Payload = { token?: unknown; website?: unknown; answers?: unknown };
 
 export async function submitTripFeedback(tripId: string, payload: Payload): Promise<ActionResult> {
+  return withAudit(async () => {
   const trip = await prisma.trip.findUnique({
     where: { id: String(tripId) },
     select: {
@@ -170,4 +172,6 @@ export async function submitTripFeedback(tripId: string, payload: Payload): Prom
     replaced ? "Nanni! Your new answers replaced the ones you sent before." : "Nanni! Your feedback is in.",
     { replaced },
   );
+
+  });
 }
