@@ -6,6 +6,7 @@ import { FeedbackForm } from "@/components/members/feedback-form";
 import { buttonVariants } from "@/components/ui/button";
 import { formatDateRange } from "@/lib/format";
 import { getFeaturedReviews, getOpenFeedbackTrips, getRecentFeedback, reviewToCard } from "@/lib/queries";
+import { tripPath } from "@/lib/trip-url";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 
@@ -50,7 +51,7 @@ export default async function FeedbackPage() {
                     {formatDateRange(trip.startDate, trip.endDate)}, {trip.location}
                   </p>
                 </div>
-                <Link href={`/trips/${trip.id}/feedback`} className={buttonVariants({ size: "sm", className: "mt-auto self-start" })}>
+                <Link href={`${tripPath(trip)}/feedback`} className={buttonVariants({ size: "sm", className: "mt-auto self-start" })}>
                   <MessageSquareHeart className="size-4" aria-hidden="true" />
                   Give feedback
                 </Link>

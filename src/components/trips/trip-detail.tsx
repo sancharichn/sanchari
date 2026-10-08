@@ -10,6 +10,7 @@ import { formatDateRange, formatINR } from "@/lib/format";
 import { reviewToCard, type TripForPage } from "@/lib/queries";
 import type { CurrentUser } from "@/lib/session";
 import { isPublicStatus, parseItinerary, rosterPosition, splitRoster, STATUS_LABEL, tripTypeLabel } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 import { ItineraryTrail } from "./itinerary-trail";
 import { RegistrationPanel } from "./registration-panel";
 import { TripAccounts } from "./trip-accounts";
@@ -34,7 +35,8 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
   const showAccounts = Boolean(viewer) && (travelling || isAdmin);
   const feedbackOpen = Boolean(trip.feedbackForm?.isOpen) && isPublicStatus(trip.status);
   const reviews = trip.responses.map((r) => reviewToCard(r));
-  const feedbackHref = `/trips/${trip.id}/feedback`;
+  const publicTripPath = tripPath(trip);
+  const feedbackHref = `${publicTripPath}/feedback`;
 
   return (
     <main id="main" className="mobile-glass-screen">

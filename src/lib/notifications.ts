@@ -4,6 +4,7 @@ import { gmailConfigured, sendBirthdayEmail } from "./gmail";
 import { whatsappConfigured, sendPromotionWhatsapp } from "./whatsapp";
 import { splitRoster } from "./trips";
 import { escapeHtml } from "./email-content";
+import { tripPath } from "./trip-url";
 
 /** Claims are never automatically retried after an uncertain provider response. */
 export async function deliverPromotions() {
@@ -23,7 +24,7 @@ export async function deliverPromotions() {
     }
     const claim = await prisma.notification.updateMany({ where: { id: message.id, status: "QUEUED" }, data: { status: "SENDING", error: null } });
     if (!claim.count) continue;
-    const url = process.env.NEXTAUTH_URL.replace(/\/$/, "") + "/trips/" + r.tripId;
+    const url = process.env.NEXTAUTH_URL.replace(/\/$/, "") + tripPath(r.trip);
     try {
       const providerId = message.channel === "WHATSAPP" ? await sendPromotionWhatsapp(r.user.whatsappNumber!, r.trip.title, url, message.id) : null;
       if (message.channel === "EMAIL") await sendBirthdayEmail(r.user.email, "Your waitlist place is confirmed · " + r.trip.title, `<div style="font-family:Arial;background:#171a18;color:#faf8ef;padding:32px"><h1 style="color:#ffe600">You're in!</h1><p>Your ${r.partySize} traveller(s) now have confirmed places on ${escapeHtml(r.trip.title)}.</p><p>Check the current trip details and contact the organiser about payment and travel arrangements.</p><a style="color:#ffe600" href="${escapeHtml(url)}">View your trip</a><p>Sanchari Chennai · Travel with Nature</p></div>`);

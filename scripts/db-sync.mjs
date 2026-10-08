@@ -11,6 +11,19 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
+function tripSlug(title) {
+  return (
+    title
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 70)
+      .replace(/-+$/g, "") || "trip"
+  );
+}
+
 const isProductionBuild = process.env.VERCEL_ENV === "production";
 const forced = process.env.DB_SYNC === "1";
 
@@ -46,6 +59,8 @@ try {
     if (tables[0]?.name) {
       await tx.$executeRawUnsafe('ALTER TABLE "PaymentEvent" ADD COLUMN IF NOT EXISTS "requestId" TEXT');
       await tx.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "PaymentEvent_requestId_key" ON "PaymentEvent" ("requestId")');
+      await tx.$executeRawUnsafe('ALTER TABLE "Trip" ADD COLUMN IF NOT EXISTS "slug" TEXT');
+      await tx.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "Trip_slug_key" ON "Trip" ("slug")');
     }
   });
 } catch (error) {
@@ -65,6 +80,23 @@ const result = spawnSync(command, args, {
 if (result.status !== 0) {
   console.error("[db-sync] prisma db push failed — the build stops here so the app never runs against an out-of-date schema.");
   process.exit(result.status ?? 1);
+}
+
+// Existing links keep working through the ID fallback. Give every older trip a
+// readable canonical link too, resolving duplicate titles deterministically.
+try {
+  const backfillClient = new PrismaClient({ datasourceUrl: directUrl });
+  const legacyTrips = await backfillClient.trip.findMany({ where: { slug: null }, select: { id: true, title: true }, orderBy: { createdAt: "asc" } });
+  for (const trip of legacyTrips) {
+    const base = tripSlug(trip.title);
+    let slug = base;
+    for (let suffix = 2; await backfillClient.trip.findFirst({ where: { slug }, select: { id: true } }); suffix += 1) slug = `${base}-${suffix}`;
+    await backfillClient.trip.update({ where: { id: trip.id }, data: { slug } });
+  }
+  await backfillClient.$disconnect();
+} catch (error) {
+  console.error("[db-sync] Trip URL backfill failed; the build stops so public URLs remain consistent.", error.message);
+  process.exit(1);
 }
 
 console.log("[db-sync] Schema is in sync.");

@@ -6,6 +6,7 @@ import { gmailConfigured, sendBirthdayEmail } from "@/lib/gmail";
 import { escapeHtml } from "@/lib/email-content";
 import { splitRoster } from "@/lib/trips";
 import { toDateInputValue, formatDateRange } from "@/lib/format";
+import { tripPath } from "@/lib/trip-url";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
       catch (error) { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue; throw error; }
       const subject = kind === "PAYMENT" ? "Payment reminder" : kind === "BRIEFING" ? "Your trip is tomorrow" : "How was your trip?";
       const body = kind === "PAYMENT" ? "Our roster shows a pending or partial payment. Please contact your organiser if you have already paid." : kind === "BRIEFING" ? "Review the itinerary, packing information and travel arrangements. Contact your organiser if anything is unclear." : "Thank you for travelling with Sanchari. Please share your feedback to help us improve.";
-      const url = process.env.NEXTAUTH_URL.replace(/\/$/,"") + "/trips/" + trip.id + (kind === "FEEDBACK" ? "/feedback" : "");
+      const url = process.env.NEXTAUTH_URL.replace(/\/$/,"") + tripPath(trip) + (kind === "FEEDBACK" ? "/feedback" : "");
       try {
         await sendBirthdayEmail(r.user.email, subject + " · " + trip.title, `<div style="font-family:Arial;max-width:600px;padding:28px;background:#121212;color:#f2f2ec"><h1 style="color:#ffe600">${escapeHtml(subject)}</h1><h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate,trip.endDate))}</p><p>${escapeHtml(body)}</p><a style="color:#ffe600" href="${escapeHtml(url)}">Open trip</a><p>Sanchari Chennai · Travel with Nature</p></div>`);
         await prisma.tripMessageDelivery.update({ where: { id: claim.id }, data: { status: "SENT" } }); sent++;

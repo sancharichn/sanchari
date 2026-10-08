@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/trips/trip-status";
 import { buttonVariants } from "@/components/ui/button";
 import { formatDateRange } from "@/lib/format";
 import { getMemberProfile, getMyTrips } from "@/lib/queries";
+import { tripPath } from "@/lib/trip-url";
 import { requireUser } from "@/lib/session";
 import { PAYMENT_LABEL } from "@/lib/trips";
 
@@ -62,7 +63,7 @@ export default async function ProfilePage() {
               return (
                 <li key={r.id} className="border-t border-ridge">
                   <Link
-                    href={`/trips/${r.trip.id}`}
+                    href={tripPath(r.trip)}
                     className="group grid gap-3 py-5 transition-colors hover:bg-white/[0.02] md:grid-cols-[minmax(0,1fr)_10rem_10rem_8rem] md:items-center md:px-2"
                   >
                     <div className="min-w-0">

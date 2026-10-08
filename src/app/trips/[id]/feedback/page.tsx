@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { TripFeedbackForm } from "@/components/feedback/trip-feedback-form";
 import { ContourField } from "@/components/site/contour-field";
@@ -11,6 +11,7 @@ import { getFeedbackFormTrip } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { isPublicStatus } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 
 export const dynamic = "force-dynamic";
 
@@ -30,14 +31,17 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function TripFeedbackPage({ params }: Params) {
-  const user = await requireUser(`/trips/${params.id}/feedback`);
-  const [trip, attendance] = await Promise.all([getFeedbackFormTrip(params.id), (await import("@/lib/prisma")).prisma.tripRegistration.findUnique({ where: { userId_tripId: { userId: user.id, tripId: params.id } }, select: { approvalStatus: true, checkedInCount: true } })]);
+  const trip = await getFeedbackFormTrip(params.id);
+  if (!trip) notFound();
+  if (trip.slug && params.id !== trip.slug) redirect(`${tripPath(trip)}/feedback`);
+  const user = await requireUser(`${tripPath(trip)}/feedback`);
+  const attendance = trip ? await (await import("@/lib/prisma")).prisma.tripRegistration.findUnique({ where: { userId_tripId: { userId: user.id, tripId: trip.id } }, select: { approvalStatus: true, checkedInCount: true } }) : null;
   const isAdmin = user?.role === "ADMIN";
-  if (!trip || (!isPublicStatus(trip.status) && !isAdmin)) notFound();
+  if (!isPublicStatus(trip.status) && !isAdmin) notFound();
 
   const form = trip.feedbackForm;
   const open = Boolean(form?.isOpen) && isPublicStatus(trip.status);
-  const tripHref = `/trips/${trip.id}`;
+  const tripHref = tripPath(trip);
 
   return (
     <main id="main" className="mobile-glass-screen">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { dateBlock } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
 import { showsSeats, tripTypeLabel } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 import { SeatsMeter, StatusBadge } from "./trip-status";
 
 /**
@@ -20,7 +21,7 @@ export function DepartureBoard({ trips, emptyText }: { trips: TripListItem[]; em
         return (
           <li key={trip.id} className="border-t border-ridge">
             <Link
-              href={`/trips/${trip.id}`}
+              href={tripPath(trip)}
               className="group grid grid-cols-[5.5rem_1fr] gap-x-4 gap-y-4 py-6 transition-colors hover:bg-white/[0.02] sm:grid-cols-[6.5rem_1fr] sm:gap-x-5 md:grid-cols-[7.5rem_minmax(0,1fr)_13rem_8rem] md:items-center md:px-2"
             >
               <div className="row-span-3 md:row-span-1">

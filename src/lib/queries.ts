@@ -9,6 +9,7 @@ import { PUBLIC_STATUSES, rosterPosition, splitRoster } from "@/lib/trips";
 const listSelect = {
   id: true,
   title: true,
+  slug: true,
   location: true,
   startDate: true,
   endDate: true,
@@ -25,6 +26,7 @@ const listSelect = {
 export type TripListItem = {
   id: string;
   title: string;
+  slug: string | null;
   location: string;
   startDate: Date;
   endDate: Date;
@@ -43,6 +45,7 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
   return {
     id: trip.id,
     title: trip.title,
+    slug: trip.slug,
     location: trip.location,
     startDate: trip.startDate,
     endDate: trip.endDate,
@@ -95,9 +98,9 @@ const REVIEW_FIELDS = {
   updatedAt: true,
 } satisfies Prisma.FeedbackResponseSelect;
 
-export async function getTripForPage(id: string) {
-  return prisma.trip.findUnique({
-    where: { id },
+export async function getTripForPage(idOrSlug: string) {
+  return prisma.trip.findFirst({
+    where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
     include: {
       registrations: {
         select: { id: true, userId: true, createdAt: true, approvalStatus: true, paymentStatus: true, gearChecked: true, vehicleDetails: true, carpoolChoice: true, carpoolLocation: true, carpoolSeats: true, partySize: true, companions: true },
@@ -113,12 +116,13 @@ export async function getTripForPage(id: string) {
 export type TripForPage = NonNullable<Awaited<ReturnType<typeof getTripForPage>>>;
 
 /** A trip with its feedback form, for the feedback page. */
-export async function getFeedbackFormTrip(id: string) {
-  return prisma.trip.findUnique({
-    where: { id },
+export async function getFeedbackFormTrip(idOrSlug: string) {
+  return prisma.trip.findFirst({
+    where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
     select: {
       id: true,
       title: true,
+      slug: true,
       location: true,
       startDate: true,
       endDate: true,
@@ -177,6 +181,7 @@ export async function getMyTrips(userId: string) {
         select: {
           id: true,
           title: true,
+          slug: true,
           location: true,
           startDate: true,
           endDate: true,
@@ -231,7 +236,7 @@ export async function getOpenFeedbackTrips() {
     where: { status: { in: PUBLIC_STATUSES }, feedbackForm: { isOpen: true } },
     orderBy: { startDate: "desc" },
     take: 6,
-    select: { id: true, title: true, location: true, startDate: true, endDate: true },
+    select: { id: true, title: true, slug: true, location: true, startDate: true, endDate: true },
   });
 }
 

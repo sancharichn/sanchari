@@ -135,6 +135,7 @@ model Trip {
   staffTrips     StaffTrip[]
   id             String             @id @default(cuid())
   title          String
+  slug           String?            @unique
   description    String
   startDate      DateTime
   endDate        DateTime

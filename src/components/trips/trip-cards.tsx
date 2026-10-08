@@ -4,6 +4,7 @@ import { ContourField } from "@/components/site/contour-field";
 import { dateBlock } from "@/lib/format";
 import type { TripListItem } from "@/lib/queries";
 import { showsSeats, tripTypeLabel } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 import { SeatsMeter, StatusBadge } from "./trip-status";
 
 /** Trips as photo cards: the cover photo sells the place, the date leads the text. */
@@ -38,7 +39,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
   const type = tripTypeLabel(trip.kind, trip.startDate, trip.endDate);
   return (
     <Link
-      href={`/trips/${trip.id}`}
+      href={tripPath(trip)}
       className="trip-card group flex h-full flex-col overflow-hidden rounded-panel border border-ridge bg-basalt transition-colors hover:border-signal/60"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-night">

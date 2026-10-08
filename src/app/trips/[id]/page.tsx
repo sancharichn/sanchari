@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { TripDetail, type TripViewer } from "@/components/trips/trip-detail";
 import { formatDateRange } from "@/lib/format";
 import { getMemberProfile, getTripForPage } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
 import { isPublicStatus } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function TripPage({ params }: Params) {
   const [trip, user] = await Promise.all([getTripForPage(params.id), getCurrentUserSafe()]);
   if (!trip) notFound();
+  if (trip.slug && params.id !== trip.slug) redirect(tripPath(trip));
   if (!isPublicStatus(trip.status) && user?.role !== "ADMIN") notFound();
 
   let viewer: TripViewer = null;

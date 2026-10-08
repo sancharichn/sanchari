@@ -6,6 +6,7 @@ import type { GalleryImage } from "@/lib/drive";
 import type { TripListItem } from "@/lib/queries";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { KIND_PLURAL, TRIP_KINDS, tripTypeLabel } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 import { RevealNumber } from "@/components/site/reveal-number";
 
 export function Hero({
@@ -138,7 +139,7 @@ function NextDeparture({ trip }: { trip: TripListItem | null }) {
   }
 
   return (
-    <Link href={`/trips/${trip.id}`} className={`${cardClass} group transition-colors hover:border-signal/60`}>
+    <Link href={tripPath(trip)} className={`${cardClass} group transition-colors hover:border-signal/60`}>
       <p className="text-sm text-lichen">Next departure</p>
       <p className="stretch-semiwide mt-2 text-2xl font-bold leading-tight text-mist transition-colors group-hover:text-signal">
         {trip.title}

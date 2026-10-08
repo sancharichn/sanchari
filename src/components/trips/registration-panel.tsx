@@ -6,6 +6,7 @@ import { RegisterDialog, type ProfileDefaults } from "@/components/members/regis
 import { buttonVariants } from "@/components/ui/button";
 import { SeatsMeter } from "@/components/trips/trip-status";
 import { acceptsRegistrations, closedReason, PAYMENT_LABEL, showsSeats, WHO_CAN_JOIN } from "@/lib/trips";
+import { tripPath } from "@/lib/trip-url";
 
 export type ViewerPlace = { kind: "confirmed" } | { kind: "waitlist"; place: number } | null;
 
@@ -17,7 +18,7 @@ export type PanelViewer = {
 } | null;
 
 type Props = {
-  trip: { id: string; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; minimumPriorEvents: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
+  trip: { id: string; slug: string | null; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; minimumPriorEvents: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
   registered: number;
   confirmed?: number;
   started: boolean;
@@ -68,7 +69,7 @@ export function RegistrationPanel({ trip, registered, confirmed, started, viewer
           ) : (
             <>
               <Link
-                href={`/signin?callbackUrl=${encodeURIComponent(`/trips/${trip.id}`)}`}
+                href={`/signin?callbackUrl=${encodeURIComponent(tripPath(trip))}`}
                 className={buttonVariants({ className: "w-full" })}
               >
                 Sign in to register

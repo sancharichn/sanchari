@@ -8,6 +8,7 @@ import { fromDateInputValue } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/session";
 import { PAYMENT_STATUSES } from "@/lib/trips";
+import { tripSlugFromTitle } from "@/lib/trip-url";
 import { expenseSchema, TRIP_STATUS_VALUES, tripSchema } from "@/lib/validation";
 import type { PaymentStatus, RegistrationApproval, TripStatus } from "@prisma/client";
 
@@ -17,6 +18,16 @@ import type { PaymentStatus, RegistrationApproval, TripStatus } from "@prisma/cl
  */
 
 const NO_ACCESS = "You don't have access to that.";
+
+async function uniqueTripSlug(title: string, ignoreId?: string) {
+  const base = tripSlugFromTitle(title);
+  for (let suffix = 1; suffix < 100; suffix += 1) {
+    const slug = suffix === 1 ? base : `${base}-${suffix}`;
+    const existing = await prisma.trip.findFirst({ where: { slug, ...(ignoreId ? { id: { not: ignoreId } } : {}) }, select: { id: true } });
+    if (!existing) return slug;
+  }
+  return `${base}-${crypto.randomUUID().slice(0, 8)}`;
+}
 
 function revalidateTripPages(tripId?: string) {
   revalidatePath("/admin", "layout");
@@ -51,17 +62,17 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
   };
 
   if (tripId) {
-    const existing = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true } });
+    const existing = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true, slug: true } });
     if (!existing) return fail("That trip no longer exists.");
     // Status has its own control on the trip page; only change it here if it was sent.
     const before = await rosterSnapshot(tripId);
-    await prisma.trip.update({ where: { id: tripId }, data: { ...data, ...(v.status ? { status: v.status } : {}) } });
+    await prisma.trip.update({ where: { id: tripId }, data: { ...data, slug: existing.slug ?? await uniqueTripSlug(v.title, tripId), ...(v.status ? { status: v.status } : {}) } });
     await queuePromotions(tripId, before);
     revalidateTripPages(tripId);
     return done("Trip saved.", { id: tripId });
   }
 
-  const created = await prisma.trip.create({ data: { ...data, status: v.status ?? "DRAFT" }, select: { id: true } });
+  const created = await prisma.trip.create({ data: { ...data, slug: await uniqueTripSlug(v.title), status: v.status ?? "DRAFT" }, select: { id: true } });
   revalidateTripPages(created.id);
   return done("Trip created.", { id: created.id });
 

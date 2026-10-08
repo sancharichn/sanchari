@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { AdminTrip, TripResponse } from "@/lib/admin-queries";
 import { formatDate, formatDateRange, formatINR, paiseToRupees, toDateInputValue, toPaise } from "@/lib/format";
+import { tripPath } from "@/lib/trip-url";
 import { computeBalances, settleUp } from "@/lib/settle";
 import { parseExtraQuestions } from "@/lib/feedback";
 import { OperationsPanel } from "@/components/admin/operations-panel";
@@ -96,7 +97,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
             {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href={`/trips/${trip.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            <Link href={tripPath(trip)} className={buttonVariants({ variant: "outline", size: "sm" })}>
               <ExternalLink className="size-4" aria-hidden="true" />
               Trip page
             </Link>
