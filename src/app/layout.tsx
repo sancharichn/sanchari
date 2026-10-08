@@ -20,11 +20,10 @@ export const metadata: Metadata = {
     default: "Sanchari Chennai — Travel with nature",
     template: "%s | Sanchari Chennai",
   },
-  description:
-    "Sanchari Chennai is the Chennai unit of Sanchari, a voluntary community of travel lovers. See upcoming meetups and trips, and how to join.",
+  description: "Travel with nature, travel with people—Sanchari Chennai brings together a community that explores beyond the city.",
   openGraph: {
     title: "Sanchari Chennai — Travel with nature",
-    description: "Meetups, trips and photos from Sanchari Chennai, a voluntary community of travel lovers. Not a travel agency.",
+    description: "Travel with nature, travel with people—Sanchari Chennai brings together a community that explores beyond the city.",
     siteName: "Sanchari Chennai",
     locale: "en_IN",
     type: "website",
