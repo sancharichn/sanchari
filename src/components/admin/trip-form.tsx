@@ -13,6 +13,7 @@ import { ALL_STATUSES, KIND_OPTION_LABEL, STATUS_HELP, STATUS_LABEL, TRIP_KINDS,
 export type TripFormValues = {
   title: string;
   kind: TripKind;
+  minimumPriorEvents: string;
   coverPhotoId: string;
   location: string;
   description: string;
@@ -29,6 +30,7 @@ export type TripFormValues = {
 export const EMPTY_TRIP: TripFormValues = {
   title: "",
   kind: "DAY_TRIP",
+  minimumPriorEvents: "0",
   coverPhotoId: "",
   location: "",
   description: "",
@@ -111,12 +113,17 @@ export function TripForm({
           hint={`Who can join, as the trip page will say: ${WHO_CAN_JOIN[values.kind]}`}
           error={err("kind")}
         >
-          <NativeSelect id="trip-kind" value={values.kind} onChange={set("kind")} {...aria("trip-kind", "kind", true)}>
+          <NativeSelect id="trip-kind" value={values.kind} onChange={(event) => setValues((value) => ({ ...value, kind: event.target.value as TripKind, minimumPriorEvents: ["STAY_BACK", "INTERNATIONAL"].includes(event.target.value) && value.minimumPriorEvents === "0" ? "2" : value.minimumPriorEvents }))} {...aria("trip-kind", "kind", true)}>
             {TRIP_KINDS.map((k) => (
               <option key={k} value={k}>
                 {KIND_OPTION_LABEL[k]}
               </option>
             ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Previous participation needed" htmlFor="trip-prior-events" hint="Meetups and one-day trips normally have no requirement. Multi-day and international trips normally require two attended one-day events or meetups." error={err("minimumPriorEvents")}>
+          <NativeSelect id="trip-prior-events" value={values.minimumPriorEvents} onChange={set("minimumPriorEvents")} {...aria("trip-prior-events", "minimumPriorEvents", true)}>
+            {[0, 1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count === 0 ? "No previous events required" : `${count} attended one-day event${count === 1 ? " or meetup" : "s or meetups"}`}</option>)}
           </NativeSelect>
         </Field>
         <Field label="Where" htmlFor="trip-location" hint="Town or area, for example: Kolli Hills, Namakkal" error={err("location")}>

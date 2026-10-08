@@ -34,12 +34,17 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   const trip = await prisma.trip.findUnique({
     where: { id: String(tripId) },
-    select: { id: true, status: true, startDate: true, maxCapacity: true },
+    select: { id: true, status: true, startDate: true, maxCapacity: true, minimumPriorEvents: true },
   });
   if (!trip || !isPublicStatus(trip.status)) return fail("This trip isn't available.");
 
   const started = trip.startDate.getTime() <= Date.now();
   if (!acceptsRegistrations(trip.status) || started) return fail(closedReason(trip.status, started));
+
+  if (trip.minimumPriorEvents > 0) {
+    const attended = await prisma.tripRegistration.count({ where: { userId: user.id, approvalStatus: "APPROVED", checkedInCount: { gt: 0 }, trip: { kind: { in: ["MEETUP", "DAY_TRIP"] }, status: "COMPLETED" } } });
+    if (attended < trip.minimumPriorEvents) return fail(`This trip needs ${trip.minimumPriorEvents} attended one-day event${trip.minimumPriorEvents === 1 ? " or meetup" : "s or meetups"} first. Your recorded attendance: ${attended}.`);
+  }
 
   if (partySize > trip.maxCapacity) return fail("Your family is larger than this trip’s capacity. Please contact the organiser.");
 

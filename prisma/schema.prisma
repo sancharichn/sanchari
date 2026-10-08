@@ -142,6 +142,8 @@ model Trip {
   maxCapacity    Int
   status         TripStatus         @default(DRAFT)
   kind           TripKind           @default(DAY_TRIP)
+  // Number of attended meetups or one-day trips required before a member can request this trip.
+  minimumPriorEvents Int             @default(0)
   // A Drive file id from the gallery folder, shown on trip cards and the trip page.
   coverPhotoId   String?
   budgetEst      Decimal?           @db.Decimal(10, 2)

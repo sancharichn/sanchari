@@ -17,7 +17,7 @@ export type PanelViewer = {
 } | null;
 
 type Props = {
-  trip: { id: string; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
+  trip: { id: string; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; minimumPriorEvents: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
   registered: number;
   confirmed?: number;
   started: boolean;
@@ -42,6 +42,7 @@ export function RegistrationPanel({ trip, registered, confirmed, started, viewer
       ) : null}
 
       <div className={seatsShown ? "mt-6 border-t border-ridge pt-6" : undefined}>
+        {trip.minimumPriorEvents > 0 ? <p className="mb-5 rounded-xl border border-signal/30 bg-signal/5 p-3 text-sm text-mist">Participation criterion: {trip.minimumPriorEvents} attended one-day event{trip.minimumPriorEvents === 1 ? " or meetup" : "s or meetups"} required before registration.</p> : null}
         {upcoming && !registration ? (
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-mist">Who can join</h3>

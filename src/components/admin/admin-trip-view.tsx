@@ -60,6 +60,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
   const initialForm: TripFormValues = {
     title: trip.title,
     kind: trip.kind,
+    minimumPriorEvents: String(trip.minimumPriorEvents),
     coverPhotoId: trip.coverPhotoId ?? "",
     location: trip.location,
     description: trip.description,

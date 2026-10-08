@@ -45,6 +45,11 @@ describe("tripSchema", () => {
     expect(parsed.itinerary).toEqual([{ title: "Night bus", details: "" }]);
     expect(parsed.maxCapacity).toBe(20);
     expect(parsed.budgetEst).toBe("4500");
+    expect(parsed.minimumPriorEvents).toBe(0);
+  });
+
+  it("parses a participation criterion", () => {
+    expect(tripSchema.parse({ ...base, minimumPriorEvents: "2" }).minimumPriorEvents).toBe(2);
   });
 
   it("rejects a trip that ends before it starts", () => {
