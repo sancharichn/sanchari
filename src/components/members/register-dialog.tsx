@@ -189,6 +189,7 @@ export function RegisterDialog({
               parentalConsent={parentalConsent}
               onFamilyConsent={setFamilyConsent}
               onParentalConsent={setParentalConsent}
+              savedMembers={profile.familyMembers}
             />
             <section className="rounded-panel border border-ridge bg-night/30 p-4 sm:p-5">
               <h3 className="font-semibold text-mist">Need car pool?</h3>

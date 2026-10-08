@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  currentUser: vi.fn(), findTrip: vi.fn(), updateUser: vi.fn(), createRegistration: vi.fn(), findRoster: vi.fn(), transaction: vi.fn(), revalidate: vi.fn(),
+  currentUser: vi.fn(), findTrip: vi.fn(), updateUser: vi.fn(), createRegistration: vi.fn(), findRoster: vi.fn(), findFamily: vi.fn(), createFamily: vi.fn(), transaction: vi.fn(), revalidate: vi.fn(),
 }));
 vi.mock("@/lib/action-audit", () => ({ withAudit: (fn: () => Promise<unknown>) => fn() }));
 vi.mock("@/lib/session", () => ({ getCurrentUser: mocks.currentUser }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
 vi.mock("@/lib/prisma", () => ({ prisma: {
-  trip: { findUnique: mocks.findTrip }, user: { update: mocks.updateUser },
+  trip: { findUnique: mocks.findTrip }, user: { update: mocks.updateUser }, familyMember: { findMany: mocks.findFamily, createMany: mocks.createFamily },
   tripRegistration: { create: mocks.createRegistration, findMany: mocks.findRoster },
   $transaction: mocks.transaction,
 } }));
@@ -23,6 +23,8 @@ beforeEach(() => {
   mocks.currentUser.mockResolvedValue({ id: "signed-in-parent" });
   mocks.findTrip.mockResolvedValue({ id: "trip", status: "OPEN", startDate: new Date("2099-01-01"), maxCapacity: 4 });
   mocks.updateUser.mockResolvedValue({});
+  mocks.findFamily.mockResolvedValue([]);
+  mocks.createFamily.mockResolvedValue({ count: 1 });
   mocks.createRegistration.mockResolvedValue({ id: "registration" });
   mocks.transaction.mockImplementation((operations: Promise<unknown>[]) => Promise.all(operations));
   mocks.findRoster.mockResolvedValue([{ id: "registration", partySize: 2, createdAt: new Date() }]);

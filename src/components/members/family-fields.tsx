@@ -1,11 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { Plus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, NativeSelect } from "@/components/ui/form";
 import { FAMILY_BLOOD_GROUPS, type CompanionInput } from "@/lib/family";
 
-export type FamilyMemberInput = CompanionInput & { key: string };
+export type FamilyMemberInput = CompanionInput & { key: string; savedMemberId?: string };
+
+type SavedFamilyMember = {
+  id: string;
+  name: string;
+  relationship: string;
+};
 
 type Props = {
   members: FamilyMemberInput[];
@@ -15,9 +22,10 @@ type Props = {
   parentalConsent: boolean;
   onFamilyConsent: (checked: boolean) => void;
   onParentalConsent: (checked: boolean) => void;
+  savedMembers?: SavedFamilyMember[];
 };
 
-export function FamilyFields({ members, onChange, errors, familyConsent, parentalConsent, onFamilyConsent, onParentalConsent }: Props) {
+export function FamilyFields({ members, onChange, errors, familyConsent, parentalConsent, onFamilyConsent, onParentalConsent, savedMembers = [] }: Props) {
   const update = (key: string, field: keyof CompanionInput, value: string) => {
     onChange(members.map((member) => member.key === key ? { ...member, [field]: value } : member));
   };
@@ -31,6 +39,23 @@ export function FamilyFields({ members, onChange, errors, familyConsent, parenta
       </div>
       <p className="mt-2 text-sm text-lichen">Add each accompanying adult and child. You are already included as the registering adult.</p>
       <p className="mt-2 text-xs leading-relaxed text-lichen">Every person counts toward capacity and the equal per-person cost split. Your family is confirmed or waitlisted together. Children can join family-friendly trips under direct parental supervision; check with the organiser that this trip is suitable.</p>
+      {savedMembers.length > 0 ? (
+        <div className="mt-5 rounded-xl border border-signal/25 bg-signal/5 p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold text-mist">Your saved family</p>
+            <Link href="/profile" className="text-xs font-semibold text-signal underline underline-offset-4">Manage family</Link>
+          </div>
+          <p className="mt-1 text-xs text-lichen">Add them in one tap. Confirm their current age for this trip, since we do not store birth years.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {savedMembers.map((person) => {
+              const added = members.some((member) => member.savedMemberId === person.id);
+              return <Button key={person.id} type="button" variant={added ? "ghost" : "outline"} size="sm" disabled={added || members.length >= 19} onClick={() => onChange([...members, { key: crypto.randomUUID(), savedMemberId: person.id, name: person.name, relationship: person.relationship, age: "", bloodGroup: "" }])}>
+                {added ? `${person.name} added` : `Add ${person.name}`}
+              </Button>;
+            })}
+          </div>
+        </div>
+      ) : null}
       <div className="mt-5 grid gap-4">
         {members.map((member, index) => (
           <fieldset key={member.key} className="min-w-0 rounded-xl border border-ridge p-4">
@@ -45,7 +70,7 @@ export function FamilyFields({ members, onChange, errors, familyConsent, parenta
                 const id = `family-${member.key}-${field}`;
                 const error = errors[`companions.${index}.${field}`];
                 return (
-                  <Field key={field} label={label} htmlFor={id} error={error} hint={field === 'age' ? 'Use 0 for a child under one year.' : undefined}>
+                  <Field key={field} label={label} htmlFor={id} error={error} hint={field === 'age' ? 'Use 0 for a child under one year. Please confirm this for each trip.' : undefined}>
                     <Input id={id} value={member[field]} required type={field === 'age' ? 'number' : 'text'} min={field === 'age' ? 0 : undefined} max={field === 'age' ? 120 : undefined} step={field === 'age' ? 1 : undefined} maxLength={field === 'name' ? 100 : 60} inputMode={field === 'age' ? 'numeric' : undefined} onChange={(event) => update(member.key, field, event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : field === 'age' ? `${id}-hint` : undefined} />
                   </Field>
                 );

@@ -30,9 +30,13 @@ export default async function TripPage({ params }: Params) {
     viewer = {
       user,
       profile: {
+        image: profile?.image ?? null,
         phone: profile?.phone ?? null,
         emergencyContact: profile?.emergencyContact ?? null,
         bloodGroup: profile?.bloodGroup ?? null,
+        birthdayMonth: profile?.birthdayMonth ?? null,
+        birthdayDay: profile?.birthdayDay ?? null,
+        familyMembers: profile?.familyMembers ?? [],
       },
     };
   }

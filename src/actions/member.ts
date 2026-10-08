@@ -45,8 +45,19 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   let registrationId: string;
   try {
-    const [, registration] = await prisma.$transaction([
+    // A family entered during a booking becomes part of the member's reusable family list.
+    // Age deliberately stays on the booking: it changes over time and we never collect birth years.
+    const saved = await prisma.familyMember.findMany({ where: { userId: user.id }, select: { name: true, relationship: true } });
+    const known = new Set(saved.map((member) => `${member.name.trim().toLocaleLowerCase()}\u0000${member.relationship.trim().toLocaleLowerCase()}`));
+    const newFamily = companions.filter((member) => {
+      const key = `${member.name.trim().toLocaleLowerCase()}\u0000${member.relationship.trim().toLocaleLowerCase()}`;
+      if (known.has(key)) return false;
+      known.add(key);
+      return true;
+    });
+    const operations = [
       prisma.user.update({ where: { id: user.id }, data: { phone, emergencyContact, bloodGroup } }),
+      ...(newFamily.length ? [prisma.familyMember.createMany({ data: newFamily.map((member) => ({ userId: user.id, name: member.name, relationship: member.relationship })) })] : []),
       prisma.tripRegistration.create({
         data: {
           userId: user.id, tripId: trip.id, vehicleDetails, carpoolChoice, carpoolLocation, carpoolSeats, agreedToGuidelinesAt: new Date(),
@@ -55,7 +66,9 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
           parentalConsentAt: companions.some((person) => person.age < 18) && parentalConsent ? new Date() : null,
         },
       }),
-    ]);
+    ];
+    const written = await prisma.$transaction(operations);
+    const registration = written[written.length - 1] as { id: string };
     registrationId = registration.id;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -74,10 +87,10 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   if (position?.kind === "waitlist") {
     return done(
-      `You're on the waitlist at number ${position.place}. If someone drops out, you move up automatically and it shows here.`,
+      `You're on the waitlist at number ${position.place}. ${companions.length ? "Your family is saved for future trips; you can add birthdays and photos on your profile. " : ""}If someone drops out, you move up automatically and it shows here.`,
     );
   }
-  return done("You're in. Pay the organiser as usual; your payment status shows on your profile once it's recorded.");
+  return done(companions.length ? "You're in. Your family is saved for future trips; you can add birthdays and photos on your profile. Pay the organiser as usual; your payment status shows on your profile once it's recorded." : "You're in. Pay the organiser as usual; your payment status shows on your profile once it's recorded.");
 
   });
 }
