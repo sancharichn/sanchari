@@ -24,6 +24,7 @@ import { FeedbackFollowUp } from "@/components/admin/feedback-followup";
 import { expectedPayment } from "@/lib/operations";
 import { IncidentClose, IncidentControls, TaskEditor, TaskToggle, TripTaskControls } from "@/components/admin/trip-ops-controls";
 import { isPublicStatus, parseItinerary, splitRoster, tripTypeLabel } from "@/lib/trips";
+import { TripEmailButton } from "@/components/admin/trip-email-button";
 
 type Props = {
   trip: AdminTrip;
@@ -109,6 +110,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
               <Download className="size-4" aria-hidden="true" />
               Roster as CSV
             </a>
+            {confirmed.length > 0 ? <TripEmailButton tripId={trip.id} meetup={isMeetup} /> : null}
           </div>
         </div>
         <StatusSwitcher tripId={trip.id} status={trip.status} />

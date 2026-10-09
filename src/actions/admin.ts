@@ -11,6 +11,9 @@ import { PAYMENT_STATUSES } from "@/lib/trips";
 import { tripSlugFromTitle } from "@/lib/trip-url";
 import { expenseSchema, TRIP_STATUS_VALUES, tripSchema } from "@/lib/validation";
 import type { PaymentStatus, RegistrationApproval, TripStatus } from "@prisma/client";
+import { gmailConfigured } from "@/lib/gmail";
+import { sendApprovalEmail, sendTripBriefingEmail } from "@/lib/trip-emails";
+import { splitRoster } from "@/lib/trips";
 
 /*
  * Organiser actions. Every one re-checks the ADMIN role against the database
@@ -151,10 +154,29 @@ export async function setRegistrationApproval(registrationId: string, approvalSt
   return withAudit(async () => {
     if (!(await getAdmin())) return fail(NO_ACCESS);
     if (!(["PENDING", "APPROVED", "DECLINED"] as RegistrationApproval[]).includes(approvalStatus as RegistrationApproval)) return fail("Choose a valid approval status.");
-    const registration = await prisma.tripRegistration.update({ where: { id: registrationId }, data: { approvalStatus: approvalStatus as RegistrationApproval, approvedAt: approvalStatus === "APPROVED" ? new Date() : null }, select: { tripId: true } }).catch(() => null);
+    const registration = await prisma.tripRegistration.update({ where: { id: registrationId }, data: { approvalStatus: approvalStatus as RegistrationApproval, approvedAt: approvalStatus === "APPROVED" ? new Date() : null }, include: { user: true, trip: true } }).catch(() => null);
     if (!registration) return fail("That registration no longer exists.");
     revalidateTripPages(registration.tripId);
+    if (approvalStatus === "APPROVED" && gmailConfigured() && registration.user.email && process.env.NEXTAUTH_URL) {
+      try { await sendApprovalEmail(registration.user.email, registration.trip, process.env.NEXTAUTH_URL); return done("Registration approved and email sent."); } catch { return done("Registration approved. Email delivery needs review."); }
+    }
     return done(approvalStatus === "APPROVED" ? "Registration approved." : approvalStatus === "DECLINED" ? "Registration declined." : "Registration returned to pending review.");
+  });
+}
+
+export async function sendTripBriefingNow(tripId: string): Promise<ActionResult> {
+  return withAudit(async () => {
+    if (!(await getAdmin())) return fail(NO_ACCESS);
+    if (!gmailConfigured() || !process.env.NEXTAUTH_URL) return fail("Gmail is not configured in the current deployment.");
+    const trip = await prisma.trip.findUnique({ where: { id: tripId }, include: { registrations: { include: { user: true } } } });
+    if (!trip) return fail("Trip not found.");
+    const confirmed = splitRoster(trip.registrations, trip.maxCapacity).confirmed.filter((registration) => registration.user.email && !registration.user.deletedAt);
+    if (!confirmed.length) return fail("There are no approved attendees with email addresses.");
+    let sent = 0;
+    for (const registration of confirmed) {
+      try { await sendTripBriefingEmail(registration.user.email!, trip, process.env.NEXTAUTH_URL); sent += 1; } catch (error) { console.error("[trip-email] delivery failed", error); }
+    }
+    return sent ? done(`Sent ${sent} ${trip.kind === "MEETUP" ? "meetup" : "trip"} email${sent === 1 ? "" : "s"}.`) : fail("No trip emails were accepted. Check the Gmail credentials and delivery logs.");
   });
 }
 
