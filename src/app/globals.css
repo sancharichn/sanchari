@@ -370,6 +370,14 @@
   }
 }
 
+@layer components {
+  .email-preview-page { min-height: 100dvh; background: radial-gradient(ellipse at 85% 8%, rgb(44 76 72 / 20%), transparent 35%), #0a0f10; }
+  .email-preview-window { max-width: 620px; border-radius: .5rem; background: #102820; color: #f6f4ed; padding: 2rem; box-shadow: 0 24px 70px rgb(0 0 0 / 35%); }
+  .email-preview-header { border-bottom: 1px solid #3d5b4f; padding-bottom: 1.3rem; }.email-preview-header img { width: 170px; height: auto; }.email-preview-header p { margin-top: .6rem; color: #e6d65c; font-size: .7rem; font-weight: 800; letter-spacing: .2em; }
+  .email-preview-window h2 { margin-top: 1.7rem; color: #e6d65c; font-size: 1.85rem; font-weight: 800; }.email-preview-window h3 { margin-top: 1.2rem; font-size: 1.2rem; }.email-preview-window > p { margin-top: .35rem; color: #b8c8c2; }.email-preview-copy { margin-top: 1.5rem !important; color: #f6f4ed !important; font-size: 1rem; line-height: 1.7; }.email-preview-cta { display: inline-block; margin-top: 1.5rem; border-radius: 6px; padding: .75rem 1.1rem; color: #0a0a0a; background: #e6d65c; font-weight: 800; }
+  .email-preview-footer { margin-top: 2rem; border-top: 1px solid #3d5b4f; padding-top: 1.1rem; color: #b8c8c2; font-size: .76rem; line-height: 1.7; }.email-preview-footer p { margin: 0; }.email-preview-footer a { color: #e6d65c; }
+}
+
 /* A stable application shell turns organiser pages into one workspace. */
 .admin-workspace { min-height: 100dvh; background: #0c1112; }
 .admin-sidebar { border-bottom: 1px solid rgb(221 240 241 / 12%); background: rgb(12 18 20 / 94%); }

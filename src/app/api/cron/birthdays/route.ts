@@ -5,6 +5,7 @@ import { getBirthdayContacts } from "@/lib/birthday-admin";
 import { gmailConfigured, sendBirthdayEmail } from "@/lib/gmail";
 import { escapeHtml, indiaBirthdayDate } from "@/lib/email-content";
 import { prisma } from "@/lib/prisma";
+import { emailFooter } from "@/lib/trip-emails";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
     const message = birthdayMessage(template.id, contact.name);
     const origin = process.env.NEXTAUTH_URL.replace(/\/$/, "");
     const photo = contact.image?.startsWith("data:image/jpeg;base64,") ? "cid:member-photo" : contact.image?.startsWith("https://") ? contact.image : null;
-    const html = `<div style="background:#102820;color:#f6f4ed;padding:32px;font-family:Arial,sans-serif;max-width:600px"><div style="padding-bottom:18px;border-bottom:1px solid #3d5b4f"><img src="${origin}/brand/sanchari-logo.svg" width="170" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><img src="${origin}/covers/jawadhu-hills-camp.jpg" width="100%" alt="A night under the stars">${photo ? `<img src="${escapeHtml(photo)}" width="120" height="120" style="border-radius:60px;object-fit:cover" alt="Birthday portrait">` : ""}<h1 style="font-size:36px;color:#e6d65c">Happy birthday, ${escapeHtml(contact.name)}!</h1><p style="font-size:18px;line-height:1.7">${escapeHtml(message.body)}</p><p>Travel with Nature</p><p style="font-size:12px">To stop birthday wishes, clear the birthday on your <a href="${escapeHtml(origin)}/profile" style="color:#e6d65c">profile</a>.</p></div>`;
+    const html = `<div style="background:#102820;color:#f6f4ed;padding:32px;font-family:Arial,sans-serif;max-width:600px"><div style="padding-bottom:18px;border-bottom:1px solid #3d5b4f"><img src="${origin}/brand/sanchari-logo.svg" width="170" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><img src="${origin}/covers/jawadhu-hills-camp.jpg" width="100%" alt="A night under the stars">${photo ? `<img src="${escapeHtml(photo)}" width="120" height="120" style="border-radius:60px;object-fit:cover" alt="Birthday portrait">` : ""}<h1 style="font-size:36px;color:#e6d65c">Happy birthday, ${escapeHtml(contact.name)}!</h1><p style="font-size:18px;line-height:1.7">${escapeHtml(message.body)}</p><p style="font-size:12px">To stop birthday wishes, clear the birthday on your <a href="${escapeHtml(origin)}/profile" style="color:#e6d65c">profile</a>.</p>${emailFooter()}</div>`;
     try {
       await sendBirthdayEmail(contact.email!, message.subject, html, contact.image);
       await prisma.birthdayDelivery.update({ where: { id: delivery.id }, data: { status: "SENT", sentAt: new Date() } }); sent++;

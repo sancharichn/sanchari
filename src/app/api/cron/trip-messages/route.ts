@@ -7,6 +7,7 @@ import { escapeHtml } from "@/lib/email-content";
 import { splitRoster } from "@/lib/trips";
 import { toDateInputValue, formatDateRange } from "@/lib/format";
 import { tripPath } from "@/lib/trip-url";
+import { emailFooter } from "@/lib/trip-emails";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
       const body = kind === "PAYMENT" ? "Our roster shows a pending or partial payment. Please contact your organiser if you have already paid." : kind === "BRIEFING" ? "Review the itinerary, packing information and travel arrangements. Contact your organiser if anything is unclear." : "Thank you for travelling with Sanchari. Please share your feedback to help us improve.";
       const url = process.env.NEXTAUTH_URL.replace(/\/$/,"") + tripPath(trip) + (kind === "FEEDBACK" ? "/feedback" : "");
       try {
-        await sendBirthdayEmail(r.user.email, subject + " · " + trip.title, `<div style="font-family:Arial;max-width:600px;padding:28px;background:#102820;color:#f2f2ec"><div style="padding-bottom:18px;border-bottom:1px solid #3d5b4f"><img src="${escapeHtml(process.env.NEXTAUTH_URL.replace(/\/$/, ""))}/brand/sanchari-logo.svg" width="170" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><h1 style="color:#e6d65c">${escapeHtml(subject)}</h1><h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate,trip.endDate))}</p><p>${escapeHtml(body)}</p><a style="color:#e6d65c" href="${escapeHtml(url)}">Open trip</a><p>Sanchari Chennai · Travel with Nature</p></div>`);
+        await sendBirthdayEmail(r.user.email, subject + " · " + trip.title, `<div style="font-family:Arial;max-width:600px;padding:28px;background:#102820;color:#f2f2ec"><div style="padding-bottom:18px;border-bottom:1px solid #3d5b4f"><img src="${escapeHtml(process.env.NEXTAUTH_URL.replace(/\/$/, ""))}/brand/sanchari-logo.svg" width="170" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><h1 style="color:#e6d65c">${escapeHtml(subject)}</h1><h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate,trip.endDate))}</p><p>${escapeHtml(body)}</p><a style="color:#e6d65c" href="${escapeHtml(url)}">Open trip</a>${emailFooter()}</div>`);
         await prisma.tripMessageDelivery.update({ where: { id: claim.id }, data: { status: "SENT" } }); sent++;
       } catch { await prisma.tripMessageDelivery.update({ where: { id: claim.id }, data: { status: "REVIEW_REQUIRED" } }); failed++; }
     }

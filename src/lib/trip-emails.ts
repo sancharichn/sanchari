@@ -3,12 +3,15 @@ import { formatDateRange } from "@/lib/format";
 import { gmailConfigured, sendBirthdayEmail } from "@/lib/gmail";
 import { tripPath } from "@/lib/trip-url";
 import type { TripKind } from "@prisma/client";
+import { CONTACT_EMAIL, INSTAGRAM_URL } from "@/lib/site";
 
 type TripEmailData = { id: string; slug: string | null; title: string; location: string; startDate: Date; endDate: Date; kind: TripKind; description?: string | null };
 
 function shell(subject: string, body: string, link: string) {
-  return `<div style="background:#102820;color:#f6f4ed;padding:32px;font-family:Arial,sans-serif;max-width:600px"><div style="padding-bottom:22px;border-bottom:1px solid #3d5b4f"><img src="${escapeHtml(link.split("/trips/")[0])}/brand/sanchari-logo.svg" width="170" height="56" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="margin:10px 0 0;color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><h1 style="font-size:30px;color:#e6d65c">${escapeHtml(subject)}</h1>${body}<p><a style="display:inline-block;padding:12px 18px;background:#e6d65c;color:#0a0a0a;text-decoration:none;border-radius:6px;font-weight:bold" href="${escapeHtml(link)}">Open your trip</a></p><p style="font-size:12px;color:#b8c8c2">Travel with Nature · Sanchari Chennai</p></div>`;
+  return `<div style="background:#102820;color:#f6f4ed;padding:32px;font-family:Arial,sans-serif;max-width:600px"><div style="padding-bottom:22px;border-bottom:1px solid #3d5b4f"><img src="${escapeHtml(link.split("/trips/")[0])}/brand/sanchari-logo.svg" width="170" height="56" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="margin:10px 0 0;color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><h1 style="font-size:30px;color:#e6d65c">${escapeHtml(subject)}</h1>${body}<p><a style="display:inline-block;padding:12px 18px;background:#e6d65c;color:#0a0a0a;text-decoration:none;border-radius:6px;font-weight:bold" href="${escapeHtml(link)}">Open your trip</a></p>${emailFooter()}</div>`;
 }
+
+export function emailFooter() { return `<div style="margin-top:28px;padding-top:18px;border-top:1px solid #3d5b4f;font-size:12px;color:#b8c8c2"><p style="margin:0 0 8px">Sanchari Chennai · Travel with Nature</p><p style="margin:0 0 8px">Email: <a href="mailto:${CONTACT_EMAIL}" style="color:#e6d65c">${CONTACT_EMAIL}</a></p><p style="margin:0">Instagram: <a href="${INSTAGRAM_URL}" style="color:#e6d65c">@${INSTAGRAM_URL.split("/").pop()}</a></p></div>`; }
 
 export function tripBriefingMessage(trip: TripEmailData) {
   const meetup = trip.kind === "MEETUP";
