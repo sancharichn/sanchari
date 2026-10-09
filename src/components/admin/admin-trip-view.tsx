@@ -25,6 +25,7 @@ import { expectedPayment } from "@/lib/operations";
 import { IncidentClose, IncidentControls, TaskEditor, TaskToggle, TripTaskControls } from "@/components/admin/trip-ops-controls";
 import { isPublicStatus, parseItinerary, splitRoster, tripTypeLabel } from "@/lib/trips";
 import { TripEmailButton } from "@/components/admin/trip-email-button";
+import { TripCommunicationPanel } from "@/components/admin/trip-communication-panel";
 
 type Props = {
   trip: AdminTrip;
@@ -125,6 +126,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
           <DeskSignal href={`/admin/trips/${trip.id}?tab=tasks`} label="Open tasks" value={trip.tasks.filter((task) => !task.completedAt).length} note="Keep the departure plan moving" urgent={trip.tasks.some((task) => !task.completedAt)} />
         </div>
       </section>
+
+      <TripCommunicationPanel tripId={trip.id} meetup={isMeetup} audienceCount={confirmed.filter((registration) => Boolean(registration.user.email)).length} />
 
       <Tabs defaultValue={defaultTab} className="mt-10">
         <TabsList aria-label="Manage this trip" className="flex h-auto w-full flex-wrap justify-start">

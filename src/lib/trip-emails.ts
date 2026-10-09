@@ -29,3 +29,9 @@ export async function sendApprovalEmail(to: string, trip: TripEmailData, origin:
   const body = `<h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate, trip.endDate))} · ${escapeHtml(trip.location)}</p><p>Your registration has been approved by the organiser. ${trip.kind === "MEETUP" ? "There is no payment required for this meetup." : "Please review the trip cost and contact the organiser about payment."}</p>`;
   await sendBirthdayEmail(to, `${subject} · ${trip.title}`, shell(subject, body, `${origin.replace(/\/$/, "")}${tripPath(trip)}`));
 }
+
+export async function sendTripCommunicationEmail(to: string, trip: TripEmailData, origin: string, subject: string, details: string) {
+  if (!gmailConfigured()) throw new Error("Gmail is not configured.");
+  const body = `<h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate, trip.endDate))} · ${escapeHtml(trip.location)}</p><p style="white-space:pre-line;line-height:1.7">${escapeHtml(details)}</p>`;
+  await sendBirthdayEmail(to, `${subject} · ${trip.title}`, shell(subject, body, `${origin.replace(/\/$/, "")}${tripPath(trip)}`));
+}

@@ -12,7 +12,7 @@ import { tripSlugFromTitle } from "@/lib/trip-url";
 import { expenseSchema, TRIP_STATUS_VALUES, tripSchema } from "@/lib/validation";
 import type { PaymentStatus, RegistrationApproval, TripStatus } from "@prisma/client";
 import { gmailConfigured } from "@/lib/gmail";
-import { sendApprovalEmail, sendTripBriefingEmail } from "@/lib/trip-emails";
+import { sendApprovalEmail, sendTripBriefingEmail, sendTripCommunicationEmail } from "@/lib/trip-emails";
 import { splitRoster } from "@/lib/trips";
 
 /*
@@ -177,6 +177,25 @@ export async function sendTripBriefingNow(tripId: string): Promise<ActionResult>
       try { await sendTripBriefingEmail(registration.user.email!, trip, process.env.NEXTAUTH_URL); sent += 1; } catch (error) { console.error("[trip-email] delivery failed", error); }
     }
     return sent ? done(`Sent ${sent} ${trip.kind === "MEETUP" ? "meetup" : "trip"} email${sent === 1 ? "" : "s"}.`) : fail("No trip emails were accepted. Check the Gmail credentials and delivery logs.");
+  });
+}
+
+export async function sendTripCommunication(tripId: string, input: { subject: string; details: string }): Promise<ActionResult> {
+  return withAudit(async () => {
+    if (!(await getAdmin())) return fail(NO_ACCESS);
+    if (!gmailConfigured() || !process.env.NEXTAUTH_URL) return fail("Gmail is not configured in the current deployment.");
+    const subject = input?.subject?.trim();
+    const details = input?.details?.trim();
+    if (!subject || subject.length > 140 || !details || details.length > 5000) return fail("Add a subject and trip details within the allowed length.");
+    const trip = await prisma.trip.findUnique({ where: { id: tripId }, include: { registrations: { include: { user: true } } } });
+    if (!trip) return fail("Trip not found.");
+    const confirmed = splitRoster(trip.registrations, trip.maxCapacity).confirmed.filter((registration) => registration.user.email && !registration.user.deletedAt);
+    if (!confirmed.length) return fail("There are no approved attendees with email addresses.");
+    let sent = 0;
+    for (const registration of confirmed) {
+      try { await sendTripCommunicationEmail(registration.user.email!, trip, process.env.NEXTAUTH_URL, subject, details); sent += 1; } catch (error) { console.error("[trip-communication] delivery failed", error); }
+    }
+    return sent ? done(`Sent this message to ${sent} approved attendee${sent === 1 ? "" : "s"}.`) : fail("No trip emails were accepted. Check Gmail delivery logs.");
   });
 }
 

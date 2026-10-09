@@ -289,6 +289,7 @@
   @keyframes photo-arrive { from { opacity: .2; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
 
   .admin-live-signal { position: relative; }
+  .admin-communication-panel { padding: 1.25rem; border: 1px solid rgb(230 214 92 / 20%); border-radius: 1.2rem; background: linear-gradient(135deg, rgb(230 214 92 / 7%), rgb(255 255 255 / 2%)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%); }
   .admin-live-signal::before { content: ""; display: inline-block; width: .45rem; height: .45rem; margin-right: .45rem; border-radius: 999px; background: #e6d65c; box-shadow: 0 0 0 0 rgb(230 214 92 / 55%); animation: signal-pulse 2.2s infinite; }
   @keyframes signal-pulse { 70% { box-shadow: 0 0 0 .55rem rgb(230 214 92 / 0%); } 100% { box-shadow: 0 0 0 0 rgb(230 214 92 / 0%); } }
 
