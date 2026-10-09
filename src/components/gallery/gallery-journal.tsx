@@ -24,6 +24,8 @@ function moments(images: GalleryImage[]): Moment[] {
 export function GalleryJournal({ albums }: { albums: GalleryAlbum[] }) {
   const [albumId, setAlbumId] = useState(albums[0]?.id ?? "");
   const [index, setIndex] = useState<number | null>(null);
+  const [leadIndex, setLeadIndex] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const album = albums.find((item) => item.id === albumId) ?? albums[0];
   const images = album?.images ?? EMPTY_IMAGES;
   const current = index === null ? null : images[index];
@@ -39,9 +41,12 @@ export function GalleryJournal({ albums }: { albums: GalleryAlbum[] }) {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [index, step]);
+  useEffect(() => { const media = window.matchMedia("(prefers-reduced-motion: reduce)"); const update = () => setReducedMotion(media.matches); update(); media.addEventListener?.("change", update); return () => media.removeEventListener?.("change", update); }, []);
 
+  useEffect(() => { setLeadIndex(0); }, [albumId]);
+  useEffect(() => { if (reducedMotion || images.length < 2) return; const timer = window.setInterval(() => setLeadIndex((current) => (current + 1) % images.length), 3000); return () => window.clearInterval(timer); }, [albumId, images.length, reducedMotion]);
   if (!album || images.length === 0) return null;
-  const lead = images[0];
+  const lead = images[leadIndex % images.length];
 
   return <>
     <div className="gallery-album-nav" role="tablist" aria-label="Trip albums">
@@ -53,9 +58,9 @@ export function GalleryJournal({ albums }: { albums: GalleryAlbum[] }) {
     <section className="gallery-lead mt-7" aria-label={`${album.name} trip journal`}>
       <button type="button" onClick={() => setIndex(0)} className="group relative block min-h-[31rem] w-full overflow-hidden rounded-[1.4rem] border border-white/15 bg-basalt text-left sm:min-h-[35rem]">
         {/* eslint-disable-next-line @next/next/no-img-element -- signed, resized gallery source */}
-        <img src={lead.src[1600]} alt={lead.alt} className="gallery-lead-image absolute inset-0 size-full object-cover" />
+        <img key={lead.id} src={lead.src[1600]} alt={lead.alt} className="gallery-lead-image gallery-auto-image absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,10,12,.9),rgba(4,10,12,.3)_56%,rgba(4,10,12,.1)),linear-gradient(0deg,rgba(4,10,12,.75),transparent_55%)]" />
-        <div className="absolute inset-x-0 bottom-0 p-6 sm:p-9"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-signal"><MapPinned className="size-4" /> Trip journal</p><h2 className="stretch-semiwide mt-4 max-w-xl text-4xl font-bold text-mist sm:text-6xl">{album.name}</h2><p className="mt-4 max-w-md text-sm leading-6 text-mist/80">{images.length} moments from the group&apos;s shared trail.</p><span className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/30 px-4 py-2 text-sm font-semibold text-mist backdrop-blur-md">Open the story <Expand className="size-4" /></span></div>
+        <div className="absolute inset-x-0 bottom-0 p-6 sm:p-9"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-signal"><MapPinned className="size-4" /> Trip journal · moment {leadIndex + 1} of {images.length}</p><h2 className="stretch-semiwide mt-4 max-w-xl text-4xl font-bold text-mist sm:text-6xl">{album.name}</h2><p className="mt-4 max-w-md text-sm leading-6 text-mist/80">{images.length} moments from the group&apos;s shared trail.</p><span className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/30 px-4 py-2 text-sm font-semibold text-mist backdrop-blur-md">Open the story <Expand className="size-4" /></span></div>
       </button>
       <div className="gallery-route-line" aria-hidden="true"><span /><span /><span /><span /></div>
     </section>

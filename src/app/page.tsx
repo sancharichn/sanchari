@@ -6,7 +6,7 @@ import { HomeQuestions } from "@/components/site/home-questions";
 import { HowToJoin } from "@/components/site/how-to-join";
 import { HowWeTravel } from "@/components/site/how-we-travel";
 import { InstagramStrip } from "@/components/site/instagram-strip";
-import { TripCards } from "@/components/trips/trip-cards";
+import { UpcomingTripCarousel } from "@/components/trips/upcoming-trip-carousel";
 import { getGallery, getLatestPhotos } from "@/lib/drive";
 import { getFeaturedReviews, getRecentFeedback, getUpcomingTrips, reviewToCard } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
@@ -40,7 +40,7 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="mt-8">
-          <TripCards
+          <UpcomingTripCarousel
             trips={upcoming}
             emptyText={
               <>

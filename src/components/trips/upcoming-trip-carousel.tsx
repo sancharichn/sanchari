@@ -1,0 +1,30 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ArrowUpRight, Pause, Play } from "lucide-react";
+import type { TripListItem } from "@/lib/queries";
+import { dateBlock, formatDateRange } from "@/lib/format";
+import { tripPath } from "@/lib/trip-url";
+import { tripTypeLabel } from "@/lib/trips";
+import { SeatsMeter, StatusBadge } from "./trip-status";
+
+export function UpcomingTripCarousel({ trips, emptyText }: { trips: TripListItem[]; emptyText: React.ReactNode }) {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => { const media = window.matchMedia("(prefers-reduced-motion: reduce)"); const update = () => setReducedMotion(media.matches); update(); media.addEventListener?.("change", update); return () => media.removeEventListener?.("change", update); }, []);
+  useEffect(() => { if (paused || reducedMotion || trips.length < 2) return; const timer = window.setInterval(() => setIndex((current) => (current + 1) % trips.length), 3000); return () => window.clearInterval(timer); }, [paused, reducedMotion, trips.length]);
+  if (trips.length === 0) return <div className="trip-empty grid items-center gap-6 rounded-panel border border-white/15 bg-basalt p-5 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-8 md:p-8"><img src="/covers/jawadhu-hills-camp.jpg" alt="" loading="lazy" className="aspect-[4/3] w-full rounded-xl object-cover" /><div className="text-sm leading-relaxed text-lichen">{emptyText}</div></div>;
+  const trip = trips[index % trips.length];
+  const when = dateBlock(trip.startDate, trip.endDate);
+  return <div className="trip-carousel" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
+    <div className="trip-carousel-stage" key={trip.id}>
+      <Link href={tripPath(trip)} className="trip-carousel-card group">
+        <div className="trip-carousel-image">{trip.cover ? <img src={trip.cover.src[960]} alt="" srcSet={`${trip.cover.src[480]} 480w, ${trip.cover.src[960]} 960w`} sizes="(min-width: 768px) 45vw, 100vw" /> : <div className="size-full bg-[radial-gradient(ellipse_at_30%_20%,#46685e,#101918_65%)]" />}<div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/20" /><StatusBadge status={trip.status} className="absolute left-5 top-5 bg-black/45 backdrop-blur-md" /><div className="absolute bottom-5 left-5 text-mist"><span className="stretch-narrow block text-5xl font-bold leading-none">{when.days}</span><span className="mt-1 block text-sm">{when.label}</span></div><span className="absolute bottom-5 right-5 grid size-11 place-items-center rounded-full border border-white/30 bg-black/30 text-mist backdrop-blur-md transition group-hover:rotate-12 group-hover:bg-signal group-hover:text-night"><ArrowUpRight className="size-5" /></span></div>
+        <div className="trip-carousel-copy"><p className="text-xs font-bold uppercase tracking-[.16em] text-signal">Next on the trail</p><h3 className="stretch-semiwide mt-2 text-2xl font-bold text-mist">{trip.title}</h3><p className="mt-2 text-sm text-lichen">{formatDateRange(trip.startDate, trip.endDate)} · {trip.location} · {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}</p>{trip.registered || trip.maxCapacity ? <SeatsMeter className="mt-6" registered={trip.registered} confirmed={trip.confirmed} capacity={trip.maxCapacity} status={trip.status} /> : null}<span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-signal">Explore this trip <ArrowUpRight className="size-4" /></span></div>
+      </Link>
+    </div>
+    {trips.length > 1 ? <div className="trip-carousel-controls"><div className="trip-carousel-dots" role="tablist" aria-label="Upcoming trips">{trips.map((item, itemIndex) => <button key={item.id} type="button" role="tab" aria-selected={index === itemIndex} aria-label={`Show ${item.title}`} onClick={() => { setIndex(itemIndex); setPaused(true); }} className={index === itemIndex ? "trip-carousel-dot trip-carousel-dot-active" : "trip-carousel-dot"} />)}</div><button type="button" className="trip-carousel-pause" onClick={() => setPaused((value) => !value)} aria-label={paused ? "Resume upcoming trips" : "Pause upcoming trips"}>{paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}{paused ? "Resume" : "Pause"}</button></div> : null}
+  </div>;
+}
