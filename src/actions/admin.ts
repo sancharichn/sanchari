@@ -165,7 +165,7 @@ export async function setRegistrationApproval(registrationId: string, approvalSt
 }
 
 export async function sendTripBriefingNow(tripId: string): Promise<ActionResult> {
-  return withAudit(async () => {
+  {
     if (!(await getAdmin())) return fail(NO_ACCESS);
     if (!gmailConfigured() || !process.env.NEXTAUTH_URL) return fail("Gmail is not configured in the current deployment.");
     const trip = await prisma.trip.findUnique({ where: { id: tripId }, include: { registrations: { include: { user: true } } } });
@@ -177,11 +177,11 @@ export async function sendTripBriefingNow(tripId: string): Promise<ActionResult>
       try { await sendTripBriefingEmail(registration.user.email!, trip, process.env.NEXTAUTH_URL); sent += 1; } catch (error) { console.error("[trip-email] delivery failed", error); }
     }
     return sent ? done(`Sent ${sent} ${trip.kind === "MEETUP" ? "meetup" : "trip"} email${sent === 1 ? "" : "s"}.`) : fail("No trip emails were accepted. Check the Gmail credentials and delivery logs.");
-  });
+  }
 }
 
 export async function sendTripCommunication(tripId: string, input: { subject: string; details: string }): Promise<ActionResult> {
-  return withAudit(async () => {
+  {
     if (!(await getAdmin())) return fail(NO_ACCESS);
     if (!gmailConfigured() || !process.env.NEXTAUTH_URL) return fail("Gmail is not configured in the current deployment.");
     const subject = input?.subject?.trim();
@@ -196,7 +196,7 @@ export async function sendTripCommunication(tripId: string, input: { subject: st
       try { await sendTripCommunicationEmail(registration.user.email!, trip, process.env.NEXTAUTH_URL, subject, details); sent += 1; } catch (error) { console.error("[trip-communication] delivery failed", error); }
     }
     return sent ? done(`Sent this message to ${sent} approved attendee${sent === 1 ? "" : "s"}.`) : fail("No trip emails were accepted. Check Gmail delivery logs.");
-  });
+  }
 }
 
 export async function removeRegistration(registrationId: string): Promise<ActionResult> {
