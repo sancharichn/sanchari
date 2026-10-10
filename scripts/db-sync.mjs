@@ -100,3 +100,20 @@ try {
 }
 
 console.log("[db-sync] Schema is in sync.");
+
+// Keep the first pickup-shop catalogue useful on a fresh production database.
+// Existing products are preserved so organisers can edit prices, images and stock.
+try {
+  const shopClient = new PrismaClient({ datasourceUrl: directUrl });
+  const starterProducts = ["Sanchari T-shirt", "Cap", "Travel mug", "Sticker", "Notebook", "Event or trip merchandise", "Key chain", "Car sticker", "Seed pen", "Fridge magnet"];
+  for (const name of starterProducts) {
+    if (!(await shopClient.shopProduct.findFirst({ where: { name }, select: { id: true } }))) {
+      await shopClient.shopProduct.create({ data: { name, price: 0, stock: 0, active: false, description: "Add price, image and availability in the admin shop." } });
+    }
+  }
+  await shopClient.$disconnect();
+  console.log("[db-sync] Starter shop catalogue is ready.");
+} catch (error) {
+  console.error("[db-sync] Starter shop catalogue could not be created.", error.message);
+  process.exit(1);
+}
