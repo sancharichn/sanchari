@@ -42,6 +42,18 @@ export default async function HomePage() {
         <div className="mt-8">
           <UpcomingTripCarousel
             trips={upcoming}
+            teaser={{
+              id: "sri-lanka-2027-teaser",
+              title: "International Trip to Sri Lanka 2027",
+              location: "Sigiriya · Kandy · Ella · Southern coast",
+              dates: "2027 · dates soon",
+              href: "/trips/international-trip-to-sri-lanka-2027",
+              images: [
+                "https://images.unsplash.com/photo-1588258524675-c2c0f4d5e6c7?auto=format&fit=crop&w=1200&q=85",
+                "https://images.unsplash.com/photo-1588598198321-9735fd5247b0?auto=format&fit=crop&w=1200&q=85",
+                "https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?auto=format&fit=crop&w=1200&q=85",
+              ],
+            }}
             emptyText={
               <>
                 No trips are open right now. New trips are announced on{" "}
