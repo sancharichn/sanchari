@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const GROUPS = [
-  { label: "Operate", links: [{ href: "/admin", label: "Control room", exact: true }, { href: "/admin/trips", label: "Trips" }, { href: "/admin/members", label: "Members" }] },
+  { label: "Operate", links: [{ href: "/admin", label: "Control room", exact: true }, { href: "/admin/trips", label: "Trips" }, { href: "/admin/members", label: "Members" }, { href: "/admin/shop", label: "Shop" }] },
   { label: "Member care", links: [{ href: "/admin/feedback", label: "Feedback" }, { href: "/admin/suggestions", label: "Suggestions" }, { href: "/admin/birthdays", label: "Birthdays" }] },
   { label: "Governance", links: [{ href: "/admin/notifications", label: "Delivery" }, { href: "/admin/reports", label: "Reports" }, { href: "/admin/analytics", label: "Analytics" }] },
   { label: "Administration", links: [{ href: "/admin/access", label: "Staff access" }, { href: "/admin/activity", label: "Activity history" }, { href: "/admin/data-requests", label: "Data requests" }] },

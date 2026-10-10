@@ -50,6 +50,11 @@ export function SiteFooter() {
                 Gallery
               </Link>
             </li>
+            <li>
+              <Link className="hover:text-mist" href="/shop">
+                Pickup shop
+              </Link>
+            </li>
           </ul>
         </div>
 
