@@ -21,6 +21,14 @@ export default async function AdminTripsPage() {
         </Link>
       </div>
 
+      <section className="mt-8 rounded-panel border border-signal/35 bg-signal/5 p-5" aria-labelledby="planned-trip-heading">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div><p className="text-xs font-bold uppercase tracking-[.16em] text-signal">Planned international trip</p><h2 id="planned-trip-heading" className="mt-1 text-xl font-bold">International Trip to Sri Lanka 2027</h2><p className="mt-1 text-sm text-lichen">Sigiriya · Kandy · Ella · Southern coast · Details soon</p></div>
+          <Link href="/trips/international-trip-to-sri-lanka-2027" className={buttonVariants({ variant: "outline", size: "sm" })}>Open public page</Link>
+        </div>
+        <p className="mt-4 text-sm text-lichen">Dates, itinerary, cost and registration are still being prepared. Create the database trip when the route is confirmed.</p>
+      </section>
+
       {trips.length === 0 ? (
         <div className="mt-10 rounded-panel border border-ridge bg-basalt p-6">
           <p className="text-mist">No trips yet.</p>

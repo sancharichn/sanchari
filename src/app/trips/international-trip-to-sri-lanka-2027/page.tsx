@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const images = [
-  "https://images.unsplash.com/photo-1588258524675-c2c0f4d5e6c7?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1588598198321-9735fd5247b0?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?auto=format&fit=crop&w=1400&q=85",
+  "https://images.unsplash.com/photo-1711797750174-c3750dd9d7c9?auto=format&fit=crop&w=1400&q=85",
+  "https://images.unsplash.com/photo-1612862862126-865765df2ded?auto=format&fit=crop&w=1400&q=85",
+  "https://images.unsplash.com/photo-1705365256815-d3ed208fdc9f?auto=format&fit=crop&w=1400&q=85",
 ];
 
 export default function SriLanka2027Page() {
