@@ -64,7 +64,7 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
 /** Trips taking (or done taking) registrations that haven't started yet, soonest first. */
 export async function getUpcomingTrips(limit?: number): Promise<TripListItem[]> {
   const trips = await prisma.trip.findMany({
-    where: { status: { in: ["OPEN", "WAITLIST", "FULL"] } },
+    where: { status: { in: ["OPEN", "WAITLIST", "FULL"] }, endDate: { gte: new Date() } },
     orderBy: { startDate: "asc" },
     take: limit,
     select: listSelect,
@@ -80,9 +80,9 @@ export async function getPublicTripGroups() {
   });
   const items = trips.map(toListItem);
   return {
-    upcoming: items.filter((t) => t.status === "OPEN" || t.status === "WAITLIST" || t.status === "FULL"),
-    ongoing: items.filter((t) => t.status === "ONGOING"),
-    past: items.filter((t) => t.status === "COMPLETED").reverse(),
+    upcoming: items.filter((t) => (t.status === "OPEN" || t.status === "WAITLIST" || t.status === "FULL") && t.endDate >= new Date()),
+    ongoing: items.filter((t) => t.status === "ONGOING" && t.endDate >= new Date()),
+    past: items.filter((t) => t.status === "COMPLETED" || t.endDate < new Date()).reverse(),
   };
 }
 
