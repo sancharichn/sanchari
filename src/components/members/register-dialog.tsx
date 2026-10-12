@@ -151,11 +151,12 @@ export function RegisterDialog({
             <Field
               label="Blood group"
               htmlFor="reg-blood"
-              hint="Optional. Useful if something goes wrong on the trail."
+              hint="Required for every traveller so organisers can respond safely."
               error={fieldErrors.bloodGroup}
             >
               <NativeSelect
                 id="reg-blood"
+                required
                 value={values.bloodGroup}
                 onChange={set("bloodGroup")}
                 aria-describedby={describe("reg-blood", fieldErrors.bloodGroup)}

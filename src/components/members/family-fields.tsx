@@ -82,8 +82,8 @@ export function FamilyFields({ members, onChange, errors, familyConsent, parenta
                   {FAMILY_RELATIONSHIPS.map((relationship) => <option key={relationship} value={relationship}>{relationship}</option>)}
                 </NativeSelect>
               </Field>
-              <Field label="Blood group (optional)" htmlFor={`family-${member.key}-blood`} error={errors[`companions.${index}.bloodGroup`]}>
-                <NativeSelect id={`family-${member.key}-blood`} value={member.bloodGroup} onChange={(event) => update(member.key, 'bloodGroup', event.target.value)}>
+              <Field label="Blood group" htmlFor={`family-${member.key}-blood`} error={errors[`companions.${index}.bloodGroup`]}>
+                <NativeSelect id={`family-${member.key}-blood`} value={member.bloodGroup} required onChange={(event) => update(member.key, 'bloodGroup', event.target.value)}>
                   <option value="">Prefer not to say</option>
                   {FAMILY_BLOOD_GROUPS.map((group) => <option key={group} value={group}>{group}</option>)}
                 </NativeSelect>
