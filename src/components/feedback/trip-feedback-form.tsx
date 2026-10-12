@@ -186,7 +186,7 @@ export function TripFeedbackForm({ tripId, tripHref, extras, token, defaultName,
 
       <form
         noValidate
-        className="mt-6 rounded-panel border border-ridge bg-basalt p-5 sm:p-8"
+        className="feedback-form-shell mt-6 rounded-panel border border-ridge bg-basalt p-5 sm:p-8"
         onSubmit={(e) => {
           e.preventDefault();
           if (isLast) void send();
