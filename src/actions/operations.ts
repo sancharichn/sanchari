@@ -58,6 +58,7 @@ export async function saveAttendance(id: string, count: number): Promise<ActionR
   if (!Number.isInteger(count) || count < 0) return fail("Enter a whole number of travellers.");
   const registration = await prisma.tripRegistration.findUnique({ where: { id }, include: { trip: { include: { registrations: true } } } });
   if (!registration || count > registration.partySize) return fail("Count must fit this registration.");
+  if (registration.trip.startDate.getTime() > Date.now()) return fail("Attendance can only be recorded after the trip starts.");
   const confirmed = splitRoster(registration.trip.registrations, registration.trip.maxCapacity).confirmed;
   if (!confirmed.some((r) => r.id === id)) return fail("Waitlisted registrations cannot check in.");
   await prisma.tripRegistration.update({ where: { id }, data: { checkedInCount: count } }); refresh(); return done("Attendance saved.");

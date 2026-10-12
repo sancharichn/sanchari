@@ -100,7 +100,7 @@ export async function getAdminTrips() {
 }
 
 export async function getAdminTrip(id: string) {
-  return prisma.trip.findUnique({
+  const trip = await prisma.trip.findUnique({
     where: { id },
     include: {
       registrations: {
@@ -157,6 +157,12 @@ export async function getAdminTrip(id: string) {
       _count: { select: { responses: true } },
     },
   });
+  // Attendance is a calendar fact. Hide any stale/future check-ins from the
+  // organiser workspace even if an older record was saved before date guards.
+  if (trip && trip.startDate.getTime() > Date.now()) {
+    return { ...trip, registrations: trip.registrations.map((registration) => ({ ...registration, checkedInCount: 0 })) };
+  }
+  return trip;
 }
 
 export type AdminTrip = NonNullable<Awaited<ReturnType<typeof getAdminTrip>>>;

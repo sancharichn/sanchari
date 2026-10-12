@@ -87,6 +87,11 @@ export async function setTripStatus(tripId: string, status: string): Promise<Act
   if (!(await getAdmin())) return fail(NO_ACCESS);
   if (!TRIP_STATUS_VALUES.includes(status as TripStatus)) return fail("Pick a status from the list.");
 
+  const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { endDate: true, startDate: true } });
+  if (!trip) return fail("That trip no longer exists.");
+  const now = Date.now();
+  if (status === "ONGOING" && trip.startDate.getTime() > now) return fail("A trip can only become ongoing after its calendar start time.");
+  if (status === "COMPLETED" && trip.endDate.getTime() > now) return fail("A trip can only be completed after its calendar end time.");
   const updated = await prisma.trip.updateMany({ where: { id: tripId }, data: { status: status as TripStatus } });
   if (updated.count === 0) return fail("That trip no longer exists.");
   revalidateTripPages(tripId);
