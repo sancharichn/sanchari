@@ -22,7 +22,10 @@ export async function GET(request: Request) {
   for (const trip of trips) {
     const until = (Date.parse(toDateInputValue(trip.startDate)+"T00:00:00Z")-today)/86400000;
     const after = (today-Date.parse(toDateInputValue(trip.endDate)+"T00:00:00Z"))/86400000;
-    const kind = until === 3 ? "PAYMENT" : until === 1 ? "BRIEFING" : after === 1 && trip.feedbackForm?.isOpen ? "FEEDBACK" : null;
+    if (after === 1 && !trip.feedbackForm) {
+      await prisma.feedbackForm.create({ data: { tripId: trip.id, isOpen: true, intro: "Thank you for travelling with us. Tell us what worked and what we can improve for the next meetup or trip." } }).catch(() => null);
+    }
+    const kind = until === 3 ? "PAYMENT" : until === 1 ? "BRIEFING" : after === 1 && (trip.feedbackForm?.isOpen || !trip.feedbackForm) ? "FEEDBACK" : null;
     if (!kind) continue;
     for (const r of splitRoster(trip.registrations, trip.maxCapacity).confirmed) {
       if (kind === "PAYMENT" && !["PENDING", "PARTIAL"].includes(r.paymentStatus)) continue;

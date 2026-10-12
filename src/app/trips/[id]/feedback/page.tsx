@@ -52,7 +52,7 @@ export default async function TripFeedbackPage({ params }: Params) {
             <ArrowLeft className="size-4" aria-hidden="true" />
             The trip
           </Link>
-          <p className="mt-8 text-sm font-semibold text-signal">Sanchari Chennai · Trip feedback</p>
+          <div className="mt-8 flex items-center gap-4"><img src="/brand/sanchari-logo.svg" alt="Sanchari Chennai" className="h-12 w-auto" /><div><p className="text-sm font-semibold text-signal">Sanchari Chennai · Trip feedback</p><p className="mt-1 text-xs font-bold uppercase tracking-[.18em] text-lichen">Travel with Nature</p></div></div>
           <h1 className="stretch-wide mt-3 text-4xl font-extrabold leading-[0.95] md:text-5xl">{trip.title}</h1>
           <p className="mt-4 text-lichen">
             {formatDateRange(trip.startDate, trip.endDate)}, {trip.location}
