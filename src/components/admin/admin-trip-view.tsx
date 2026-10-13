@@ -70,6 +70,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
     minimumPriorEvents: String(trip.minimumPriorEvents),
     coverPhotoId: trip.coverPhotoId ?? "",
     location: trip.location,
+    transportMode: trip.transportMode as TripFormValues["transportMode"],
     description: trip.description,
     startDate: toDateInputValue(trip.startDate),
     endDate: toDateInputValue(trip.endDate),
@@ -102,6 +103,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
             {formatDateRange(trip.startDate, trip.endDate)}, {trip.location},{" "}
             {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
           </p>
+          <p className="mt-2 text-sm text-signal">Transport: {trip.transportMode === "VAN_BUS" ? "Van / bus" : trip.transportMode === "CARPOOL" ? "Car pool" : "Self travel"}</p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href={tripPath(trip)} className={buttonVariants({ variant: "outline", size: "sm" })}>
               <ExternalLink className="size-4" aria-hidden="true" />

@@ -54,6 +54,7 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
     minimumPriorEvents: v.minimumPriorEvents,
     coverPhotoId: v.coverPhotoId,
     location: v.location,
+    transportMode: v.transportMode,
     description: v.description,
     startDate: fromDateInputValue(v.startDate),
     endDate: fromDateInputValue(v.endDate),

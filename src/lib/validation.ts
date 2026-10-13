@@ -112,6 +112,7 @@ const rupees = (message: string) => z.string().trim().regex(/^\d{1,8}(\.\d{1,2})
 
 export const TRIP_STATUS_VALUES = ["DRAFT", "OPEN", "WAITLIST", "FULL", "ONGOING", "COMPLETED", "ARCHIVED"] as const;
 export const TRIP_KIND_VALUES = ["MEETUP", "DAY_TRIP", "STAY_BACK", "INTERNATIONAL", "TREK"] as const;
+export const TRANSPORT_MODE_VALUES = ["CARPOOL", "SELF", "VAN_BUS"] as const;
 
 export const tripSchema = z
   .object({
@@ -126,6 +127,7 @@ export const tripSchema = z
       .optional()
       .transform((v) => (v ? v : null)),
     location: z.string().trim().min(2, "Add where the trip goes.").max(120, "Keep the place under 120 characters."),
+    transportMode: z.enum(TRANSPORT_MODE_VALUES).default("SELF"),
     description: z
       .string()
       .trim()

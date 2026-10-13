@@ -11,6 +11,7 @@ const listSelect = {
   title: true,
   slug: true,
   location: true,
+  transportMode: true,
   startDate: true,
   endDate: true,
   status: true,
@@ -28,6 +29,7 @@ export type TripListItem = {
   title: string;
   slug: string | null;
   location: string;
+  transportMode: string;
   startDate: Date;
   endDate: Date;
   status: TripStatus;
@@ -47,6 +49,7 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
     title: trip.title,
     slug: trip.slug,
     location: trip.location,
+    transportMode: trip.transportMode,
     startDate: trip.startDate,
     endDate: trip.endDate,
     status: trip.status,
@@ -124,6 +127,7 @@ export async function getFeedbackFormTrip(idOrSlug: string) {
       title: true,
       slug: true,
       location: true,
+      transportMode: true,
       startDate: true,
       endDate: true,
       status: true,

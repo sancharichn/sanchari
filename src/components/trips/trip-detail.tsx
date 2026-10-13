@@ -79,6 +79,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
           <dl className="trip-facts-panel mt-10 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-6 p-5 md:grid-cols-4 md:p-6">
             <Fact label="When" value={formatDateRange(trip.startDate, trip.endDate)} />
             <Fact label="Where" value={trip.location} />
+            <Fact label="Transport" value={trip.transportMode === "VAN_BUS" ? "Van / bus" : trip.transportMode === "CARPOOL" ? "Car pool" : "Self travel"} />
             <Fact label="Type" value={tripTypeLabel(trip.kind, trip.startDate, trip.endDate)} />
             {trip.budgetEst || !departed ? (
               <Fact label="Estimated cost" value={trip.adultBudgetEst || trip.budgetEst ? `Adult ${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} · Child ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)}` : "To be confirmed"} />

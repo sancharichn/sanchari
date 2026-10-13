@@ -9,6 +9,7 @@ import { FormMessage, useActionRunner } from "@/components/forms/use-action-runn
 import { Button } from "@/components/ui/button";
 import { Field, Input, NativeSelect, Textarea } from "@/components/ui/form";
 import { ALL_STATUSES, KIND_OPTION_LABEL, STATUS_HELP, STATUS_LABEL, TRIP_KINDS, WHO_CAN_JOIN } from "@/lib/trips";
+import { TRANSPORT_MODE_VALUES } from "@/lib/validation";
 
 export type TripFormValues = {
   title: string;
@@ -16,6 +17,7 @@ export type TripFormValues = {
   minimumPriorEvents: string;
   coverPhotoId: string;
   location: string;
+  transportMode: (typeof TRANSPORT_MODE_VALUES)[number];
   description: string;
   startDate: string;
   endDate: string;
@@ -33,6 +35,7 @@ export const EMPTY_TRIP: TripFormValues = {
   minimumPriorEvents: "0",
   coverPhotoId: "",
   location: "",
+  transportMode: "SELF",
   description: "",
   startDate: "",
   endDate: "",
@@ -128,6 +131,13 @@ export function TripForm({
         </Field>
         <Field label="Where" htmlFor="trip-location" hint="Town or area, for example: Kolli Hills, Namakkal" error={err("location")}>
           <Input id="trip-location" value={values.location} onChange={set("location")} {...aria("trip-location", "location", true)} />
+        </Field>
+        <Field label="Mode of transport" htmlFor="trip-transport" hint="This is the main way the group reaches the destination. Member carpool requests are managed separately." error={err("transportMode")}>
+          <NativeSelect id="trip-transport" value={values.transportMode} onChange={set("transportMode")} {...aria("trip-transport", "transportMode", true)}>
+            <option value="CARPOOL">Car pool</option>
+            <option value="SELF">Self travel</option>
+            <option value="VAN_BUS">Van / bus</option>
+          </NativeSelect>
         </Field>
         <Field label="Description" htmlFor="trip-description" hint="Shown on the trip page. Blank lines start new paragraphs." error={err("description")}>
           <Textarea

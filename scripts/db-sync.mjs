@@ -101,6 +101,20 @@ try {
 
 console.log("[db-sync] Schema is in sync.");
 
+// The Jawadhu Hills departure uses the organised van/bus transport plan.
+// Keep this correction safe and idempotent for existing production records.
+try {
+  const transportClient = new PrismaClient({ datasourceUrl: directUrl });
+  await transportClient.trip.updateMany({
+    where: { title: { contains: "Jawadhu", mode: "insensitive" } },
+    data: { transportMode: "VAN_BUS" },
+  });
+  await transportClient.$disconnect();
+} catch (error) {
+  console.error("[db-sync] Jawadhu Hills transport backfill failed.", error.message);
+  process.exit(1);
+}
+
 // Keep the first pickup-shop catalogue useful on a fresh production database.
 // Existing products are preserved so organisers can edit prices, images and stock.
 try {
