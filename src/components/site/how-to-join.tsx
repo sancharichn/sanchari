@@ -1,11 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { JOIN_STEPS, TREKS_NOTE } from "@/lib/joining";
 
 /** The steps to join, across the home page: a real sequence, so numbered waypoints joined by a line. */
 export function HowToJoin() {
+  const section = useRef<HTMLElement>(null);
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    if (!section.current || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setRevealed(true); observer.disconnect(); } }, { threshold: 0.15 });
+    observer.observe(section.current);
+    return () => observer.disconnect();
+  }, []);
   const last = JOIN_STEPS.length - 1;
   return (
-    <section id="join" aria-labelledby="join-heading" className="container mt-24 scroll-mt-24 md:mt-32">
+    <section ref={section} data-revealed={revealed} id="join" aria-labelledby="join-heading" className="container mt-24 scroll-mt-24 md:mt-32">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h2 id="join-heading" className="stretch-semiwide text-3xl font-bold">
           How to join
@@ -20,7 +31,7 @@ export function HowToJoin() {
       </p>
       <ol className="mt-10 grid gap-8 md:grid-cols-4 md:gap-6">
         {JOIN_STEPS.map((step, i) => (
-          <li key={step.title} className="relative grid grid-cols-[2.25rem_1fr] gap-x-4 md:block">
+          <li key={step.title} className="join-step relative grid grid-cols-[2.25rem_1fr] gap-x-4 md:block" style={{ animationDelay: `${i * 130}ms` }}>
             {i < last ? (
               // The line to the next waypoint: down on phones, across on wider screens.
               <span

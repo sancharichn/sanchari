@@ -53,11 +53,11 @@ export function Hero({
           </p>
           <div className="hero-actions mt-9 flex flex-wrap gap-3">
             <Link href="/trips" className={buttonVariants({ size: "lg" })}>
-              See upcoming trips
+              Explore trips
             </Link>
             {signedIn ? (
               <Link href="/profile" className={buttonVariants({ variant: "outline", size: "lg" })}>
-                Your trips
+                My trips
               </Link>
             ) : (
               // New visitors need the joining steps more than a sign-in; the header has Sign in.
@@ -65,6 +65,7 @@ export function Hero({
                 How to join
               </Link>
             )}
+            {signedIn ? <Link href="/profile" className={buttonVariants({ variant: "outline", size: "lg" })}>Trip Passport</Link> : null}
           </div>
           <dl className="hero-signals mt-9 flex flex-wrap gap-5 text-sm text-mist/80">
             <div><dt>Upcoming trips</dt><dd><RevealNumber value={tripsCount} /></dd></div>

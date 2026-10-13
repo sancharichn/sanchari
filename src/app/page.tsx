@@ -70,7 +70,7 @@ export default async function HomePage() {
       <HowToJoin />
       <HowWeTravel />
 
-      <PhotoStrip photos={photos} />
+      <PhotoStrip photos={photos} stories={albums.filter(album => album.id !== "latest" && album.images.length > 0).map(album => ({ name: album.name, image: album.images[0] }))} />
 
       {user ? <section className="container mt-24" aria-labelledby="shop-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-signal">Sanchari goods</p><h2 id="shop-heading" className="mt-2 text-3xl font-bold">Small things for the trail</h2><p className="mt-2 text-sm text-lichen">Key chains, car stickers, caps, seed pens and fridge magnets. Pickup only.</p></div><Link href="/shop" className="text-sm font-semibold text-signal underline">Browse the pickup shop</Link></div></section> : null}
 
