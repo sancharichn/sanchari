@@ -56,6 +56,7 @@ export function RegistrationPanel({ trip, registered, confirmed, started, viewer
             </Link>
           </div>
         ) : null}
+        {open && trip.status === "WAITLIST" && !registration ? <p className="mb-5 rounded-xl border border-signal/40 bg-signal/10 p-4 text-sm text-mist"><strong>Waitlist only.</strong> Join to request a place if another booking is cancelled. Your ticket is not confirmed; the organiser must confirm availability before you pay.</p> : null}
         {registration ? (
           <YourPlace
             trip={trip}
@@ -65,14 +66,14 @@ export function RegistrationPanel({ trip, registered, confirmed, started, viewer
           />
         ) : open ? (
           viewer ? (
-            <RegisterDialog tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} paymentsEnabled={trip.kind !== "MEETUP"} />
+            <RegisterDialog waitlistOnly={trip.status === "WAITLIST"} tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} paymentsEnabled={trip.kind !== "MEETUP"} />
           ) : (
             <>
               <Link
                 href={`/signin?callbackUrl=${encodeURIComponent(tripPath(trip))}`}
                 className={buttonVariants({ className: "w-full" })}
               >
-                Sign in to register
+                {trip.status === "WAITLIST" ? "Sign in to join waitlist" : "Sign in to register"}
               </Link>
               <p className="mt-3 text-sm text-lichen">You&apos;ll come straight back here after signing in.</p>
             </>
@@ -124,7 +125,7 @@ function YourPlace({
       </p>
       {!over ? (
         <p className="mt-1 text-sm text-lichen">
-          {declined ? "Contact the organiser if you need more information." : pendingApproval ? "The organiser will review your registration before confirming your place." : confirmed ? "Your seat is confirmed." : "If someone drops out, you move up automatically."}
+          {declined ? "Contact the organiser if you need more information." : pendingApproval ? "The organiser will review your request before confirming your place. If this trip is waitlist-only, a cancellation must free seats first." : confirmed ? "Your seat is confirmed." : "If someone drops out, you move up automatically."}
         </p>
       ) : null}
 

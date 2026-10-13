@@ -91,6 +91,7 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   revalidateTrip(trip.id);
 
+  if (trip.status === "WAITLIST") return done("Your waitlist request has been submitted for organiser review. This is not a confirmed ticket. A place depends on a cancellation freeing enough seats and organiser confirmation. Please wait for confirmation before paying.");
   if (position?.kind === "waitlist") {
     return done(
       `Your registration is waiting for organiser approval. ${companions.length ? "Your family is saved for future trips; you can add birthdays and photos on your profile. " : ""}The organiser will confirm your place or contact you if anything is needed.`,

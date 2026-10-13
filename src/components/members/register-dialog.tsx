@@ -39,6 +39,7 @@ export function RegisterDialog({
   adultPrice,
   childPrice,
   paymentsEnabled = true,
+  waitlistOnly = false,
 }: {
   tripId: string;
   tripTitle: string;
@@ -46,6 +47,7 @@ export function RegisterDialog({
   adultPrice: string | null;
   childPrice: string | null;
   paymentsEnabled?: boolean;
+  waitlistOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -82,11 +84,12 @@ export function RegisterDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full">Register for this trip</Button>
+        <Button className="w-full">{waitlistOnly ? "Join the waitlist" : "Register for this trip"}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Register for {tripTitle}</DialogTitle>
+          <DialogTitle>{waitlistOnly ? "Join the waitlist for" : "Register for"} {tripTitle}</DialogTitle>
+          {waitlistOnly && <p className="rounded-xl border border-signal/40 bg-signal/10 p-4 text-sm text-mist">This is a waitlist request, not a confirmed ticket. A place can be offered only if a cancellation frees enough seats for your booking and the organiser confirms it. Please wait for confirmation before paying.</p>}
           <DialogDescription>
             Organisers use these details to plan rides and to reach someone if anything goes wrong. Only organisers can
             see them.
@@ -262,7 +265,7 @@ export function RegisterDialog({
 
             <DialogFooter>
               {step > 1 ? <Button type="button" variant="ghost" onClick={() => setStep((current) => current - 1)}>Back</Button> : <DialogClose asChild><Button type="button" variant="ghost">Not now</Button></DialogClose>}
-              {step < 3 ? <Button type="button" onClick={() => setStep((current) => current + 1)}>Continue</Button> : <Button type="submit" disabled={pending}>{pending ? "Registering…" : "Register"}</Button>}
+              {step < 3 ? <Button type="button" onClick={() => setStep((current) => current + 1)}>Continue</Button> : <Button type="submit" disabled={pending}>{pending ? "Submitting…" : waitlistOnly ? "Join waitlist" : "Register"}</Button>}
             </DialogFooter>
           </form>
         )}

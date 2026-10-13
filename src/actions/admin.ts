@@ -160,6 +160,9 @@ export async function setRegistrationApproval(registrationId: string, approvalSt
   return withAudit(async () => {
     if (!(await getAdmin())) return fail(NO_ACCESS);
     if (!(["PENDING", "APPROVED", "DECLINED"] as RegistrationApproval[]).includes(approvalStatus as RegistrationApproval)) return fail("Choose a valid approval status.");
+    const request = await prisma.tripRegistration.findUnique({ where: { id: registrationId }, include: { trip: true } });
+    if (!request) return fail("That registration no longer exists.");
+    if (approvalStatus === "APPROVED" && request.approvalStatus !== "APPROVED" && request.trip.status === "WAITLIST") return fail("This trip is waitlist-only. Confirm a cancellation has freed seats, then reopen registration before approving this request.");
     const registration = await prisma.tripRegistration.update({ where: { id: registrationId }, data: { approvalStatus: approvalStatus as RegistrationApproval, approvedAt: approvalStatus === "APPROVED" ? new Date() : null }, include: { user: true, trip: true } }).catch(() => null);
     if (!registration) return fail("That registration no longer exists.");
     revalidateTripPages(registration.tripId);
