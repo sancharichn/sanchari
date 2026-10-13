@@ -12,6 +12,7 @@ import { SITE_COVERS, SITE_COVER_PREFIX, siteCover } from "@/lib/site-covers";
 const DRIVE = "https://www.googleapis.com/drive/v3/files";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,200}$/;
+const SHOP_FOLDER_NAMES = new Set(["shop", "shops", "shop merchandise", "merchandise", "sanchari shop"]);
 
 export const GALLERY_WIDTHS = [480, 960, 1600] as const;
 
@@ -40,6 +41,11 @@ export function galleryFolderId(): string | null {
 
 export function isGalleryConfigured() {
   return Boolean(galleryFolderId() && process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+}
+
+/** Shop media is managed by the pickup catalogue and must never become a gallery album. */
+export function isShopFolderName(name: string) {
+  return SHOP_FOLDER_NAMES.has(name.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " "));
 }
 
 async function listChildren(folderId: string, token: string, limit: number): Promise<DriveFile[]> {
@@ -113,7 +119,7 @@ async function loadGallery(folderId: string): Promise<GalleryAlbum[]> {
   if (!token) return [];
 
   const top = await listChildren(folderId, token, 400);
-  const folders = top.filter((f) => f.mimeType === FOLDER_MIME).slice(0, 24);
+  const folders = top.filter((f) => f.mimeType === FOLDER_MIME && !isShopFolderName(f.name)).slice(0, 24);
   const looseImages = top.filter((f) => f.mimeType !== FOLDER_MIME);
 
   const albums: GalleryAlbum[] = [];
