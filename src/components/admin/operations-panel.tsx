@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { recordPayment, saveAttendance, saveCarpool } from "@/actions/operations";
+import { recordPayment, saveTravellerAttendance, saveCarpool } from "@/actions/operations";
 import { FormMessage, useActionRunner } from "@/components/forms/use-action-runner";
 import { Button } from "@/components/ui/button";
 import { Input, NativeSelect, Textarea } from "@/components/ui/form";
 import { formatINR } from "@/lib/format";
 
-export type OperationsPerson = { id: string; name: string; email: string; partySize: number; checkedInCount: number; confirmed: boolean; expected: number | null; net: number; paymentStatus: string; carpoolChoice: string; carpoolLocation: string | null; carpoolSeats: number | null; carpoolMatched: boolean; phone: string | null };
+export type OperationsPerson = { id: string; name: string; email: string; partySize: number; checkedInCount: number; attendance?: unknown; travellerNames?: string[]; attendanceOpen?: boolean; confirmed: boolean; expected: number | null; net: number; paymentStatus: string; carpoolChoice: string; carpoolLocation: string | null; carpoolSeats: number | null; carpoolMatched: boolean; phone: string | null };
 export type LedgerEntry = { id: string; name: string; amount: string; method: string; reference: string | null; note: string | null; by: string; date: string };
 
 export function OperationsPanel({ people, events, paymentsEnabled = true }: { people: OperationsPerson[]; events: LedgerEntry[]; paymentsEnabled?: boolean }) {
@@ -35,9 +35,13 @@ export function OperationsPanel({ people, events, paymentsEnabled = true }: { pe
   </section>;
 }
 function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-panel border border-ridge bg-basalt p-4"><p className="text-sm text-lichen">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div>; }
-export function Attendance({ person }: { person: Pick<OperationsPerson, "id" | "checkedInCount" | "partySize" | "confirmed"> }) {
+export function Attendance({ person }: { person: Pick<OperationsPerson, "id" | "checkedInCount" | "partySize" | "confirmed" | "attendance" | "travellerNames" | "attendanceOpen"> }) {
   const { run, pending, result } = useActionRunner();
-  return <form className="mt-4 grid gap-3" onSubmit={(e) => { e.preventDefault(); const count = Number(new FormData(e.currentTarget).get("count")); void run(() => saveAttendance(person.id, count)); }}><p className="text-sm text-lichen">Mark each traveller who actually attended.</p><div className="grid gap-2 sm:grid-cols-2">{Array.from({ length: person.partySize }, (_, index) => { const present = index < person.checkedInCount; return <button key={index} type="button" disabled={pending || !person.confirmed} onClick={() => void run(() => saveAttendance(person.id, present ? index : index + 1))} className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm ${present ? "border-signal/60 bg-signal/10 text-mist" : "border-ridge text-lichen"}`}><span>Traveller {index + 1}</span><span>{present ? "Attended" : "Not marked"}</span></button>; })}</div><label className="text-sm">Total present<Input key={person.checkedInCount} name="count" type="number" min={0} max={person.partySize} required defaultValue={person.checkedInCount} disabled={!person.confirmed} /></label><Button size="sm" disabled={pending || !person.confirmed}>Save attendance</Button><FormMessage result={result} /></form>;
+  const locked = pending || !person.confirmed || person.attendanceOpen === false;
+  return <div className="mt-4 grid gap-3"><p className="text-sm text-lichen">{person.attendanceOpen === false ? "Attendance opens on the trip start date." : "Mark each traveller who actually attended."}</p><div className="grid gap-2 sm:grid-cols-2">{Array.from({ length: person.partySize }, (_, index) => {
+    const present = person.attendanceOpen === false ? false : Array.isArray(person.attendance) ? person.attendance[index] === true : index < person.checkedInCount;
+    return <button key={index} type="button" aria-pressed={present} disabled={locked} onClick={() => void run(() => saveTravellerAttendance(person.id, index, !present))} className={`flex min-h-11 items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm ${present ? "border-signal/60 bg-signal/10 text-mist" : "border-ridge text-lichen"}`}><span>{person.travellerNames?.[index] || `Traveller ${index + 1}`}</span><span>{present ? "Attended" : "Not marked"}</span></button>;
+  })}</div><FormMessage result={result} /></div>;
 }
 export function Payment({ person }: { person: Pick<OperationsPerson, "id" | "expected" | "net"> }) {
   const { run, pending, result } = useActionRunner();

@@ -5,7 +5,7 @@ describe("registrationSchema", () => {
   const base = {
     phone: "98400 12345",
     emergencyContact: "Ravi (brother), 98400 54321",
-    bloodGroup: "",
+    bloodGroup: "O+",
     vehicleDetails: "",
     agreesToGuidelines: true,
   };
@@ -27,7 +27,7 @@ describe("registrationSchema", () => {
 });
 
 describe("profile birthday dates", () => {
-  const profile = { phone: "98400 12345", emergencyContact: "Ravi (brother), 98400 54321", bloodGroup: "", image: "", familyMembers: [] };
+  const profile = { phone: "98400 12345", emergencyContact: "Ravi (brother), 98400 54321", bloodGroup: "O+", image: "", familyMembers: [] };
 
   it("accepts day/month birthdays, including February 29, without storing a year", () => {
     expect(profileSchema.safeParse({ ...profile, birthdayMonth: 2, birthdayDay: 29 }).success).toBe(true);

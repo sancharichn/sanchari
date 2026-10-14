@@ -12,6 +12,7 @@ import { SITE_COVERS, SITE_COVER_PREFIX, siteCover } from "@/lib/site-covers";
 const DRIVE = "https://www.googleapis.com/drive/v3/files";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,200}$/;
+const DEFAULT_SHOP_FOLDER_ID = "1Ssm1xXGCx2l6GOt3E06JXjxBkbKhZSAq";
 const SHOP_FOLDER_NAMES = new Set(["shop", "shops", "shop merchandise", "merchandise", "sanchari shop"]);
 
 export const GALLERY_WIDTHS = [480, 960, 1600] as const;
@@ -119,7 +120,7 @@ async function loadGallery(folderId: string): Promise<GalleryAlbum[]> {
   if (!token) return [];
 
   const top = await listChildren(folderId, token, 400);
-  const folders = top.filter((f) => f.mimeType === FOLDER_MIME && !isShopFolderName(f.name)).slice(0, 24);
+  const folders = top.filter((f) => f.mimeType === FOLDER_MIME && !isShopFolderName(f.name) && f.id !== (process.env.GOOGLE_DRIVE_SHOP_FOLDER_ID?.trim() || DEFAULT_SHOP_FOLDER_ID)).slice(0, 24);
   const looseImages = top.filter((f) => f.mimeType !== FOLDER_MIME);
 
   const albums: GalleryAlbum[] = [];
@@ -141,9 +142,9 @@ async function loadGallery(folderId: string): Promise<GalleryAlbum[]> {
 /** All albums, cached for ten minutes. Empty when the gallery isn't configured or Drive is unreachable. */
 export async function getGallery(): Promise<GalleryAlbum[]> {
   const folderId = galleryFolderId();
-  if (!folderId || !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) return [];
+  if (!folderId || folderId === (process.env.GOOGLE_DRIVE_SHOP_FOLDER_ID?.trim() || DEFAULT_SHOP_FOLDER_ID) || !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) return [];
   try {
-    return await unstable_cache(() => loadGallery(folderId), ["gallery", folderId], { revalidate: 600 })();
+    return await unstable_cache(() => loadGallery(folderId), ["gallery-v2", folderId, process.env.GOOGLE_DRIVE_SHOP_FOLDER_ID || DEFAULT_SHOP_FOLDER_ID], { revalidate: 600 })();
   } catch (error) {
     console.error("[gallery] Could not load the gallery", error);
     return [];

@@ -61,7 +61,7 @@ export async function saveAttendance(id: string, count: number): Promise<ActionR
   if (registration.trip.startDate.getTime() > Date.now()) return fail("Attendance can only be recorded after the trip starts.");
   const confirmed = splitRoster(registration.trip.registrations, registration.trip.maxCapacity).confirmed;
   if (!confirmed.some((r) => r.id === id)) return fail("Waitlisted registrations cannot check in.");
-  await prisma.tripRegistration.update({ where: { id }, data: { checkedInCount: count } }); refresh(); return done("Attendance saved.");
+  await prisma.tripRegistration.update({ where: { id }, data: { checkedInCount: count, attendance: Array.from({ length: registration.partySize }, (_, index) => index < count) } }); refresh(); return done("Attendance saved.");
 
   });
 }
@@ -102,5 +102,30 @@ export async function resolveIncident(id: string, actionTaken: string, close: bo
   if (!updated.count) return fail("Incident no longer exists.");
   refresh(); return done(close ? "Incident resolved." : "Follow-up saved; incident open.");
 
+  });
+}
+
+/** Each traveller has an independent attendance flag; aggregate remains available for reports. */
+export async function saveTravellerAttendance(id: string, index: number, present: boolean): Promise<ActionResult> {
+  return withAudit(async () => {
+    const scope = await prisma.tripRegistration.findUnique({ where: { id }, select: { tripId: true } });
+    if (!scope || !await getAdmin("lead", scope.tripId)) return fail("Staff access required.");
+    if (!Number.isInteger(index) || index < 0 || typeof present !== "boolean") return fail("Choose a valid traveller.");
+    try {
+      await prisma.$transaction(async tx => {
+        const registration = await tx.tripRegistration.findUnique({ where: { id }, include: { trip: { include: { registrations: true } } } });
+        if (!registration || index >= registration.partySize) throw new Error("Traveller no longer exists.");
+        if (registration.trip.startDate.getTime() > Date.now()) throw new Error("Attendance opens after the trip starts.");
+        if (!splitRoster(registration.trip.registrations, registration.trip.maxCapacity).confirmed.some(r => r.id === id)) throw new Error("Only confirmed travellers can check in.");
+        const saved = registration.attendance;
+        const flags = Array.from({ length: registration.partySize }, (_, i) => Array.isArray(saved) ? saved[i] === true : i < registration.checkedInCount);
+        flags[index] = present;
+        await tx.tripRegistration.update({ where: { id }, data: { attendance: flags, checkedInCount: flags.filter(Boolean).length } });
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+      refresh(); return done("Traveller attendance saved.");
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) return fail("Attendance changed elsewhere. Please refresh and retry.");
+      return fail(error instanceof Error ? error.message : "Attendance could not be saved.");
+    }
   });
 }

@@ -170,6 +170,7 @@ model TripRegistration {
   approvedAt          DateTime?
   promotionVersion     Int            @default(0)
   checkedInCount       Int            @default(0)
+  attendance           Json?
   carpoolMatched       Boolean        @default(false)
   id                   String         @id @default(cuid())
   userId               String

@@ -6,13 +6,13 @@ import { computeBalances } from "./settle";
 import { FAMILY_ROSTER_HEADERS, registrationCsvRows } from "./family-roster";
 import { toCsv } from "./csv";
 
-const solo = { phone: "9840012345", emergencyContact: "Emergency contact 9840054321", bloodGroup: "", vehicleDetails: "", agreesToGuidelines: true };
-const person = { name: "Sample Child", age: "7", relationship: "Child", bloodGroup: "" };
+const solo = { phone: "9840012345", emergencyContact: "Emergency contact 9840054321", bloodGroup: "O+", vehicleDetails: "", agreesToGuidelines: true };
+const person = { name: "Sample Child", age: "7", relationship: "Child", bloodGroup: "O+" };
 const family = { ...solo, companions: [person], familyConsent: true, parentalConsent: true };
 const reg = (id: string, size: number, order: number) => ({ id, partySize: size, createdAt: new Date(order) });
 
 describe("family input and privacy", () => {
-  it("retains legacy solo registration and accepts babies without a birth date", () => {
+  it("accepts solo registration with safety details and accepts babies without a birth date", () => {
     expect(registrationSchema.parse(solo).companions).toEqual([]);
     expect(registrationSchema.parse({ ...family, companions: [{ ...person, age: "0" }] }).companions[0].age).toBe(0);
   });

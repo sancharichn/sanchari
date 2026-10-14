@@ -112,6 +112,7 @@ export async function getAdminTrip(id: string) {
           approvalStatus: true,
           gearChecked: true,
           checkedInCount: true,
+          attendance: true,
           carpoolMatched: true,
           vehicleDetails: true,
           carpoolChoice: true,

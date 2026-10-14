@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FamilySummary } from "@/components/members/family-summary";
-import { countTravellers } from "@/lib/family";
+import { readCompanions, countTravellers } from "@/lib/family";
 import { ArrowLeft, Download, ExternalLink, Trash2 } from "lucide-react";
 import { deleteExpense, deleteTrip, removeRegistration } from "@/actions/admin";
 import { AddExpenseDialog } from "@/components/admin/add-expense-dialog";
@@ -150,7 +150,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
 
         {/* Roster ---------------------------------------------------------- */}
         <TabsContent value="operations">
-          <OperationsPanel paymentsEnabled={!isMeetup} people={roster.map((r) => ({ id: r.id, name: r.user.name ?? r.user.email, email: r.user.email, phone: r.user.phone, partySize: r.partySize, checkedInCount: r.checkedInCount, confirmed: r.place === "Seat", expected: isMeetup ? null : expectedPayment(trip, r.companions), net: trip.paymentEvents.filter((p) => p.registrationId === r.id).reduce((n,p) => n+toPaise(p.amount),0), paymentStatus: r.paymentStatus, carpoolChoice: r.carpoolChoice, carpoolLocation: r.carpoolLocation, carpoolSeats: r.carpoolSeats, carpoolMatched: r.carpoolMatched }))} events={trip.paymentEvents.map((p) => ({ id: p.id, name: p.registration.user.name ?? p.registration.user.email, amount: p.amount.toString(), method: p.method, reference: p.reference, note: p.note, by: p.recordedBy.name ?? p.recordedBy.email, date: formatDate(p.createdAt) }))} />
+          <OperationsPanel paymentsEnabled={!isMeetup} people={roster.map((r) => ({ id: r.id, name: r.user.name ?? r.user.email, email: r.user.email, phone: r.user.phone, partySize: r.partySize, checkedInCount: r.checkedInCount, attendance: r.attendance, attendanceOpen: trip.startDate.getTime() <= Date.now(), travellerNames: [r.user.name ?? r.user.email, ...readCompanions(r.companions).map(person => person.name)], confirmed: r.place === "Seat", expected: isMeetup ? null : expectedPayment(trip, r.companions), net: trip.paymentEvents.filter((p) => p.registrationId === r.id).reduce((n,p) => n+toPaise(p.amount),0), paymentStatus: r.paymentStatus, carpoolChoice: r.carpoolChoice, carpoolLocation: r.carpoolLocation, carpoolSeats: r.carpoolSeats, carpoolMatched: r.carpoolMatched }))} events={trip.paymentEvents.map((p) => ({ id: p.id, name: p.registration.user.name ?? p.registration.user.email, amount: p.amount.toString(), method: p.method, reference: p.reference, note: p.note, by: p.recordedBy.name ?? p.recordedBy.email, date: formatDate(p.createdAt) }))} />
           {!isMeetup ? <a className="mt-6 inline-block text-signal underline" href={`/admin/trips/${trip.id}/payments.csv`}>Export payment ledger</a> : null}
         </TabsContent>
         <TabsContent value="roster">

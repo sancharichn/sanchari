@@ -14,8 +14,8 @@ vi.mock("@/lib/prisma", () => ({ prisma: {
 import { registerForTrip } from "./member";
 
 const input = {
-  phone: "9840012345", emergencyContact: "Sample contact 9840054321", bloodGroup: "", vehicleDetails: "", agreesToGuidelines: true,
-  companions: [{ name: "Sample Child", age: "8", relationship: "Child", bloodGroup: "" }], familyConsent: true, parentalConsent: true,
+  phone: "9840012345", emergencyContact: "Sample contact 9840054321", bloodGroup: "O+", vehicleDetails: "", agreesToGuidelines: true,
+  companions: [{ name: "Sample Child", age: "8", relationship: "Child", bloodGroup: "O+" }], familyConsent: true, parentalConsent: true,
 };
 
 beforeEach(() => {
@@ -31,6 +31,12 @@ beforeEach(() => {
 });
 
 describe("registerForTrip families", () => {
+  it("rejects missing safety details and a self emergency contact", async () => {
+    for (const unsafe of [{ ...input, bloodGroup: "" }, { ...input, companions: [{ ...input.companions[0], bloodGroup: "" }] }, { ...input, emergencyContact: "Myself 9840012345" }]) {
+      expect((await registerForTrip("trip", unsafe)).ok).toBe(false);
+      expect(mocks.createRegistration).not.toHaveBeenCalled();
+    }
+  });
   it("requires sign-in before reading or storing any family details", async () => {
     mocks.currentUser.mockResolvedValue(null);
     expect((await registerForTrip("trip", input)).ok).toBe(false);
@@ -45,7 +51,7 @@ describe("registerForTrip families", () => {
     expect((await registerForTrip("trip", { ...input, partySize: 1, userId: "another-user" })).ok).toBe(true);
     expect(mocks.createRegistration).toHaveBeenCalledWith({ data: expect.objectContaining({
       userId: "signed-in-parent", partySize: 2,
-      companions: [{ name: "Sample Child", age: 8, relationship: "Child", bloodGroup: null }],
+      companions: [{ name: "Sample Child", age: 8, relationship: "Child", bloodGroup: "O+" }],
       familyConsentAt: expect.any(Date), parentalConsentAt: expect.any(Date),
     }) });
     expect(mocks.transaction).toHaveBeenCalledOnce();

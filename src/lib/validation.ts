@@ -75,6 +75,12 @@ export const registrationSchema = z.object({ ...profileFields,
   if ((value.birthdayMonth && !value.birthdayDay) || (!value.birthdayMonth && value.birthdayDay)) {
     ctx.addIssue({ code: "custom", path: ["birthdayDay"], message: "Add both birthday month and day, or leave both blank." });
   }
+  if (!value.bloodGroup) ctx.addIssue({ code: "custom", path: ["bloodGroup"], message: "Choose your blood group before joining a trip." });
+  value.companions.forEach((member, index) => { if (!member.bloodGroup) ctx.addIssue({ code: "custom", path: ["companions", index, "bloodGroup"], message: "Choose this traveller’s blood group." }); });
+  const emergencyDigits = value.emergencyContact.replace(/\D/g, "");
+  const ownDigits = value.phone.replace(/\D/g, "");
+  if (emergencyDigits.length < 10 || emergencyDigits.length > 15) ctx.addIssue({ code: "custom", path: ["emergencyContact"], message: "Add the contact’s name and a valid 10–15 digit phone number." });
+  if (emergencyDigits === ownDigits) ctx.addIssue({ code: "custom", path: ["emergencyContact"], message: "Choose someone outside your travelling party, rather than your own number." });
   if (value.carpoolChoice !== "NONE" && !value.carpoolLocation) ctx.addIssue({ code: "custom", path: ["carpoolLocation"], message: "Add where you are travelling from." });
   if (value.carpoolChoice !== "NONE" && !value.carpoolSeats) ctx.addIssue({ code: "custom", path: ["carpoolSeats"], message: "Add the number of seats needed or available." });
   if (value.companions.length && !value.familyConsent) {
