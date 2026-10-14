@@ -49,6 +49,7 @@ export function SeatsMeter({
 
   let text: string;
   if (status === "FULL") text = "Registrations closed";
+  else if (status === "WAITLIST") text = "Waitlist only · places depend on cancellations";
   else if (seats.waitlist > 0) text = `Waitlist open, ${seats.waitlist} waiting`;
   else if (seats.left > 0) text = seats.left === 1 ? "1 seat left" : `${seats.left} seats left`;
   else text = seats.waitlist > 0 ? `Waitlist open, ${seats.waitlist} waiting` : "Waitlist open";
