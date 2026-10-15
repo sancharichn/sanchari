@@ -61,6 +61,7 @@ export async function reviewDataRequest(id: string, status: string, note: string
     // Keep an anonymous accounting identity so ledger foreign keys remain intact.
     await prisma.feedbackResponse.deleteMany({ where: { userId: member.id } });
     await prisma.feedback.deleteMany({ where: { userId: member.id } });
+    await prisma.tripInterest.deleteMany({ where: { userId: member.id } });
     await prisma.familyMember.deleteMany({ where: { userId: member.id } });
     await prisma.staffTrip.deleteMany({ where: { userId: member.id } });
     await prisma.tripRegistration.updateMany({ where: { userId: member.id }, data: { companions: [], vehicleDetails: null, carpoolLocation: null, carpoolChoice: "NONE", carpoolSeats: null } });

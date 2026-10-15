@@ -11,9 +11,10 @@ export async function GET() {
     const feedback = await prisma.feedbackResponse.findMany({ where: { userId: user.id }, select: { tripId: true, name: true, whatsapp: true, overall: true, ratings: true, extras: true, loved: true, nextPlace: true, leaderIdea: true, comeAgain: true, shareOk: true, createdAt: true } });
     const groupFeedback = await prisma.feedback.findMany({ where: { userId: user.id }, select: { rating: true, comment: true, createdAt: true } });
     const cancellations = await prisma.cancellation.findMany({ where: { userId: user.id } });
+    const tripInterests = await prisma.tripInterest.findMany({ where: { userId: user.id } });
     const requests = await prisma.dataRequest.findMany({ where: { userId: user.id } });
     await prisma.dataRequest.create({ data: { userId: user.id, kind: "EXPORT", status: "COMPLETED", resolvedAt: new Date() } });
-    return { exportedAt: new Date().toISOString(), profile, registrations, feedback, groupFeedback, cancellations, requests };
+    return { exportedAt: new Date().toISOString(), profile, registrations, feedback, groupFeedback, cancellations, requests, tripInterests };
   });
   return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store", "Content-Disposition": 'attachment; filename="sanchari-profile.json"' } });
 }

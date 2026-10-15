@@ -21,6 +21,7 @@ export default async function ProfilePage() {
   const user = await requireUser("/profile");
   const [profile, trips] = await Promise.all([getMemberProfile(user.id), getMyTrips(user.id)]);
 
+  const interest = await prisma.tripInterest.findUnique({ where: { journey_userId: { journey: "sri-lanka-2027", userId: user.id } } });
   const preferences = await prisma.user.findUnique({ where: { id: user.id }, select: { whatsappOptIn: true, whatsappNumber: true } });
   const requests = await prisma.dataRequest.findMany({ where: { userId: user.id, kind: "DELETE" }, orderBy: { createdAt: "desc" }, take: 5 });
   const profileChecks = [
@@ -62,6 +63,7 @@ export default async function ProfilePage() {
         <div><span>Family</span><strong>{profile?.familyMembers.length ?? 0}</strong><small>saved profiles</small></div>
       </section>
 
+      {interest && <section className="mt-10 rounded-panel border border-signal/30 bg-signal/5 p-5"><p className="text-xs uppercase tracking-widest text-signal">Planning interest saved</p><h2 className="mt-2 text-xl font-bold">Sri Lanka 2027</h2><p className="mt-2 text-sm text-lichen">{interest.partySize} potential traveller(s) · dates and costs to be confirmed. This is not a booking.</p><Link href="/trips/international-trip-to-sri-lanka-2027#interest" className="mt-4 inline-block text-signal underline">View or update my interest</Link></section>}
       <section aria-labelledby="my-trips-heading" className="mt-14">
         <h2 id="my-trips-heading" className="stretch-semiwide text-2xl font-bold">
           Your trips
