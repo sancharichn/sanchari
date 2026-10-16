@@ -180,6 +180,7 @@ export async function getPayerOptions(tripId: string) {
 
 export async function getMembers() {
   return prisma.user.findMany({
+    where: { deletedAt: null },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -187,10 +188,16 @@ export async function getMembers() {
       email: true,
       image: true,
       role: true,
+      staffRole: true,
       phone: true,
       bloodGroup: true,
       emergencyContact: true,
+      birthdayMonth: true,
+      birthdayDay: true,
+      whatsappOptIn: true,
+      whatsappNumber: true,
       createdAt: true,
+      familyMembers: { orderBy: { createdAt: "asc" }, select: { id: true, name: true, relationship: true, birthdayMonth: true, birthdayDay: true, image: true } },
       _count: { select: { registrations: true } },
     },
   });
