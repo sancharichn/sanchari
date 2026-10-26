@@ -26,25 +26,15 @@ export function Hero({
 }) {
   return (
     <section className="home-hero relative isolate overflow-hidden border-b border-ridge">
-      <HeroBackdrop slides={slides.length ? slides : [{ id: "fallback", src: "/covers/jawadhu-hills-camp.jpg", alt: "Sanchari camp beneath a mountain sky" }]} />
+      <HeroBackdrop slides={slides.length ? slides : [{ id: "fallback", src: "/covers/jawadhu-hills-camp.jpg", alt: "Sanchari camp beneath a mountain sky", headline: "Travel with nature." }]} />
       <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
       <div aria-hidden="true" className="hero-aurora absolute -right-20 top-16 -z-10 h-80 w-80 rounded-full bg-signal/20 blur-3xl" />
       <div aria-hidden="true" className="hero-contours absolute inset-x-0 bottom-0 -z-10 h-64 opacity-60" />
       <div aria-hidden="true" className="hero-stamp absolute right-[9%] top-24 flex size-32 rotate-6 items-center justify-center rounded-full border-2 border-signal p-4 text-center text-[0.65rem] font-black uppercase leading-tight tracking-[0.18em] text-signal md:flex">Travel with nature</div>
-      <div className="hero-content container relative grid gap-9 pb-10 pt-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] md:items-end md:gap-16 md:pb-16 md:pt-20">
-        <div>
-          {signedIn ? <p className="mb-5 text-xs font-bold uppercase tracking-[.2em] text-signal">Welcome back{memberName ? `, ${memberName.trim().split(/\s+/)[0]}` : ""}</p> : null}
-          <h1 className="stretch-wide text-[clamp(3.1rem,8vw,6.5rem)] font-extrabold leading-[0.92] tracking-[-0.02em] text-mist">
-            <span className="block">TRAVEL</span>
-            <span className="block">WITH</span>
-            <span className="block">NATURE</span>
-          </h1>
-          <p className="hero-description mt-8 text-base leading-relaxed text-mist/85 md:text-lg md:leading-8">
-            We&apos;re the Chennai unit of Sanchari, the community that began online among Malayali travel lovers over a
-            decade ago. Anyone in Chennai is welcome. We travel as volunteers, share only the real costs, and look after
-            the places we visit.
-          </p>
-          <div className="hero-actions mt-9 flex flex-wrap gap-3">
+      <div className="hero-content container relative grid gap-4 pb-5 pt-[28rem] md:grid-cols-[minmax(0,1.15fr)_minmax(20rem,.85fr)] md:items-end md:gap-5 md:pb-5 md:pt-[31rem]">
+        <div className="hero-action-panel rounded-panel border border-white/15 bg-basalt/55 p-5 backdrop-blur-md md:p-6">
+          {signedIn ? <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-signal">Welcome back{memberName ? `, ${memberName.trim().split(/\s+/)[0]}` : ""}</p> : <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-signal">Travel with nature</p>}
+          <div className="hero-actions flex flex-wrap gap-3">
             <Link href="/trips" className={buttonVariants({ size: "lg" })}>
               Explore trips
             </Link>
@@ -60,7 +50,7 @@ export function Hero({
             )}
             {signedIn ? <Link href="/profile" className={buttonVariants({ variant: "outline", size: "lg" })}>Trip Passport</Link> : null}
           </div>
-          <dl className="hero-signals mt-9 flex flex-wrap gap-5 text-sm text-mist/80">
+          <dl className="hero-signals mt-5 flex flex-wrap gap-5 text-sm text-mist/80">
             <div><dt>Upcoming trips</dt><dd><RevealNumber value={tripsCount} /></dd></div>
             <div><dt>Shared trail photos</dt><dd><RevealNumber value={photoCount} /></dd></div>
           </dl>
@@ -71,7 +61,7 @@ export function Hero({
         </div>
       </div>
 
-      <div className="container relative pb-12 md:pb-16">
+      <div className="container relative pb-10 md:pb-14">
         <TripFinder />
       </div>
     </section>

@@ -605,8 +605,8 @@
   .admin-nav-link { min-height: 44px; display: inline-flex; align-items: center; }
 }
 
-/* Landing-page clarity: visible landscapes with a compact, legible glass surface. */
-.home-hero .hero-content > div:first-child { background: linear-gradient(140deg, rgb(92 129 137 / 12%), rgb(8 19 23 / 44%)); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* Landing-page clarity: visible landscapes with compact controls near the lower edge. */
+.home-hero .hero-action-panel { background: linear-gradient(140deg, rgb(92 129 137 / 10%), rgb(8 19 23 / 52%)); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .trail-story { min-height: clamp(20rem, 48vw, 36rem); background: linear-gradient(135deg, #294039, #111c20); }
 .story-control, .trip-carousel-pause { min-height: 44px; min-width: 44px; }
 .trip-carousel-dot { min-width: 44px; min-height: 44px; background-clip: content-box; padding: 17px 6px; border-radius: 999px; }
@@ -623,13 +623,17 @@
 @keyframes join-step-arrive { from { opacity: .25; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { #join[data-revealed="true"] .join-step { animation: none; } }
 
-.home-hero > .hero-shade { background: linear-gradient(0deg, rgb(10 10 10 / 65%), transparent 50%), linear-gradient(90deg, rgb(5 13 17 / 58%), rgb(5 13 17 / 22%) 60%, rgb(5 13 17 / 12%)); }
+.home-hero > .hero-shade { background: linear-gradient(0deg, rgb(4 10 12 / 74%), rgb(4 10 12 / 12%) 44%, rgb(4 10 12 / 8%) 72%, rgb(4 10 12 / 28%)), linear-gradient(90deg, rgb(5 13 17 / 16%), transparent 62%); }
 @media (max-width: 767px) { .home-hero .hero-stamp { top: 1.25rem; right: 1.5rem; width: 5.5rem; height: 5.5rem; font-size: .53rem; padding: .75rem; } }
 
 /* A cinematic home arrival inspired by destination-led travel sites. */
 .hero-backdrop .hero-landscape { opacity: 0; transform: scale(1.045); transition: opacity 1s ease, transform 5.5s cubic-bezier(.16,1,.3,1); }
 .hero-backdrop .hero-landscape-active { opacity: 1; transform: scale(1); }
-.hero-story-controls { position: absolute; right: clamp(1rem, 3vw, 2.5rem); bottom: 1rem; z-index: 12; display: flex; align-items: center; gap: .45rem; padding: .35rem; border: 1px solid rgb(255 255 255 / 18%); border-radius: 999px; background: rgb(3 10 12 / 55%); box-shadow: 0 12px 30px rgb(0 0 0 / 22%); backdrop-filter: blur(12px); }
+.hero-slide-copy { position: absolute; top: clamp(9.5rem, 24vh, 13rem); right: clamp(1.5rem, 8vw, 8rem); left: clamp(1.5rem, 8vw, 8rem); z-index: 8; pointer-events: none; text-align: center; text-shadow: 0 3px 22px rgb(0 0 0 / 72%); }
+.hero-slide-kicker { margin-bottom: 1rem; color: #d8c968; font-size: .72rem; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
+.hero-slide-copy h1 { max-width: 18ch; margin: 0 auto; color: #f2f2ec; font-size: clamp(2.8rem, 6.7vw, 6.6rem); font-weight: 800; line-height: .98; letter-spacing: -.04em; text-wrap: balance; animation: hero-copy-arrive 700ms cubic-bezier(.16,1,.3,1); }
+@keyframes hero-copy-arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.hero-story-controls { position: absolute; right: clamp(1rem, 3vw, 2.5rem); top: 48%; z-index: 12; display: flex; align-items: center; gap: .45rem; padding: .35rem; border: 1px solid rgb(255 255 255 / 18%); border-radius: 999px; background: rgb(3 10 12 / 55%); box-shadow: 0 12px 30px rgb(0 0 0 / 22%); backdrop-filter: blur(12px); transform: translateY(-50%); }
 .hero-story-controls > button { display: grid; width: 2.55rem; height: 2.55rem; place-items: center; border-radius: 999px; color: #f2f2ec; transition: color 180ms ease, background-color 180ms ease; }
 .hero-story-controls > button:hover { color: #0a0a0a; background: #d8c968; }
 .hero-story-dots { display: flex; align-items: center; gap: .3rem; padding: 0 .2rem; }
@@ -638,5 +642,5 @@
 .personal-trail { margin-top: clamp(1.25rem, 3vw, 2.5rem) !important; }
 .personal-trail-shell { overflow: hidden; padding: clamp(1.25rem, 4vw, 2.25rem); border: 1px solid rgb(216 201 104 / 22%); border-radius: 1.75rem; background: linear-gradient(135deg, rgb(216 201 104 / 8%), rgb(22 43 46 / 76%)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 24px 60px rgb(0 0 0 / 20%); backdrop-filter: blur(20px); }
 @media (min-width: 768px) { .home-hero { min-height: 47rem; } .personal-trail { position: relative; z-index: 5; margin-top: -2.5rem !important; } }
-@media (max-width: 767px) { .hero-story-controls { top: 5.5rem; right: auto; bottom: auto; left: 1rem; transform: scale(.9); transform-origin: left top; } .hero-story-controls > button { width: 2.75rem; height: 2.75rem; } }
-@media (prefers-reduced-motion: reduce) { .hero-backdrop .hero-landscape { transition: none !important; transform: none !important; } }
+@media (max-width: 767px) { .home-hero .hero-content { padding-top: 27rem; } .home-hero > .hero-shade { background: linear-gradient(0deg, rgb(4 10 12 / 80%), rgb(4 10 12 / 10%) 46%, rgb(4 10 12 / 15%) 75%, rgb(4 10 12 / 32%)); } .hero-slide-copy { top: 10.5rem; right: 1.25rem; left: 1.25rem; } .hero-slide-copy h1 { font-size: clamp(2.55rem, 13vw, 4rem); } .hero-story-controls { top: 5.5rem; right: auto; bottom: auto; left: 1rem; transform: scale(.9); transform-origin: left top; } .hero-story-controls > button { width: 2.75rem; height: 2.75rem; } }
+@media (prefers-reduced-motion: reduce) { .hero-backdrop .hero-landscape { transition: none !important; transform: none !important; } .hero-slide-copy h1 { animation: none !important; } }
