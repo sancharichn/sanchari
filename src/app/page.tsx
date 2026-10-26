@@ -33,7 +33,7 @@ export default async function HomePage() {
   const personalisedUpcoming = preferredKinds.length ? [...upcoming].sort((a, b) => Number(preferredKinds.includes(b.kind)) - Number(preferredKinds.includes(a.kind)) || a.startDate.getTime() - b.startDate.getTime()) : upcoming;
   const recommendation = personalisedUpcoming.find((trip) => preferredKinds.includes(trip.kind)) ?? personalisedUpcoming[0] ?? null;
   const heroMessages = ["Travel with nature.", "Journeys are better together.", "Find your next trail beyond the city.", "Leave every place better than we found it."];
-  const heroSlides = landingPhotos.map((photo, index) => ({ id: photo.id, src: photo.src[1600], srcSet: `${photo.src[960]} 960w, ${photo.src[1600]} 1600w`, alt: photo.alt, headline: heroMessages[index % heroMessages.length] }));
+  const heroSlides = landingPhotos.map((photo, index) => ({ id: photo.id, src: photo.src[1600], srcSet: `${photo.src[960]} 960w, ${photo.src[1600]} 1600w`, alt: photo.alt, headline: heroMessages[index % heroMessages.length], branded: index === 0 }));
 
   return (
     <main id="main" className="home-page">

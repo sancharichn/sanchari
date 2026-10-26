@@ -179,6 +179,7 @@ async function loadLandingPhotos(folderId: string): Promise<GalleryImage[]> {
   const nested = await Promise.all(folders.map((folder) => listChildren(folder.id, token, 200)));
   return [...direct, ...nested.flat()]
     .filter((file) => file.mimeType !== FOLDER_MIME && meetsLandingImageQuality(file))
+    .sort((a, b) => Number(/^landing1(?:\.|$)/i.test(b.name.trim())) - Number(/^landing1(?:\.|$)/i.test(a.name.trim())))
     .map((file, index) => toImage(file, "the landing collection", index));
 }
 
