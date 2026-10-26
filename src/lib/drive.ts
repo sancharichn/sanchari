@@ -2,6 +2,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { DRIVE_READONLY_SCOPE, getGoogleAccessToken, signFileId } from "@/lib/google";
 import { SITE_COVERS, SITE_COVER_PREFIX, siteCover } from "@/lib/site-covers";
+import { meetsLandingImageQuality } from "@/lib/drive-quality";
 
 /*
  * The gallery is a Google Drive folder shared (Viewer) with the service
@@ -13,6 +14,7 @@ const DRIVE = "https://www.googleapis.com/drive/v3/files";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,200}$/;
 const DEFAULT_SHOP_FOLDER_ID = "1Ssm1xXGCx2l6GOt3E06JXjxBkbKhZSAq";
+const DEFAULT_LANDING_FOLDER_ID = "10_ngz_ChhvN1kP4xlguYpr4ttCwnzDw6";
 const SHOP_FOLDER_NAMES = new Set(["shop", "shops", "shop merchandise", "merchandise", "sanchari shop"]);
 
 export const GALLERY_WIDTHS = [480, 960, 1600] as const;
@@ -32,6 +34,7 @@ type DriveFile = {
   id: string;
   name: string;
   mimeType: string;
+  size?: string;
   imageMediaMetadata?: { width?: number; height?: number; rotation?: number };
 };
 
@@ -55,7 +58,7 @@ async function listChildren(folderId: string, token: string, limit: number): Pro
   do {
     const params = new URLSearchParams({
       q: `'${folderId}' in parents and trashed = false and (mimeType contains 'image/' or mimeType = '${FOLDER_MIME}')`,
-      fields: "nextPageToken, files(id, name, mimeType, imageMediaMetadata(width, height, rotation))",
+      fields: "nextPageToken, files(id, name, mimeType, size, imageMediaMetadata(width, height, rotation))",
       orderBy: "createdTime desc",
       pageSize: "200",
       supportsAllDrives: "true",
@@ -165,4 +168,29 @@ export async function getLatestPhotos(limit: number): Promise<GalleryImage[]> {
     }
   }
   return photos.slice(0, limit);
+}
+
+async function loadLandingPhotos(folderId: string): Promise<GalleryImage[]> {
+  const token = await getGoogleAccessToken(DRIVE_READONLY_SCOPE);
+  if (!token) return [];
+  const top = await listChildren(folderId, token, 300);
+  const direct = top.filter((file) => file.mimeType !== FOLDER_MIME);
+  const folders = top.filter((file) => file.mimeType === FOLDER_MIME).slice(0, 20);
+  const nested = await Promise.all(folders.map((folder) => listChildren(folder.id, token, 200)));
+  return [...direct, ...nested.flat()]
+    .filter((file) => file.mimeType !== FOLDER_MIME && meetsLandingImageQuality(file))
+    .map((file, index) => toImage(file, "the landing collection", index));
+}
+
+/** Hero-only folder. Images below 1 MB or 1600×900 are excluded. */
+export async function getLandingPhotos(limit = 6): Promise<GalleryImage[]> {
+  const folderId = process.env.GOOGLE_DRIVE_LANDING_FOLDER_ID?.trim() || DEFAULT_LANDING_FOLDER_ID;
+  if (!DRIVE_ID.test(folderId) || !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) return [];
+  try {
+    const photos = await unstable_cache(() => loadLandingPhotos(folderId), ["landing-photos-v1", folderId], { revalidate: 600 })();
+    return photos.slice(0, limit);
+  } catch (error) {
+    console.error("[landing] Could not load landing photos", error);
+    return [];
+  }
 }

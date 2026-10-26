@@ -27,7 +27,7 @@ export function Hero({
   return (
     <section className="home-hero overflow-hidden border-b border-ridge">
       <div className="hero-visual relative isolate overflow-hidden">
-        <HeroBackdrop slides={slides.length ? slides : [{ id: "fallback", src: "/covers/jawadhu-hills-camp.jpg", alt: "Sanchari camp beneath a mountain sky", headline: "Travel with nature." }]} />
+        <HeroBackdrop slides={slides} />
         <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
         <div aria-hidden="true" className="hero-aurora absolute -right-20 top-16 -z-10 h-80 w-80 rounded-full bg-signal/20 blur-3xl" />
         <div aria-hidden="true" className="hero-contours absolute inset-x-0 bottom-0 -z-10 h-64 opacity-40" />

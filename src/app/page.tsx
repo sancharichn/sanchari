@@ -8,7 +8,7 @@ import { HowWeTravel } from "@/components/site/how-we-travel";
 import { InstagramStrip } from "@/components/site/instagram-strip";
 import { PersonalTrail } from "@/components/site/personal-trail";
 import { UpcomingTripCarousel } from "@/components/trips/upcoming-trip-carousel";
-import { getGallery, getLatestPhotos } from "@/lib/drive";
+import { getGallery, getLandingPhotos, getLatestPhotos } from "@/lib/drive";
 import { getFeaturedReviews, getRecentFeedback, getUpcomingTrips, reviewToCard } from "@/lib/queries";
 import { getCurrentUserSafe } from "@/lib/session";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
@@ -18,11 +18,12 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const user = await getCurrentUserSafe();
-  const [upcoming, reviews, notes, photos, albums, preferences] = await Promise.all([
+  const [upcoming, reviews, notes, photos, landingPhotos, albums, preferences] = await Promise.all([
     getUpcomingTrips(6),
     getFeaturedReviews(3),
     getRecentFeedback(3, 4),
     getLatestPhotos(5),
+    getLandingPhotos(6),
     getGallery(),
     user ? prisma.user.findUnique({ where: { id: user.id }, select: { preferredTripKinds: true, travelPace: true, homeArea: true, personalizationUpdatedAt: true } }) : null,
   ]);
@@ -31,9 +32,8 @@ export default async function HomePage() {
   const preferredKinds = preferences?.preferredTripKinds ?? [];
   const personalisedUpcoming = preferredKinds.length ? [...upcoming].sort((a, b) => Number(preferredKinds.includes(b.kind)) - Number(preferredKinds.includes(a.kind)) || a.startDate.getTime() - b.startDate.getTime()) : upcoming;
   const recommendation = personalisedUpcoming.find((trip) => preferredKinds.includes(trip.kind)) ?? personalisedUpcoming[0] ?? null;
-  const heroPhotos = [recommendation?.cover, ...photos].filter((photo, index, all) => photo && all.findIndex((candidate) => candidate?.id === photo.id) === index).slice(0, 4);
   const heroMessages = ["Travel with nature.", "Journeys are better together.", "Find your next trail beyond the city.", "Leave every place better than we found it."];
-  const heroSlides = heroPhotos.map((photo, index) => ({ id: photo!.id, src: photo!.src[1600], srcSet: `${photo!.src[960]} 960w, ${photo!.src[1600]} 1600w`, alt: photo!.alt, headline: heroMessages[index % heroMessages.length] }));
+  const heroSlides = landingPhotos.map((photo, index) => ({ id: photo.id, src: photo.src[1600], srcSet: `${photo.src[960]} 960w, ${photo.src[1600]} 1600w`, alt: photo.alt, headline: heroMessages[index % heroMessages.length] }));
 
   return (
     <main id="main" className="home-page">

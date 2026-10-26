@@ -78,9 +78,9 @@ export async function getGoogleAccessToken(scope: string): Promise<string | null
 }
 
 /* ----------------------------------------------------------------------------
- * Signed gallery URLs: only files the gallery listed can be fetched through
- * the image proxy, so it can't be used to read anything else the service
- * account can see.
+ * Signed image URLs: only file IDs emitted by the server-side gallery and
+ * landing-folder loaders can be fetched through the proxy, so it cannot be
+ * used to browse anything else the service account can see.
  * ------------------------------------------------------------------------- */
 
 function signingKey() {

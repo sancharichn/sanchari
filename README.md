@@ -60,6 +60,7 @@ Copy `.env.example` to `.env` for local work. On Vercel, add the same keys under
 | `INSTAGRAM_HANDLE` | Shown in links | `sanchari.chennai` |
 | `INSTAGRAM_ACCESS_TOKEN` | Long-lived token for the feed (optional) | Meta app, see below |
 | `GOOGLE_DRIVE_FOLDER_ID` | The gallery folder (optional) | The folder's URL: `drive.google.com/drive/folders/<this part>` |
+| `GOOGLE_DRIVE_LANDING_FOLDER_ID` | Optional landing-carousel folder override | Defaults to the dedicated Sanchari landing folder; images must be at least 1 MB and 1600×900 |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | The service account key file, pasted whole or base64-encoded (optional) | Google Cloud, see below |
 
 The gallery and the Instagram feed are optional: without their variables, the site shows a link to Instagram instead.
