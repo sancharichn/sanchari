@@ -38,3 +38,10 @@ export async function sendTripCommunicationEmail(to: string, trip: TripEmailData
   const body = `<h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate, trip.endDate))} · ${escapeHtml(trip.location)}</p><p style="white-space:pre-line;line-height:1.7">${escapeHtml(details)}</p>`;
   await sendBirthdayEmail(to, `${subject} · ${trip.title}`, shell(subject, body, `${origin.replace(/\/$/, "")}${tripPath(trip)}`));
 }
+
+export async function sendTripGroupInviteEmail(to: string, trip: TripEmailData, origin: string, inviteUrl: string) {
+  if (!gmailConfigured()) throw new Error("Gmail is not configured.");
+  const subject = `Join the ${trip.title} WhatsApp group`;
+  const body = `<h2>${escapeHtml(trip.title)}</h2><p>${escapeHtml(formatDateRange(trip.startDate, trip.endDate))} · ${escapeHtml(trip.location)}</p><p>The organiser has created a WhatsApp group for trip updates and coordination.</p><p><a style="display:inline-block;padding:12px 18px;background:#25D366;color:#07140f;text-decoration:none;border-radius:6px;font-weight:bold" href="${escapeHtml(inviteUrl)}">Join the WhatsApp group</a></p><p style="font-size:12px;color:#b8c8c2">This private invite is intended for approved and waitlisted participants.</p>`;
+  await sendBirthdayEmail(to, subject, shell(subject, body, `${origin.replace(/\/$/, "")}${tripPath(trip)}`));
+}

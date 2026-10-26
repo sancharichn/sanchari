@@ -10,7 +10,7 @@ Contact: [sanchari.chn@gmail.com](mailto:sanchari.chn@gmail.com)
 | --- | --- |
 | Anyone | Home page, About & FAQ (`/faq`: who we are, how joining works, guidelines), trips (upcoming, on the trail, past), trip pages with the day-by-day plan, gallery, the feedback form of any trip that's taking feedback (no sign-in needed) |
 | Members (Google sign-in) | Register for a trip, join the waitlist when it's full, see payment and gear-check status, cancel while nothing is paid, keep phone / emergency contact / blood group up to date, write notes about the group |
-| Organiser (`ADMIN_EMAIL`) | `/admin`: create and edit trips and itineraries, set status, manage the roster (payment, gear check, remove), log expenses and see who owes whom, members list, download the roster as CSV; set up, open and share each trip's feedback form, see its scores and answers, pick quotes for the website, compare trips, and work through the suggestions board |
+| Organiser (`ADMIN_EMAIL`) | `/admin`: create and edit trips and itineraries, set status, manage the roster (payment, gear check, remove), log expenses and see who owes whom, members list, download the roster as CSV; set up, open and share each trip's feedback form, manage the trip WhatsApp invite, see scores and answers, pick quotes for the website, compare trips, and work through the suggestions board |
 
 `/admin` returns the 404 page to everyone who isn't ADMIN. The role is checked in middleware, again in the admin layout against the database, and again inside every organiser action and the CSV route.
 
@@ -102,7 +102,11 @@ The feed uses the Instagram API with Instagram Login, so @sanchari.chennai must 
 2. Generate a token for @sanchari.chennai and put it in `INSTAGRAM_ACCESS_TOKEN`.
 3. Long-lived tokens last about 60 days. When the feed shows the plain "Open @sanchari.chennai" card instead of posts, generate a new token and update the variable.
 
-### 5. Vercel
+### 5. WhatsApp trip groups
+
+The trip-group workflow does not require a WhatsApp Business account. An organiser creates the group in WhatsApp using the trip title and pastes its `https://chat.whatsapp.com/...` invite link in the trip workspace. The app can email that link to the approved and waitlisted audience through the configured Gmail account. It also prepares one-click WhatsApp chats for members who opted in; the organiser reviews each message and presses Send in WhatsApp.
+
+### 6. Vercel
 
 1. Import `sancharichn/sanchari` as a new project (framework: Next.js; the build command comes from `package.json`).
 2. Add the environment variables above, then deploy.

@@ -12,6 +12,16 @@ export function normalizeWhatsapp(input: string) {
   const number = input.trim().replace(/[ ()-]/g, "");
   return /^\+[1-9]\d{7,14}$/.test(number) ? number.slice(1) : null;
 }
+export function normalizeWhatsappInviteUrl(input: string) {
+  try {
+    const url = new URL(input.trim());
+    if (url.protocol !== "https:" || url.hostname !== "chat.whatsapp.com" || url.port || url.username || url.password || url.hash) return null;
+    if (!/^\/[A-Za-z0-9_-]{10,100}$/.test(url.pathname)) return null;
+    return `https://chat.whatsapp.com${url.pathname}`;
+  } catch {
+    return null;
+  }
+}
 export async function sendPromotionWhatsapp(to: string, title: string, url: string, key: string) {
   if (!whatsappConfigured() || !/^[1-9]\d{7,14}$/.test(to)) throw new Error("WhatsApp is not configured or recipient is invalid.");
   const version = process.env.WHATSAPP_API_VERSION!;

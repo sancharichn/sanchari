@@ -171,6 +171,8 @@ model Trip {
   feedbacks      Feedback[]
   feedbackForm   FeedbackForm?
   responses      FeedbackResponse[]
+  whatsappGroupInviteUrl String?
+  whatsappGroupInvitesSentAt DateTime?
   suggestions    Suggestion[]
   tasks          TripTask[]
   incidents      TripIncident[]

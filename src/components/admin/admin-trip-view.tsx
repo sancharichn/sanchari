@@ -26,6 +26,7 @@ import { IncidentClose, IncidentControls, TaskEditor, TaskToggle, TripTaskContro
 import { isPublicStatus, parseItinerary, splitRoster, tripTypeLabel } from "@/lib/trips";
 import { TripEmailButton } from "@/components/admin/trip-email-button";
 import { TripCommunicationPanel } from "@/components/admin/trip-communication-panel";
+import { TripWhatsappPanel } from "@/components/admin/trip-whatsapp-panel";
 
 type Props = {
   trip: AdminTrip;
@@ -63,6 +64,14 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
   const pendingPayment = isMeetup ? [] : confirmed.filter((registration) => registration.paymentStatus !== "PAID");
   const pendingArrival = confirmed.filter((registration) => registration.checkedInCount < registration.partySize);
   const unresolvedRides = confirmed.filter((registration) => registration.carpoolChoice === "NEED_RIDE" && !registration.carpoolMatched);
+  const whatsappCandidates = [
+    ...confirmed,
+    ...waitlisted,
+    ...(trip.status === "WAITLIST" ? trip.registrations.filter((registration) => registration.approvalStatus === "PENDING") : []),
+  ];
+  const whatsappAudience = Array.from(new Map(whatsappCandidates.map((registration) => [registration.user.id, registration])).values());
+  const groupEmailAudience = whatsappAudience.filter((registration) => !registration.user.deletedAt && Boolean(registration.user.email));
+  const whatsappReachable = whatsappAudience.filter((registration) => registration.user.whatsappOptIn && !registration.user.deletedAt && /^\+?[1-9]\d{7,14}$/.test((registration.user.whatsappNumber ?? "").replace(/[ ()-]/g, "")));
 
   const initialForm: TripFormValues = {
     title: trip.title,
@@ -130,6 +139,17 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
       </section>
 
       <TripCommunicationPanel tripId={trip.id} meetup={isMeetup} audienceCount={confirmed.filter((registration) => Boolean(registration.user.email)).length} />
+      <TripWhatsappPanel
+        tripId={trip.id}
+        tripTitle={trip.title}
+        initialUrl={trip.whatsappGroupInviteUrl ?? ""}
+        audienceCount={groupEmailAudience.length}
+        members={whatsappReachable.map((registration) => ({
+          name: registration.user.name ?? registration.user.email,
+          number: (registration.user.whatsappNumber ?? "").replace(/\D/g, ""),
+        }))}
+        lastSent={trip.whatsappGroupInvitesSentAt ? formatDate(trip.whatsappGroupInvitesSentAt) : null}
+      />
 
       <Tabs defaultValue={defaultTab} className="mt-10">
         <TabsList aria-label="Manage this trip" className="flex h-auto w-full flex-wrap justify-start">

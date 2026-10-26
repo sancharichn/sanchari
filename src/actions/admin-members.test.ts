@@ -26,6 +26,11 @@ describe("admin member editing", () => {
     const result = await updateMemberByAdmin({ ...input, familyMembers: [{ name: "Child", relationship: "Child", birthdayMonth: "3", birthdayDay: "12", image: "" }] });
     expect(result.ok).toBe(true); expect(mock.updateUser).toHaveBeenCalled(); expect(mock.createFamily).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: "member", name: "Child", relationship: "Child" }) });
   });
+  it("saves an opted-in member after the admin form restores international number formatting", async () => {
+    const result = await updateMemberByAdmin({ ...input, whatsappOptIn: true, whatsappNumber: "+91 98765 43210" });
+    expect(result.ok).toBe(true);
+    expect(mock.updateUser).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ whatsappOptIn: true, whatsappNumber: "919876543210" }) }));
+  });
   it("prevents an administrator from removing their own access", async () => { mock.admin.mockResolvedValue({ id: "member" }); mock.findUser.mockResolvedValue({ id: "member", role: "ADMIN", deletedAt: null }); expect((await updateMemberByAdmin(input)).ok).toBe(false); });
 });
 

@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHmac } from "node:crypto";
-import { normalizeWhatsapp, sendPromotionWhatsapp, validWhatsappSignature, whatsappConfigured } from "./whatsapp";
+import { normalizeWhatsapp, normalizeWhatsappInviteUrl, sendPromotionWhatsapp, validWhatsappSignature, whatsappConfigured } from "./whatsapp";
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 describe("WhatsApp Cloud API boundary", () => {
   it("requires international numbers and authenticates the exact raw payload", () => {
     expect(normalizeWhatsapp("+91 98765 43210")).toBe("919876543210");
     expect(normalizeWhatsapp("9876543210")).toBeNull();
+    expect(normalizeWhatsappInviteUrl("https://chat.whatsapp.com/GXYMaKnuyC2KcSFAKWODjX?mode=gi_t")).toBe("https://chat.whatsapp.com/GXYMaKnuyC2KcSFAKWODjX");
+    expect(normalizeWhatsappInviteUrl("https://example.com/GXYMaKnuyC2KcSFAKWODjX")).toBeNull();
     const raw = '{"a":1}';
     const signature = "sha256=" + createHmac("sha256", "secret").update(raw).digest("hex");
     expect(validWhatsappSignature(raw, signature, "secret")).toBe(true);
