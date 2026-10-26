@@ -26,6 +26,9 @@ const memberSchema = z.object({
   phone: optionalText(20), bloodGroup: z.union([z.literal(""), z.enum(BLOOD_GROUPS)]).transform((value) => value || null),
   emergencyContact: optionalText(120), birthdayMonth: optionalBirthday(12), birthdayDay: optionalBirthday(31),
   whatsappOptIn: z.boolean(), whatsappNumber: optionalText(20), familyMembers: z.array(familySchema).max(20),
+  preferredTripKinds: z.array(z.enum(["MEETUP", "DAY_TRIP", "STAY_BACK", "INTERNATIONAL", "TREK"])).max(5),
+  travelPace: z.union([z.literal(""), z.enum(["RELAXED", "BALANCED", "ACTIVE"])]).transform((value) => value || null),
+  homeArea: optionalText(80),
 }).superRefine((value, ctx) => {
   const validBirthday = (month: number | null, day: number | null) => (month === null && day === null) || (month !== null && day !== null && new Date(Date.UTC(2000, month - 1, day)).getUTCMonth() === month - 1);
   if (!validBirthday(value.birthdayMonth, value.birthdayDay)) ctx.addIssue({ code: "custom", path: ["birthdayDay"], message: "Choose a valid birthday month and day, or leave both blank." });
@@ -47,7 +50,7 @@ export async function updateMemberByAdmin(input: unknown): Promise<ActionResult>
     if (member.role === "ADMIN" && data.role !== "ADMIN" && await prisma.user.count({ where: { role: "ADMIN", deletedAt: null } }) <= 1) return fail("Keep at least one active administrator.");
     try {
       await prisma.$transaction(async (tx) => {
-        await tx.user.update({ where: { id }, data: { ...data, whatsappNumber: data.whatsappOptIn ? normalizeWhatsapp(whatsappNumber ?? "") : null, staffRole: data.role === "ADMIN" ? null : data.staffRole } });
+        await tx.user.update({ where: { id }, data: { ...data, whatsappNumber: data.whatsappOptIn ? normalizeWhatsapp(whatsappNumber ?? "") : null, staffRole: data.role === "ADMIN" ? null : data.staffRole, personalizationUpdatedAt: data.preferredTripKinds.length || data.travelPace || data.homeArea ? new Date() : null } });
         const existing = await tx.familyMember.findMany({ where: { userId: id }, select: { id: true } });
         const owned = new Set(existing.map((entry) => entry.id));
         const retained = familyMembers.flatMap((entry) => entry.id && owned.has(entry.id) ? [entry.id] : []);
@@ -91,7 +94,7 @@ export async function deleteMemberByAdmin(id: string): Promise<ActionResult> {
     await prisma.notification.updateMany({ where: { userId: id }, data: { status: "CANCELLED", error: null } });
     await prisma.tripMessageDelivery.updateMany({ where: { recipient: member.email }, data: { recipient: "removed" } });
     await prisma.birthdayDelivery.deleteMany({ where: { recipientKey: { endsWith: `:${member.email}` } } });
-    await prisma.user.update({ where: { id }, data: { name: "Removed member", email: `removed-${id}@example.invalid`, image: null, phone: null, emergencyContact: null, bloodGroup: null, birthdayDay: null, birthdayMonth: null, whatsappOptIn: false, whatsappNumber: null, staffRole: null, deletedAt: new Date() } });
+    await prisma.user.update({ where: { id }, data: { name: "Removed member", email: `removed-${id}@example.invalid`, image: null, phone: null, emergencyContact: null, bloodGroup: null, birthdayDay: null, birthdayMonth: null, whatsappOptIn: false, whatsappNumber: null, staffRole: null, preferredTripKinds: [], travelPace: null, homeArea: null, personalizationUpdatedAt: null, deletedAt: new Date() } });
     revalidatePath("/admin/members"); revalidatePath("/admin/access");
     return done("Member removed. Historical trip and order records were anonymised and retained.");
   });

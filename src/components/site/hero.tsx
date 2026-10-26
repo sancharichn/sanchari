@@ -2,45 +2,38 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { SeatsMeter } from "@/components/trips/trip-status";
 import { formatDateRange } from "@/lib/format";
-import type { GalleryImage } from "@/lib/drive";
 import type { TripListItem } from "@/lib/queries";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "@/lib/site";
 import { KIND_PLURAL, TRIP_KINDS, tripTypeLabel } from "@/lib/trips";
 import { tripPath } from "@/lib/trip-url";
 import { RevealNumber } from "@/components/site/reveal-number";
+import { HeroBackdrop, type HeroSlide } from "@/components/site/hero-backdrop";
 
 export function Hero({
   next,
   signedIn,
-  photo,
+  slides,
+  memberName,
   tripsCount,
   photoCount,
 }: {
   next: TripListItem | null;
   signedIn: boolean;
-  /** The next trip's cover, or the newest gallery photo. */
-  photo: GalleryImage | null;
+  slides: HeroSlide[];
+  memberName?: string | null;
   tripsCount: number;
   photoCount: number;
 }) {
   return (
     <section className="home-hero relative isolate overflow-hidden border-b border-ridge">
-      {/* Keep the landscape present even before the first gallery upload. */}
-      {/* eslint-disable-next-line @next/next/no-img-element -- local fallback or our resized photo proxy */}
-      <img
-        src={photo?.src[1600] ?? "/covers/jawadhu-hills-camp.jpg"}
-        srcSet={photo ? `${photo.src[960]} 960w, ${photo.src[1600]} 1600w` : undefined}
-        sizes="100vw"
-        alt=""
-        fetchPriority="high"
-        className="hero-landscape absolute inset-0 -z-20 size-full object-cover"
-      />
+      <HeroBackdrop slides={slides.length ? slides : [{ id: "fallback", src: "/covers/jawadhu-hills-camp.jpg", alt: "Sanchari camp beneath a mountain sky" }]} />
       <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
       <div aria-hidden="true" className="hero-aurora absolute -right-20 top-16 -z-10 h-80 w-80 rounded-full bg-signal/20 blur-3xl" />
       <div aria-hidden="true" className="hero-contours absolute inset-x-0 bottom-0 -z-10 h-64 opacity-60" />
       <div aria-hidden="true" className="hero-stamp absolute right-[9%] top-24 flex size-32 rotate-6 items-center justify-center rounded-full border-2 border-signal p-4 text-center text-[0.65rem] font-black uppercase leading-tight tracking-[0.18em] text-signal md:flex">Travel with nature</div>
       <div className="hero-content container relative grid gap-9 pb-10 pt-12 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] md:items-end md:gap-16 md:pb-16 md:pt-20">
         <div>
+          {signedIn ? <p className="mb-5 text-xs font-bold uppercase tracking-[.2em] text-signal">Welcome back{memberName ? `, ${memberName.trim().split(/\s+/)[0]}` : ""}</p> : null}
           <h1 className="stretch-wide text-[clamp(3.1rem,8vw,6.5rem)] font-extrabold leading-[0.92] tracking-[-0.02em] text-mist">
             <span className="block">TRAVEL</span>
             <span className="block">WITH</span>

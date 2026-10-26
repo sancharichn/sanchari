@@ -14,7 +14,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: {
 } }));
 import { deleteMemberByAdmin, updateMemberByAdmin } from "./admin-members";
 
-const input = { id: "member", name: "Member", email: "member@example.com", image: "", role: "MEMBER", staffRole: "", phone: "9876543210", bloodGroup: "O+", emergencyContact: "Friend 9876543211", birthdayMonth: "2", birthdayDay: "29", whatsappOptIn: false, whatsappNumber: "", familyMembers: [] };
+const input = { id: "member", name: "Member", email: "member@example.com", image: "", role: "MEMBER", staffRole: "", phone: "9876543210", bloodGroup: "O+", emergencyContact: "Friend 9876543211", birthdayMonth: "2", birthdayDay: "29", whatsappOptIn: false, whatsappNumber: "", preferredTripKinds: [], travelPace: "", homeArea: "", familyMembers: [] };
 
 beforeEach(() => {
   vi.resetAllMocks(); mock.admin.mockResolvedValue({ id: "admin" }); mock.findUser.mockResolvedValue({ id: "member", role: "MEMBER", email: "member@example.com", deletedAt: null }); mock.findFamily.mockResolvedValue([]); mock.tripCount.mockResolvedValue(0); mock.orderCount.mockResolvedValue(0);

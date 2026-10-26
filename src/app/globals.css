@@ -81,6 +81,12 @@
   html[data-intro="on"] .launch-intro {
     display: flex;
   }
+  .launch-intro-copy { position: absolute; left: clamp(1.25rem, 6vw, 5rem); bottom: clamp(1.5rem, 6vw, 4.5rem); width: min(22rem, calc(100% - 8rem)); color: #f2f2ec; }
+  .launch-intro-copy p { color: #d8c968; font-size: .72rem; font-weight: 800; letter-spacing: .22em; }
+  .launch-intro-copy span { display: block; margin-top: .45rem; font-size: .92rem; }
+  .launch-intro-copy i { display: block; height: 2px; margin-top: .9rem; overflow: hidden; background: rgb(255 255 255 / 18%); }
+  .launch-intro-copy i::after { content: ""; display: block; width: 55%; height: 100%; background: #d8c968; animation: intro-trail 1.1s ease-in-out infinite alternate; }
+  @keyframes intro-trail { from { transform: translateX(-100%); } to { transform: translateX(182%); } }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -619,3 +625,18 @@
 
 .home-hero > .hero-shade { background: linear-gradient(0deg, rgb(10 10 10 / 65%), transparent 50%), linear-gradient(90deg, rgb(5 13 17 / 58%), rgb(5 13 17 / 22%) 60%, rgb(5 13 17 / 12%)); }
 @media (max-width: 767px) { .home-hero .hero-stamp { top: 1.25rem; right: 1.5rem; width: 5.5rem; height: 5.5rem; font-size: .53rem; padding: .75rem; } }
+
+/* A cinematic home arrival inspired by destination-led travel sites. */
+.hero-backdrop .hero-landscape { opacity: 0; transform: scale(1.045); transition: opacity 1s ease, transform 5.5s cubic-bezier(.16,1,.3,1); }
+.hero-backdrop .hero-landscape-active { opacity: 1; transform: scale(1); }
+.hero-story-controls { position: absolute; right: clamp(1rem, 3vw, 2.5rem); bottom: 1rem; z-index: 12; display: flex; align-items: center; gap: .45rem; padding: .35rem; border: 1px solid rgb(255 255 255 / 18%); border-radius: 999px; background: rgb(3 10 12 / 55%); box-shadow: 0 12px 30px rgb(0 0 0 / 22%); backdrop-filter: blur(12px); }
+.hero-story-controls > button { display: grid; width: 2.55rem; height: 2.55rem; place-items: center; border-radius: 999px; color: #f2f2ec; transition: color 180ms ease, background-color 180ms ease; }
+.hero-story-controls > button:hover { color: #0a0a0a; background: #d8c968; }
+.hero-story-dots { display: flex; align-items: center; gap: .3rem; padding: 0 .2rem; }
+.hero-story-dots button { width: .45rem; height: .45rem; border-radius: 999px; background: rgb(255 255 255 / 42%); transition: width 220ms ease, background-color 220ms ease; }
+.hero-story-dots button.active { width: 1.5rem; background: #d8c968; }
+.personal-trail { margin-top: clamp(1.25rem, 3vw, 2.5rem) !important; }
+.personal-trail-shell { overflow: hidden; padding: clamp(1.25rem, 4vw, 2.25rem); border: 1px solid rgb(216 201 104 / 22%); border-radius: 1.75rem; background: linear-gradient(135deg, rgb(216 201 104 / 8%), rgb(22 43 46 / 76%)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 24px 60px rgb(0 0 0 / 20%); backdrop-filter: blur(20px); }
+@media (min-width: 768px) { .home-hero { min-height: 47rem; } .personal-trail { position: relative; z-index: 5; margin-top: -2.5rem !important; } }
+@media (max-width: 767px) { .hero-story-controls { top: 5.5rem; right: auto; bottom: auto; left: 1rem; transform: scale(.9); transform-origin: left top; } .hero-story-controls > button { width: 2.75rem; height: 2.75rem; } }
+@media (prefers-reduced-motion: reduce) { .hero-backdrop .hero-landscape { transition: none !important; transform: none !important; } }

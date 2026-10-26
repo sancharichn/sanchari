@@ -95,6 +95,10 @@ model User {
   emergencyContact String?
   birthdayMonth    Int?
   birthdayDay      Int?
+  preferredTripKinds TripKind[]       @default([])
+  travelPace        String?
+  homeArea          String?
+  personalizationUpdatedAt DateTime?
   registrations    TripRegistration[]
   familyMembers    FamilyMember[]
   feedbacks        Feedback[]

@@ -13,6 +13,7 @@ import { getMemberProfile, getMyTrips } from "@/lib/queries";
 import { tripPath } from "@/lib/trip-url";
 import { requireUser } from "@/lib/session";
 import { PAYMENT_LABEL } from "@/lib/trips";
+import { PersonalizationForm } from "@/components/members/personalization-form";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your trips", robots: { index: false } };
@@ -22,7 +23,7 @@ export default async function ProfilePage() {
   const [profile, trips] = await Promise.all([getMemberProfile(user.id), getMyTrips(user.id)]);
 
   const interest = await prisma.tripInterest.findUnique({ where: { journey_userId: { journey: "sri-lanka-2027", userId: user.id } } });
-  const preferences = await prisma.user.findUnique({ where: { id: user.id }, select: { whatsappOptIn: true, whatsappNumber: true } });
+  const notificationPreferences = await prisma.user.findUnique({ where: { id: user.id }, select: { whatsappOptIn: true, whatsappNumber: true } });
   const requests = await prisma.dataRequest.findMany({ where: { userId: user.id, kind: "DELETE" }, orderBy: { createdAt: "desc" }, take: 5 });
   const profileChecks = [
     { label: "Phone", done: Boolean(profile?.phone) },
@@ -56,6 +57,8 @@ export default async function ProfilePage() {
           {profileChecks.map((check) => <li key={check.label} className="flex items-center gap-2 rounded-lg border border-ridge px-3 py-2 text-sm"><span aria-hidden="true" className={check.done ? "text-signal" : "text-lichen"}>{check.done ? "✓" : "○"}</span><span className={check.done ? "text-mist" : "text-lichen"}>{check.label}</span></li>)}
         </ul>
       </section>
+
+      <section aria-labelledby="personalization-heading" className="mt-10 rounded-panel border border-signal/20 bg-[linear-gradient(135deg,rgba(216,201,104,.08),rgba(17,31,34,.72))] p-5 sm:p-7"><p className="text-xs font-bold uppercase tracking-[.16em] text-signal">Personalisation</p><h2 id="personalization-heading" className="mt-2 text-2xl font-bold">Shape your Sanchari experience</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-lichen">Choose the outings and pace you enjoy. These choices reorder homepage recommendations and make departure and carpool information more relevant to you.</p><div className="mt-6"><PersonalizationForm defaults={{ preferredTripKinds: profile?.preferredTripKinds ?? [], travelPace: profile?.travelPace ?? null, homeArea: profile?.homeArea ?? null }} /></div></section>
 
       <section className="profile-journey mt-6 grid gap-3 sm:grid-cols-3" aria-label="Your travel snapshot">
         <div><span>Upcoming</span><strong>{upcomingTrips}</strong><small>trip{upcomingTrips === 1 ? "" : "s"} ahead</small></div>
@@ -141,7 +144,7 @@ export default async function ProfilePage() {
         </div>
       </section>
       {(user.role === "ADMIN" || user.staffRole) && <Link className="mt-8 block text-signal underline" href="/staff">Open staff workspace</Link>}
-      <MemberDataControls optIn={preferences?.whatsappOptIn ?? false} number={preferences?.whatsappNumber ?? null} />
+      <MemberDataControls optIn={notificationPreferences?.whatsappOptIn ?? false} number={notificationPreferences?.whatsappNumber ?? null} />
       {requests.map(r => <div className="mt-4 rounded-panel border border-ridge p-4" key={r.id}><p>Deletion request · {r.status} · {r.createdAt.toLocaleDateString("en-IN")}</p><p className="text-lichen">{r.note ?? "Awaiting organiser review."}</p></div>)}
     </main>
   );

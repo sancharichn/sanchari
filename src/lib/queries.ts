@@ -159,6 +159,10 @@ export async function getMemberProfile(userId: string) {
       createdAt: true,
       birthdayMonth: true,
       birthdayDay: true,
+      preferredTripKinds: true,
+      travelPace: true,
+      homeArea: true,
+      personalizationUpdatedAt: true,
       familyMembers: { orderBy: { name: "asc" }, select: { id: true, name: true, relationship: true, birthdayMonth: true, birthdayDay: true, image: true } },
     },
   });

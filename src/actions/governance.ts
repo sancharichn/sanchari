@@ -69,7 +69,7 @@ export async function reviewDataRequest(id: string, status: string, note: string
     await prisma.notification.updateMany({ where: { userId: member.id }, data: { status: "CANCELLED", error: null } });
     await prisma.tripMessageDelivery.updateMany({ where: { recipient: member.email }, data: { recipient: "removed" } });
     await prisma.birthdayDelivery.deleteMany({ where: { recipientKey: { endsWith: ":" + member.email } } });
-    await prisma.user.update({ where: { id: member.id }, data: { name: "Removed member", email: `removed-${member.id}@example.invalid`, image: null, phone: null, emergencyContact: null, bloodGroup: null, birthdayDay: null, birthdayMonth: null, whatsappOptIn: false, whatsappNumber: null, staffRole: null, deletedAt: new Date() } });
+    await prisma.user.update({ where: { id: member.id }, data: { name: "Removed member", email: `removed-${member.id}@example.invalid`, image: null, phone: null, emergencyContact: null, bloodGroup: null, birthdayDay: null, birthdayMonth: null, whatsappOptIn: false, whatsappNumber: null, staffRole: null, preferredTripKinds: [], travelPace: null, homeArea: null, personalizationUpdatedAt: null, deletedAt: new Date() } });
   }
   await prisma.dataRequest.update({ where: { id }, data: { status, note: note.trim(), resolvedAt: status === "REVIEWING" ? null : new Date() } });
   revalidatePath("/admin/data-requests"); revalidatePath("/profile"); return done("Request updated.");

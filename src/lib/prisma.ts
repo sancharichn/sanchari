@@ -20,7 +20,7 @@ const mutations = new Set(["create", "createMany", "update", "updateMany", "upse
 
 export function auditSnapshot(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value, (key, item) => {
-    if (/image|password|secret|token|phone|whatsapp|bloodGroup|emergencyContact|companions|description|comment|followUpNote|actionTaken|^note$|loved|leaderIdea|nextPlace|ratings|extras|ipHash|dedupeKey|^email$|^name$|vehicleDetails|carpoolLocation|recipient|birthday|receiptUrl|^text$/i.test(key)) return item === null ? null : "[redacted]";
+    if (/image|password|secret|token|phone|whatsapp|bloodGroup|emergencyContact|companions|description|comment|followUpNote|actionTaken|^note$|loved|leaderIdea|nextPlace|ratings|extras|ipHash|dedupeKey|^email$|^name$|vehicleDetails|carpoolLocation|recipient|birthday|receiptUrl|^text$|homeArea|preferredTripKinds|travelPace/i.test(key)) return item === null ? null : "[redacted]";
     return item;
   }));
 }

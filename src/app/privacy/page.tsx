@@ -63,7 +63,7 @@ export default function PrivacyPage() {
         </Section>
         <Section id="birthdays" title="Family profiles and birthday wishes">
           <p>You may add family members, optional birthday days and months, and optional photos. We do not collect a birth year for birthday wishes. Adding a birthday enables a private wish to your account email when sending is configured. Family wishes go to the registering adult. Clear the birthday fields to stop future wishes, or remove the family entry.</p>
-          <p>Uploaded photos are resized and saved with your profile for personalised birthday cards. Organisers can see these details; they are not listed publicly. Add family details and photos only with their permission, or as their parent or guardian. Payment records, attendance and incident follow-up are restricted to organisers.</p>
+          <p>Uploaded photos are resized and saved with your profile for personalised birthday cards. Travel preferences and your usual starting area are used to tailor trip recommendations and departure information. Organisers can see these details; they are not listed publicly. Add family details and photos only with their permission, or as their parent or guardian. Payment records, attendance and incident follow-up are restricted to organisers.</p>
         </Section>
         <Section id="sign-in" title="What we get when you sign in">
           <p>

@@ -35,12 +35,12 @@ export function LaunchIntro() {
     const video = videoRef.current;
     let started = false;
 
-    // If the video hasn't started within 1.75s (slow connection), skip it.
+    // If the video hasn't started quickly, reveal the already usable page.
     const slowStart = window.setTimeout(() => {
       if (!started) finish();
-    }, 1750);
-    // Never hold the page longer than this, whatever happens.
-    const ceiling = window.setTimeout(finish, 7000);
+    }, 900);
+    // Keep the branded arrival brief, even on a long source video.
+    const ceiling = window.setTimeout(finish, 3500);
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") finish();
@@ -106,9 +106,7 @@ export function LaunchIntro() {
       >
         Skip intro
       </button>
-      <p className="sr-only" role="status">
-        Playing the Sanchari logo animation. Press Escape or use Skip intro to go straight to the site.
-      </p>
+      <div className="launch-intro-copy" role="status"><p>TRAVEL WITH NATURE</p><span>Opening your Sanchari trail</span><i aria-hidden="true" /></div>
     </div>
   );
 }
