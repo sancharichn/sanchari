@@ -644,3 +644,21 @@
 @media (min-width: 768px) { .home-hero { min-height: 47rem; } .personal-trail { position: relative; z-index: 5; margin-top: -2.5rem !important; } }
 @media (max-width: 767px) { .home-hero .hero-content { padding-top: 27rem; } .home-hero > .hero-shade { background: linear-gradient(0deg, rgb(4 10 12 / 80%), rgb(4 10 12 / 10%) 46%, rgb(4 10 12 / 15%) 75%, rgb(4 10 12 / 32%)); } .hero-slide-copy { top: 10.5rem; right: 1.25rem; left: 1.25rem; } .hero-slide-copy h1 { font-size: clamp(2.55rem, 13vw, 4rem); } .hero-story-controls { top: 5.5rem; right: auto; bottom: auto; left: 1rem; transform: scale(.9); transform-origin: left top; } .hero-story-controls > button { width: 2.75rem; height: 2.75rem; } }
 @media (prefers-reduced-motion: reduce) { .hero-backdrop .hero-landscape { transition: none !important; transform: none !important; } .hero-slide-copy h1 { animation: none !important; } }
+
+/* Keep the photographic window unobstructed; trip actions live below it. */
+.home-hero { min-height: 0 !important; background: #071318; }
+.hero-visual { height: clamp(34rem, 74vh, 52rem); min-height: 34rem; }
+.hero-visual .hero-landscape { object-position: center; filter: saturate(1.08) contrast(1.03) brightness(1.04); }
+.hero-visual > .hero-shade { background: linear-gradient(180deg, rgb(4 10 12 / 20%), rgb(4 10 12 / 4%) 36%, rgb(4 10 12 / 12%) 72%, rgb(4 10 12 / 38%)); }
+.hero-visual .hero-slide-copy { top: 50%; transform: translateY(-50%); }
+.hero-visual .hero-story-controls { top: auto; right: clamp(1rem, 3vw, 2.5rem); bottom: 1.5rem; left: auto; transform: none; }
+.hero-lower { position: relative; z-index: 10; border-top: 1px solid rgb(221 240 241 / 12%); background: linear-gradient(180deg, #0b171a, #071114); }
+.home-hero .hero-content { min-height: 0; padding-top: 1.25rem; padding-bottom: 1.25rem; }
+.hero-lower .hero-action-panel, .hero-lower .departure-card { height: 100%; }
+@media (max-width: 767px) {
+  .hero-visual { height: 70svh; min-height: 32rem; max-height: 42rem; }
+  .hero-visual .hero-landscape { object-position: center; }
+  .hero-visual .hero-slide-copy { top: 48%; right: 1.25rem; left: 1.25rem; }
+  .hero-visual .hero-story-controls { top: auto; right: auto; bottom: 1rem; left: 1rem; transform: scale(.9); transform-origin: left bottom; }
+  .home-hero .hero-content { padding-top: 1rem; padding-bottom: 1rem; }
+}

@@ -25,13 +25,16 @@ export function Hero({
   photoCount: number;
 }) {
   return (
-    <section className="home-hero relative isolate overflow-hidden border-b border-ridge">
-      <HeroBackdrop slides={slides.length ? slides : [{ id: "fallback", src: "/covers/jawadhu-hills-camp.jpg", alt: "Sanchari camp beneath a mountain sky", headline: "Travel with nature." }]} />
-      <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
-      <div aria-hidden="true" className="hero-aurora absolute -right-20 top-16 -z-10 h-80 w-80 rounded-full bg-signal/20 blur-3xl" />
-      <div aria-hidden="true" className="hero-contours absolute inset-x-0 bottom-0 -z-10 h-64 opacity-60" />
-      <div aria-hidden="true" className="hero-stamp absolute right-[9%] top-24 flex size-32 rotate-6 items-center justify-center rounded-full border-2 border-signal p-4 text-center text-[0.65rem] font-black uppercase leading-tight tracking-[0.18em] text-signal md:flex">Travel with nature</div>
-      <div className="hero-content container relative grid gap-4 pb-5 pt-[28rem] md:grid-cols-[minmax(0,1.15fr)_minmax(20rem,.85fr)] md:items-end md:gap-5 md:pb-5 md:pt-[31rem]">
+    <section className="home-hero overflow-hidden border-b border-ridge">
+      <div className="hero-visual relative isolate overflow-hidden">
+        <HeroBackdrop slides={slides.length ? slides : [{ id: "fallback", src: "/covers/jawadhu-hills-camp.jpg", alt: "Sanchari camp beneath a mountain sky", headline: "Travel with nature." }]} />
+        <div aria-hidden="true" className="hero-shade absolute inset-0 -z-10" />
+        <div aria-hidden="true" className="hero-aurora absolute -right-20 top-16 -z-10 h-80 w-80 rounded-full bg-signal/20 blur-3xl" />
+        <div aria-hidden="true" className="hero-contours absolute inset-x-0 bottom-0 -z-10 h-64 opacity-40" />
+        <div aria-hidden="true" className="hero-stamp absolute right-[9%] top-24 flex size-32 rotate-6 items-center justify-center rounded-full border-2 border-signal p-4 text-center text-[0.65rem] font-black uppercase leading-tight tracking-[0.18em] text-signal md:flex">Travel with nature</div>
+      </div>
+      <div className="hero-lower">
+      <div className="hero-content container relative grid gap-4 py-5 md:grid-cols-[minmax(0,1.15fr)_minmax(20rem,.85fr)] md:items-stretch md:gap-5 md:py-5">
         <div className="hero-action-panel rounded-panel border border-white/15 bg-basalt/55 p-5 backdrop-blur-md md:p-6">
           {signedIn ? <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-signal">Welcome back{memberName ? `, ${memberName.trim().split(/\s+/)[0]}` : ""}</p> : <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-signal">Travel with nature</p>}
           <div className="hero-actions flex flex-wrap gap-3">
@@ -63,6 +66,7 @@ export function Hero({
 
       <div className="container relative pb-10 md:pb-14">
         <TripFinder />
+      </div>
       </div>
     </section>
   );
