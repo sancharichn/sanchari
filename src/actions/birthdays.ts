@@ -1,12 +1,17 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { withAudit } from "@/lib/action-audit";
 import { done, fail } from "@/lib/action-result";
-import { escapeHtml } from "@/lib/email-content";
-import { birthdayMessage } from "@/lib/birthday-templates";
+import { getBirthdayContacts } from "@/lib/birthday-admin";
+import { birthdayEmailCard } from "@/lib/birthday-email";
+import { indiaBirthdayDate } from "@/lib/email-content";
+import { BIRTHDAY_TEMPLATES } from "@/lib/birthday-templates";
 import { gmailConfigured, sendBirthdayEmail } from "@/lib/gmail";
+import { auditedTransaction, prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/session";
-import { emailFooter } from "@/lib/trip-emails";
 
 /** Sends one controlled card to the organiser inbox so Gmail can be verified without waiting for a birthday. */
 export async function sendBirthdayTestEmail() {
@@ -15,14 +20,48 @@ export async function sendBirthdayTestEmail() {
     if (!gmailConfigured()) return fail("Gmail is not configured in the current deployment.");
     const recipient = "sanchari.chn@gmail.com";
     const origin = (process.env.NEXTAUTH_URL ?? "https://sancharichennai.vercel.app").replace(/\/$/, "");
-    const message = birthdayMessage("travel-nature", "Sanchari Chennai");
-    const html = `<div style="background:#102820;color:#f6f4ed;padding:32px;font-family:Arial,sans-serif;max-width:600px"><div style="padding-bottom:18px;border-bottom:1px solid #3d5b4f"><img src="${origin}/brand/sanchari-logo.svg" width="170" alt="Sanchari Chennai" style="display:block;width:170px;height:auto"><p style="color:#e6d65c;letter-spacing:3px;font-size:12px">TRAVEL WITH NATURE</p></div><img src="${origin}/covers/jawadhu-hills-camp.jpg" width="100%" alt="A night under the stars"><h1 style="font-size:36px;color:#e6d65c">${escapeHtml(message.subject)}</h1><p style="font-size:18px;line-height:1.7">${escapeHtml(message.body)}</p><p style="font-size:12px;color:#b8c8c2">This is a one-time organiser test of the Sanchari birthday card delivery.</p>${emailFooter()}</div>`;
+    const card = birthdayEmailCard({ name: "Sanchari Chennai", image: null, templateId: "travel-nature", origin });
     try {
-      await sendBirthdayEmail(recipient, `${message.subject} · Test`, html);
+      await sendBirthdayEmail(recipient, `${card.subject} · Test`, card.html);
       return done(`Test birthday card sent to ${recipient}. Check Inbox and Spam.`);
     } catch (error) {
       console.error("[birthday-test] delivery failed", error);
       return fail("Gmail rejected the test card. Check the Gmail credentials and Vercel deployment logs.");
     }
   });
+}
+
+const templateIds = BIRTHDAY_TEMPLATES.map((template) => template.id) as [typeof BIRTHDAY_TEMPLATES[number]["id"], ...Array<typeof BIRTHDAY_TEMPLATES[number]["id"]>];
+const birthdaySendInput = z.object({ contactId: z.string().min(1).max(80), accountId: z.string().min(1).max(80), templateId: z.enum(templateIds) });
+
+export async function sendBirthdayCardEmail(input: unknown) {
+  const admin = await getAdmin();
+  if (!admin) return fail("Admin access required.");
+  const parsed = birthdaySendInput.safeParse(input);
+  if (!parsed.success) return fail("Choose a valid birthday card and try again.");
+  if (!gmailConfigured()) return fail("Gmail is not configured in the current deployment.");
+  const contact = (await getBirthdayContacts()).find((item) => item.id === parsed.data.contactId && item.accountId === parsed.data.accountId);
+  if (!contact?.email) return fail("This member does not have an email address.");
+  const year = indiaBirthdayDate().year;
+  const recipientKey = `${contact.id}:${contact.email}`;
+  let delivery;
+  try {
+    delivery = await auditedTransaction(admin.id, () => prisma.birthdayDelivery.create({ data: { recipientKey, birthdayYear: year, status: "SENDING" } }));
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return fail("A birthday email has already been attempted for this person this year. Check Birthday delivery history before retrying.");
+    return fail("The birthday delivery could not be prepared.");
+  }
+  const origin = (process.env.NEXTAUTH_URL ?? "https://sancharichennai.vercel.app").replace(/\/$/, "");
+  const card = birthdayEmailCard({ name: contact.name, image: contact.image, templateId: parsed.data.templateId, origin });
+  try {
+    await sendBirthdayEmail(contact.email, card.subject, card.html, contact.image);
+    await auditedTransaction(admin.id, () => prisma.birthdayDelivery.update({ where: { id: delivery.id }, data: { status: "SENT", sentAt: new Date() } }));
+    revalidatePath("/admin/birthdays");
+    revalidatePath("/admin/reports");
+    return done(`Birthday card emailed to ${contact.name}.`);
+  } catch (error) {
+    console.error("[birthday-manual] delivery failed", error);
+    await auditedTransaction(admin.id, () => prisma.birthdayDelivery.update({ where: { id: delivery.id }, data: { status: "REVIEW_REQUIRED" } }));
+    return fail("Gmail could not confirm delivery. Check Birthday delivery history before retrying so the member does not receive a duplicate.");
+  }
 }

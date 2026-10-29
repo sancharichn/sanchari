@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Cake, CalendarDays, Check, Clock3, Mail, MessageCircle, Sparkles, Users } from "lucide-react";
+import { sendBirthdayCardEmail } from "@/actions/birthdays";
+import { FormMessage, useActionRunner } from "@/components/forms/use-action-runner";
 import { BIRTHDAY_TEMPLATES, birthdayMessage } from "@/lib/birthday-templates";
 
 export type ScheduledBirthday = {
@@ -20,6 +22,8 @@ export type ScheduledBirthday = {
   timing: string;
   dateLabel: string;
   window: "DAY" | "WEEK" | "MONTH" | "LATER";
+  deliveryStatus?: string | null;
+  sentAt?: string | null;
 };
 
 const GROUPS = [
@@ -39,7 +43,7 @@ function whatsappWish(name: string, templateId: string) {
   return `${message.body}\n\nWith warm wishes,\nSanchari Chennai · Travel with Nature\nInstagram: @sanchari.chennai\nEmail: sanchari.chn@gmail.com`;
 }
 
-export function BirthdayDashboard({ contacts, totalContacts }: { contacts: ScheduledBirthday[]; totalContacts: number }) {
+export function BirthdayDashboard({ contacts, totalContacts, preview = false }: { contacts: ScheduledBirthday[]; totalContacts: number; preview?: boolean }) {
   const [templateId, setTemplateId] = useState<string>(BIRTHDAY_TEMPLATES[1].id);
   const template = BIRTHDAY_TEMPLATES.find((item) => item.id === templateId) ?? BIRTHDAY_TEMPLATES[1];
   return <div className="space-y-8">
@@ -54,16 +58,18 @@ export function BirthdayDashboard({ contacts, totalContacts }: { contacts: Sched
     </section>
 
     {GROUPS.map((group) => { const groupContacts = contacts.filter((contact) => contact.window === group.id); const Icon = group.icon; return <section key={group.id} aria-labelledby={`birthday-${group.id.toLowerCase()}`} className="space-y-4"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.15em] text-signal">{group.eyebrow}</p><h2 id={`birthday-${group.id.toLowerCase()}`} className="mt-1 flex items-center gap-2 text-2xl font-black"><Icon className="size-6 text-signal" aria-hidden="true" />{group.title}</h2></div><span className="rounded-full border border-ridge px-3 py-1 text-xs text-lichen">{groupContacts.length} birthday{groupContacts.length === 1 ? "" : "s"}</span></div>
-      {groupContacts.length ? <div className="grid gap-4 lg:grid-cols-2">{groupContacts.map((contact) => <BirthdayContact key={`${contact.id}-${group.id}`} contact={contact} templateId={templateId} />)}</div> : <div className="rounded-panel border border-dashed border-ridge bg-basalt/25 p-7 text-center text-sm text-lichen">No birthdays in this window.</div>}</section>; })}
+      {groupContacts.length ? <div className="grid gap-4 lg:grid-cols-2">{groupContacts.map((contact) => <BirthdayContact key={`${contact.id}-${group.id}`} contact={contact} templateId={templateId} preview={preview} />)}</div> : <div className="rounded-panel border border-dashed border-ridge bg-basalt/25 p-7 text-center text-sm text-lichen">No birthdays in this window.</div>}</section>; })}
 
     <p className="rounded-xl border border-ridge bg-basalt/45 p-4 text-sm leading-6 text-lichen"><Users className="mr-2 inline size-4 text-signal" aria-hidden="true" /><strong className="text-mist">{totalContacts} saved birthdays</strong> across member and family profiles. This focused queue shows the next 31 days; later birthdays move into view automatically.</p>
   </div>;
 }
 
-function BirthdayContact({ contact, templateId }: { contact: ScheduledBirthday; templateId: string }) {
+function BirthdayContact({ contact, templateId, preview }: { contact: ScheduledBirthday; templateId: string; preview: boolean }) {
+  const email = useActionRunner();
   const number = contact.whatsappOptIn ? whatsappNumber(contact.phone) : null;
   const initials = contact.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   return <article className="group relative overflow-hidden rounded-panel border border-ridge bg-basalt p-5 transition hover:-translate-y-0.5 hover:border-signal/45 hover:shadow-[0_18px_50px_rgba(0,0,0,.25)] sm:p-6"><div className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full bg-signal/10 blur-2xl" /><div className="relative flex items-start gap-4"><div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-signal/35 bg-gradient-to-br from-signal/25 to-emerald-500/10 text-lg font-black text-signal">{contact.image ? <img src={contact.image} alt="" className="h-full w-full object-cover" /> : initials}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="truncate text-lg font-bold text-mist">{contact.name}</h3><p className="mt-1 text-xs text-lichen">{contact.relationship === "Member" ? "Member profile" : `${contact.relationship} · family of ${contact.accountName}`}</p></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${contact.daysUntil <= 1 ? "bg-signal text-night" : "border border-ridge text-signal"}`}>{contact.timing}</span></div><p className="mt-3 flex items-center gap-2 text-sm font-semibold text-mist"><CalendarDays className="size-4 text-signal" aria-hidden="true" />{contact.dateLabel}</p></div></div>
-    <div className="relative mt-5 flex flex-wrap gap-2">{number ? <a href={`https://wa.me/${number}?text=${encodeURIComponent(whatsappWish(contact.name, templateId))}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 text-sm font-bold text-[#071d10] transition hover:bg-[#36df77]"><MessageCircle className="size-4" aria-hidden="true" />Prepare WhatsApp wish</a> : <span className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-ridge px-4 text-center text-xs text-lichen">{contact.phone ? "WhatsApp permission is off" : "WhatsApp number missing"}</span>}{contact.email ? <a href={`mailto:${contact.email}?subject=${encodeURIComponent(birthdayMessage(templateId, contact.name).subject)}&body=${encodeURIComponent(whatsappWish(contact.name, templateId))}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-ridge px-4 text-sm font-semibold text-mist hover:border-signal"><Mail className="size-4" aria-hidden="true" />Email</a> : null}</div>
+    <div className="relative mt-5 flex flex-wrap gap-2">{number ? <a href={`https://wa.me/${number}?text=${encodeURIComponent(whatsappWish(contact.name, templateId))}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 text-sm font-bold text-[#071d10] transition hover:bg-[#36df77]"><MessageCircle className="size-4" aria-hidden="true" />Prepare WhatsApp wish</a> : <span className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-ridge px-4 text-center text-xs text-lichen">{contact.phone ? "WhatsApp permission is off" : "WhatsApp number missing"}</span>}{contact.email ? <button type="button" disabled={preview || email.pending || Boolean(contact.deliveryStatus)} onClick={() => void email.run(() => sendBirthdayCardEmail({ contactId: contact.id, accountId: contact.accountId, templateId }))} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-ridge px-4 text-sm font-semibold text-mist hover:border-signal disabled:cursor-not-allowed disabled:opacity-60"><Mail className="size-4" aria-hidden="true" />{preview ? "Preview email card" : email.pending ? "Sending card…" : contact.deliveryStatus === "SENT" ? "Email sent" : contact.deliveryStatus ? "Delivery needs review" : "Send email card"}</button> : null}</div>
+    {contact.deliveryStatus === "SENT" && contact.sentAt ? <p className="relative mt-3 text-xs text-emerald-300">HTML birthday card sent {new Date(contact.sentAt).toLocaleDateString("en-IN", { dateStyle: "medium", timeZone: "Asia/Kolkata" })}.</p> : null}<div className="relative mt-3"><FormMessage result={email.result} /></div>
   </article>;
 }

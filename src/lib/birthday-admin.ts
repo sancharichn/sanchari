@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { indiaBirthdayDate } from "@/lib/email-content";
 
 export async function getBirthdayContacts() {
   const users = await prisma.user.findMany({
@@ -9,5 +10,9 @@ export async function getBirthdayContacts() {
     ...(user.birthdayMonth && user.birthdayDay ? [{ id: user.id, accountId: user.id, name: user.name || "Sanchari member", accountName: user.name || "Sanchari member", email: user.email, phone: user.whatsappNumber || user.phone, whatsappOptIn: user.whatsappOptIn, image: user.image, month: user.birthdayMonth, day: user.birthdayDay, relationship: "Member" }] : []),
     ...user.familyMembers.filter((family) => family.birthdayMonth && family.birthdayDay).map((family) => ({ id: family.id, accountId: user.id, name: family.name, accountName: user.name || user.email, email: user.email, phone: user.whatsappNumber || user.phone, whatsappOptIn: user.whatsappOptIn, image: family.image, month: family.birthdayMonth!, day: family.birthdayDay!, relationship: family.relationship })),
   ]);
-  return contacts.sort((a, b) => a.month - b.month || a.day - b.day || a.name.localeCompare(b.name));
+  const year = indiaBirthdayDate().year;
+  const deliveryKeys = contacts.map((contact) => `${contact.id}:${contact.email}`);
+  const deliveries = deliveryKeys.length ? await prisma.birthdayDelivery.findMany({ where: { birthdayYear: year, recipientKey: { in: deliveryKeys } }, select: { recipientKey: true, status: true, sentAt: true } }) : [];
+  const deliveryByKey = new Map(deliveries.map((delivery) => [delivery.recipientKey, delivery]));
+  return contacts.map((contact) => { const delivery = deliveryByKey.get(`${contact.id}:${contact.email}`); return { ...contact, deliveryStatus: delivery?.status ?? null, sentAt: delivery?.sentAt.toISOString() ?? null }; }).sort((a, b) => a.month - b.month || a.day - b.day || a.name.localeCompare(b.name));
 }
