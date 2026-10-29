@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = basePrisma;
 
 type Context = { tx: Prisma.TransactionClient; actorId: string | null };
 const context = new AsyncLocalStorage<Context>();
-const tracked = new Set(["user", "familyMember", "trip", "tripRegistration", "paymentEvent", "expense", "tripTask", "tripIncident", "feedback", "feedbackForm", "feedbackResponse", "suggestion", "staffTrip", "dataRequest", "cancellation", "notification", "tripMessageDelivery", "birthdayDelivery"]);
+const tracked = new Set(["user", "familyMember", "trip", "tripRegistration", "paymentEvent", "paymentImportBatch", "expense", "tripTask", "tripIncident", "feedback", "feedbackForm", "feedbackResponse", "suggestion", "staffTrip", "dataRequest", "cancellation", "notification", "tripMessageDelivery", "birthdayDelivery"]);
 const mutations = new Set(["create", "createMany", "update", "updateMany", "upsert", "delete", "deleteMany"]);
 
 export function auditSnapshot(value: unknown): Prisma.InputJsonValue {

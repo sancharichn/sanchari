@@ -78,36 +78,37 @@ enum ShopOrderStatus {
 }
 
 model User {
-  tripInterests TripInterest[]
-  shopOrders    ShopOrder[]
-  staffRole        String?
-  whatsappOptIn    Boolean            @default(false)
-  whatsappNumber   String?
-  deletedAt        DateTime?
-  staffTrips       StaffTrip[]
-  id               String             @id @default(cuid())
-  name             String?
-  email            String             @unique
-  image            String?
-  role             Role               @default(MEMBER)
-  phone            String?
-  bloodGroup       String?
-  emergencyContact String?
-  birthdayMonth    Int?
-  birthdayDay      Int?
-  preferredTripKinds TripKind[]       @default([])
-  travelPace        String?
-  homeArea          String?
+  tripInterests            TripInterest[]
+  shopOrders               ShopOrder[]
+  staffRole                String?
+  whatsappOptIn            Boolean              @default(false)
+  whatsappNumber           String?
+  deletedAt                DateTime?
+  staffTrips               StaffTrip[]
+  id                       String               @id @default(cuid())
+  name                     String?
+  email                    String               @unique
+  image                    String?
+  role                     Role                 @default(MEMBER)
+  phone                    String?
+  bloodGroup               String?
+  emergencyContact         String?
+  birthdayMonth            Int?
+  birthdayDay              Int?
+  preferredTripKinds       TripKind[]           @default([])
+  travelPace               String?
+  homeArea                 String?
   personalizationUpdatedAt DateTime?
-  registrations    TripRegistration[]
-  familyMembers    FamilyMember[]
-  feedbacks        Feedback[]
-  expensesPaid     Expense[]          @relation("PaidBy")
-  paymentEvents    PaymentEvent[]     @relation("RecordedBy")
-  tasksOwned       TripTask[]         @relation("TaskOwner")
-  incidentsLogged  TripIncident[]     @relation("IncidentReporter")
-  feedbackAnswers  FeedbackResponse[]
-  createdAt        DateTime           @default(now())
+  registrations            TripRegistration[]
+  familyMembers            FamilyMember[]
+  feedbacks                Feedback[]
+  expensesPaid             Expense[]            @relation("PaidBy")
+  paymentEvents            PaymentEvent[]       @relation("RecordedBy")
+  paymentImports           PaymentImportBatch[] @relation("PaymentImportedBy")
+  tasksOwned               TripTask[]           @relation("TaskOwner")
+  incidentsLogged          TripIncident[]       @relation("IncidentReporter")
+  feedbackAnswers          FeedbackResponse[]
+  createdAt                DateTime             @default(now())
 }
 
 model FamilyMember {
@@ -146,89 +147,116 @@ model TripMessageDelivery {
 }
 
 model Trip {
-  staffTrips     StaffTrip[]
-  id             String             @id @default(cuid())
-  title          String
-  slug           String?            @unique
-  description    String
-  startDate      DateTime
-  endDate        DateTime
-  location       String
-  transportMode  String           @default("SELF")
-  maxCapacity    Int
-  status         TripStatus         @default(DRAFT)
-  kind           TripKind           @default(DAY_TRIP)
+  staffTrips                 StaffTrip[]
+  id                         String               @id @default(cuid())
+  title                      String
+  slug                       String?              @unique
+  description                String
+  startDate                  DateTime
+  endDate                    DateTime
+  location                   String
+  transportMode              String               @default("SELF")
+  maxCapacity                Int
+  status                     TripStatus           @default(DRAFT)
+  kind                       TripKind             @default(DAY_TRIP)
   // Number of attended meetups or one-day trips required before a member can request this trip.
-  minimumPriorEvents Int             @default(0)
+  minimumPriorEvents         Int                  @default(0)
   // A Drive file id from the gallery folder, shown on trip cards and the trip page.
-  coverPhotoId   String?
-  budgetEst      Decimal?           @db.Decimal(10, 2)
-  adultBudgetEst Decimal?           @db.Decimal(10, 2)
-  childBudgetEst Decimal?           @db.Decimal(10, 2)
-  itinerary      Json?
-  registrations  TripRegistration[]
-  expenses       Expense[]
-  feedbacks      Feedback[]
-  feedbackForm   FeedbackForm?
-  responses      FeedbackResponse[]
-  whatsappGroupInviteUrl String?
+  coverPhotoId               String?
+  budgetEst                  Decimal?             @db.Decimal(10, 2)
+  adultBudgetEst             Decimal?             @db.Decimal(10, 2)
+  childBudgetEst             Decimal?             @db.Decimal(10, 2)
+  under5BudgetEst            Decimal?             @db.Decimal(10, 2)
+  itinerary                  Json?
+  registrations              TripRegistration[]
+  expenses                   Expense[]
+  feedbacks                  Feedback[]
+  feedbackForm               FeedbackForm?
+  responses                  FeedbackResponse[]
+  whatsappGroupInviteUrl     String?
   whatsappGroupInvitesSentAt DateTime?
-  suggestions    Suggestion[]
-  tasks          TripTask[]
-  incidents      TripIncident[]
-  paymentEvents  PaymentEvent[]
-  createdAt      DateTime           @default(now())
+  suggestions                Suggestion[]
+  tasks                      TripTask[]
+  incidents                  TripIncident[]
+  paymentEvents              PaymentEvent[]
+  paymentImports             PaymentImportBatch[]
+  createdAt                  DateTime             @default(now())
 }
 
 model TripRegistration {
   // Existing registrations are retained as approved; new requests enter the organiser approval pipeline.
-  approvalStatus      RegistrationApproval @default(APPROVED)
-  approvedAt          DateTime?
-  promotionVersion     Int            @default(0)
-  checkedInCount       Int            @default(0)
+  approvalStatus       RegistrationApproval @default(APPROVED)
+  approvedAt           DateTime?
+  promotionVersion     Int                  @default(0)
+  checkedInCount       Int                  @default(0)
   attendance           Json?
-  carpoolMatched       Boolean        @default(false)
-  id                   String         @id @default(cuid())
+  carpoolMatched       Boolean              @default(false)
+  id                   String               @id @default(cuid())
   userId               String
   tripId               String
   vehicleDetails       String?
-  carpoolChoice        CarpoolChoice  @default(NONE)
+  carpoolChoice        CarpoolChoice        @default(NONE)
   carpoolLocation      String?
   carpoolSeats         Int?
   // Includes the registering adult. Derived from validated companions on the server.
-  partySize            Int            @default(1)
-  companions           Json           @default("[]")
+  partySize            Int                  @default(1)
+  companions           Json                 @default("[]")
+  pricingSnapshot      Json?
   familyConsentAt      DateTime?
   parentalConsentAt    DateTime?
-  paymentStatus        PaymentStatus  @default(PENDING)
-  gearChecked          Boolean        @default(false)
+  paymentStatus        PaymentStatus        @default(PENDING)
+  gearChecked          Boolean              @default(false)
   // When they ticked "18 or over, and I agree to the guidelines". Empty for registrations made before it was asked.
   agreedToGuidelinesAt DateTime?
   paymentEvents        PaymentEvent[]
-  user                 User           @relation(fields: [userId], references: [id])
-  trip                 Trip           @relation(fields: [tripId], references: [id])
-  createdAt            DateTime       @default(now())
+  user                 User                 @relation(fields: [userId], references: [id])
+  trip                 Trip                 @relation(fields: [tripId], references: [id])
+  createdAt            DateTime             @default(now())
 
   @@unique([userId, tripId])
 }
 
 model PaymentEvent {
-  requestId      String?          @unique
-  id             String           @id @default(cuid())
+  requestId      String?             @unique
+  id             String              @id @default(cuid())
   tripId         String
   registrationId String
   recordedById   String
-  amount         Decimal          @db.Decimal(10, 2)
+  amount         Decimal             @db.Decimal(10, 2)
   method         String
   reference      String?
   note           String?
-  createdAt      DateTime         @default(now())
-  trip           Trip             @relation(fields: [tripId], references: [id], onDelete: Restrict)
-  registration   TripRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
-  recordedBy     User             @relation("RecordedBy", fields: [recordedById], references: [id])
+  travellerKey   String?
+  travellerName  String?
+  source         String              @default("MANUAL")
+  receivedAt     DateTime            @default(now())
+  importBatchId  String?
+  createdAt      DateTime            @default(now())
+  trip           Trip                @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  registration   TripRegistration    @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  recordedBy     User                @relation("RecordedBy", fields: [recordedById], references: [id])
+  importBatch    PaymentImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: Restrict)
 
   @@index([tripId, createdAt])
   @@index([registrationId])
+  @@index([importBatchId])
+}
+
+model PaymentImportBatch {
+  id            String         @id @default(cuid())
+  tripId        String
+  importedById  String
+  fileName      String
+  checksum      String
+  rowCount      Int
+  importedCount Int
+  createdAt     DateTime       @default(now())
+  trip          Trip           @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  importedBy    User           @relation("PaymentImportedBy", fields: [importedById], references: [id])
+  paymentEvents PaymentEvent[]
+
+  @@unique([tripId, checksum])
+  @@index([tripId, createdAt])
 }
 
 model TripTask {
@@ -409,16 +437,16 @@ model DataRequest {
 }
 
 model ShopProduct {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   name        String
   description String?
   sizes       String?
-  price       Decimal  @db.Decimal(10, 2)
+  price       Decimal         @db.Decimal(10, 2)
   imageUrl    String?
-  stock       Int      @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  stock       Int             @default(0)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   orderItems  ShopOrderItem[]
 }
 
@@ -472,13 +500,14 @@ model Notification {
 
 // Planning interest is separate from a confirmed trip booking; dates and prices can remain unknown.
 model TripInterest {
-  id String @id @default(cuid())
-  journey String
-  userId String
-  partySize Int @default(1)
-  note String?
+  id        String   @id @default(cuid())
+  journey   String
+  userId    String
+  partySize Int      @default(1)
+  note      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([journey, userId])
 }

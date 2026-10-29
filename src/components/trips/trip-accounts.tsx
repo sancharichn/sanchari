@@ -9,10 +9,11 @@ type Props = {
   budgetEst: { toString(): string } | null;
   adultBudgetEst?: { toString(): string } | null;
   childBudgetEst?: { toString(): string } | null;
+  under5BudgetEst?: { toString(): string } | null;
 };
 
 /** What the trip has cost so far, for the people on it. */
-export function TripAccounts({ expenses, travellerIds, travellerSizes, viewerId, budgetEst, adultBudgetEst, childBudgetEst }: Props) {
+export function TripAccounts({ expenses, travellerIds, travellerSizes, viewerId, budgetEst, adultBudgetEst, childBudgetEst, under5BudgetEst }: Props) {
   if (expenses.length === 0) return null;
 
   const accounts = computeBalances(
@@ -36,6 +37,7 @@ export function TripAccounts({ expenses, travellerIds, travellerSizes, viewerId,
         />
         {(adultBudgetEst ?? budgetEst) ? <Figure label="Adult estimate" value={formatINR(adultBudgetEst ?? budgetEst!)} /> : null}
         {(childBudgetEst ?? adultBudgetEst ?? budgetEst) ? <Figure label="Child estimate" value={formatINR(childBudgetEst ?? adultBudgetEst ?? budgetEst!)} /> : null}
+        <Figure label="Under-5 estimate" value={formatINR(under5BudgetEst ?? 0)} />
         {mine && mine.paid > 0 ? <Figure label="You paid for the group" value={formatINR(paiseToRupees(mine.paid))} /> : null}
       </dl>
     </section>

@@ -121,6 +121,7 @@ export async function getAdminTrip(id: string) {
           agreedToGuidelinesAt: true,
           partySize: true,
           companions: true,
+          pricingSnapshot: true,
           familyConsentAt: true,
           parentalConsentAt: true,
           user: {
@@ -157,7 +158,8 @@ export async function getAdminTrip(id: string) {
       feedbackForm: { select: { isOpen: true, intro: true, questions: true } },
       tasks: { orderBy: { createdAt: "desc" }, select: { id: true, title: true, ownerId: true, dueAt: true, completedAt: true, owner: { select: { name: true, email: true } } } },
       incidents: { orderBy: { createdAt: "desc" }, select: { id: true, title: true, severity: true, description: true, actionTaken: true, closedAt: true, createdAt: true, reportedBy: { select: { name: true, email: true } } } },
-      paymentEvents: { orderBy: { createdAt: "desc" }, select: { id: true, registrationId: true, amount: true, method: true, reference: true, note: true, createdAt: true, registration: { select: { user: { select: { name: true, email: true } } } }, recordedBy: { select: { name: true, email: true } } } },
+      paymentEvents: { orderBy: { receivedAt: "desc" }, select: { id: true, registrationId: true, amount: true, method: true, reference: true, note: true, travellerKey: true, travellerName: true, source: true, receivedAt: true, createdAt: true, registration: { select: { user: { select: { name: true, email: true } } } }, recordedBy: { select: { name: true, email: true } } } },
+      paymentImports: { orderBy: { createdAt: "desc" }, take: 10, select: { id: true, fileName: true, rowCount: true, importedCount: true, createdAt: true, importedBy: { select: { name: true, email: true } } } },
       _count: { select: { responses: true } },
     },
   });

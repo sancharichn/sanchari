@@ -18,7 +18,7 @@ export type PanelViewer = {
 } | null;
 
 type Props = {
-  trip: { id: string; slug: string | null; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; minimumPriorEvents: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
+  trip: { id: string; slug: string | null; title: string; status: TripStatus; kind: TripKind; maxCapacity: number; minimumPriorEvents: number; adultBudgetEst: { toString(): string } | null; childBudgetEst: { toString(): string } | null; under5BudgetEst: { toString(): string } | null; budgetEst: { toString(): string } | null };
   registered: number;
   confirmed?: number;
   started: boolean;
@@ -66,7 +66,7 @@ export function RegistrationPanel({ trip, registered, confirmed, started, viewer
           />
         ) : open ? (
           viewer ? (
-            <RegisterDialog waitlistOnly={trip.status === "WAITLIST"} tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} paymentsEnabled={trip.kind !== "MEETUP"} />
+            <RegisterDialog waitlistOnly={trip.status === "WAITLIST"} tripId={trip.id} tripTitle={trip.title} profile={viewer.profile} adultPrice={(trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} childPrice={(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst)?.toString() ?? null} under5Price={trip.under5BudgetEst?.toString() ?? "0"} paymentsEnabled={trip.kind !== "MEETUP"} />
           ) : (
             <>
               <Link

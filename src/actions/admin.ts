@@ -62,6 +62,7 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
     budgetEst: v.kind === "MEETUP" ? null : v.budgetEst,
     adultBudgetEst: v.kind === "MEETUP" ? null : v.adultBudgetEst,
     childBudgetEst: v.kind === "MEETUP" ? null : v.childBudgetEst,
+    under5BudgetEst: v.kind === "MEETUP" ? null : v.under5BudgetEst,
     itinerary: v.itinerary,
   };
 

@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { acceptsRegistrations, closedReason, isPublicStatus, rosterPosition } from "@/lib/trips";
 import { feedbackSchema, profileSchema, registrationSchema } from "@/lib/validation";
+import { travellerCharges } from "@/lib/operations";
 
 /*
  * Member actions. Each one checks the session itself: server actions are
@@ -34,7 +35,7 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
 
   const trip = await prisma.trip.findUnique({
     where: { id: String(tripId) },
-    select: { id: true, status: true, startDate: true, maxCapacity: true, minimumPriorEvents: true },
+    select: { id: true, status: true, startDate: true, maxCapacity: true, minimumPriorEvents: true, budgetEst: true, adultBudgetEst: true, childBudgetEst: true, under5BudgetEst: true },
   });
   if (!trip || !isPublicStatus(trip.status)) return fail("This trip isn't available.");
 
@@ -68,6 +69,7 @@ export async function registerForTrip(tripId: string, input: unknown): Promise<A
           userId: user.id, tripId: trip.id, vehicleDetails, carpoolChoice, carpoolLocation, carpoolSeats, agreedToGuidelinesAt: new Date(),
           approvalStatus: "PENDING",
           partySize, companions,
+          pricingSnapshot: travellerCharges(trip, user.name ?? user.email ?? "Registering adult", companions),
           familyConsentAt: companions.length && familyConsent ? new Date() : null,
           parentalConsentAt: companions.some((person) => person.age < 18) && parentalConsent ? new Date() : null,
         },

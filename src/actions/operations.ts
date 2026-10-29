@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getAdmin } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { done, fail, invalid, type ActionResult } from "@/lib/action-result";
-import { expectedPayment, ledgerStatus, paymentInput } from "@/lib/operations";
+import { expectedPayment, ledgerStatus, paymentInput, travellerCharges } from "@/lib/operations";
 import { toPaise } from "@/lib/format";
 import { splitRoster } from "@/lib/trips";
 
@@ -32,20 +32,26 @@ export async function recordPayment(input: unknown): Promise<ActionResult> {
     await prisma.$transaction(async (tx) => {
       const duplicate = await tx.paymentEvent.findUnique({ where: { requestId: v.requestId } });
       if (duplicate) return;
-      const registration = await tx.tripRegistration.findUnique({ where: { id: v.registrationId }, include: { trip: true, paymentEvents: true } });
+      const registration = await tx.tripRegistration.findUnique({ where: { id: v.registrationId }, include: { trip: { include: { registrations: { select: { id: true, createdAt: true, partySize: true, approvalStatus: true } } } }, paymentEvents: true, user: { select: { name: true, email: true } } } });
       if (!registration) throw new Error("Registration no longer exists.");
       if (registration.trip.kind === "MEETUP") throw new Error("Meetups do not use payments.");
+      if (!splitRoster(registration.trip.registrations, registration.trip.maxCapacity).confirmed.some((item) => item.id === registration.id)) throw new Error("Only confirmed bookings can have funds recorded.");
+      const travellers = travellerCharges(registration.trip, registration.user.name ?? registration.user.email, registration.companions, registration.pricingSnapshot);
+      const traveller = v.travellerKey ? travellers.find((person) => person.key === v.travellerKey) : null;
+      if (v.travellerKey && !traveller) throw new Error("Choose a traveller from this registration.");
       const net = registration.paymentEvents.reduce((sum, event) => sum + toPaise(event.amount), 0);
       const delta = toPaise(v.amount) * (v.kind === "REFUND" ? -1 : 1);
       if (net + delta < 0) throw new Error("Refund cannot exceed the receipts recorded in this ledger.");
-      await tx.paymentEvent.create({ data: { tripId: registration.tripId, registrationId: registration.id, recordedById: admin.id, requestId: v.requestId, amount: new Prisma.Decimal(v.amount).mul(v.kind === "REFUND" ? -1 : 1), method: v.method, reference: v.reference || null, note: v.note || null } });
-      await tx.tripRegistration.update({ where: { id: registration.id }, data: { paymentStatus: ledgerStatus(net + delta, expectedPayment(registration.trip, registration.companions), v.kind === "REFUND") } });
+      const travellerNet = registration.paymentEvents.filter((event) => event.travellerKey === traveller?.key).reduce((sum, event) => sum + toPaise(event.amount), 0);
+      if (traveller && travellerNet + delta < 0) throw new Error("Refund cannot exceed the funds allocated to this traveller.");
+      await tx.paymentEvent.create({ data: { tripId: registration.tripId, registrationId: registration.id, recordedById: admin.id, requestId: v.requestId, amount: new Prisma.Decimal(v.amount).mul(v.kind === "REFUND" ? -1 : 1), method: v.method, reference: v.reference || null, note: v.note || null, travellerKey: traveller?.key ?? null, travellerName: traveller?.name ?? null, receivedAt: v.receivedDate ? new Date(`${v.receivedDate}T12:00:00+05:30`) : new Date() } });
+      await tx.tripRegistration.update({ where: { id: registration.id }, data: { paymentStatus: ledgerStatus(net + delta, expectedPayment(registration.trip, registration.companions, registration.pricingSnapshot), v.kind === "REFUND") } });
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     refresh(); return done("Ledger entry recorded. Payment status updated.");
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") return fail("Another payment changed this ledger. Please retry.");
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return done("This payment was already recorded.");
-    return fail(error instanceof Error && ["Registration no longer exists.", "Meetups do not use payments.", "Refund cannot exceed the receipts recorded in this ledger."].includes(error.message) ? error.message : "Payment could not be recorded. Please retry.");
+    return fail(error instanceof Error && ["Registration no longer exists.", "Meetups do not use payments.", "Only confirmed bookings can have funds recorded.", "Refund cannot exceed the receipts recorded in this ledger.", "Refund cannot exceed the funds allocated to this traveller.", "Choose a traveller from this registration."].includes(error.message) ? error.message : "Payment could not be recorded. Please retry.");
   }
 
   });

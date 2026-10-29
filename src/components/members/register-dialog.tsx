@@ -38,6 +38,7 @@ export function RegisterDialog({
   profile,
   adultPrice,
   childPrice,
+  under5Price,
   paymentsEnabled = true,
   waitlistOnly = false,
 }: {
@@ -46,6 +47,7 @@ export function RegisterDialog({
   profile: ProfileDefaults;
   adultPrice: string | null;
   childPrice: string | null;
+  under5Price: string | null;
   paymentsEnabled?: boolean;
   waitlistOnly?: boolean;
 }) {
@@ -71,8 +73,9 @@ export function RegisterDialog({
 
   const describe = (id: string, error?: string) => (error ? `${id}-error` : `${id}-hint`);
   const familyTotal = members.reduce((total, member) => {
-    const isChild = member.age.trim() !== "" && Number(member.age) < 18;
-    return total + Number(isChild ? childPrice ?? adultPrice ?? 0 : adultPrice ?? 0);
+    const age = Number(member.age);
+    const price = age < 5 ? under5Price ?? "0" : age <= 12 ? childPrice ?? adultPrice ?? "0" : adultPrice ?? "0";
+    return total + Number(price);
   }, Number(adultPrice ?? 0));
 
   return (
@@ -225,7 +228,7 @@ export function RegisterDialog({
             </section>
             </div> : null}
             {step === 3 ? <div className="grid gap-5">
-            {paymentsEnabled && (adultPrice || childPrice) ? <p className="rounded-xl border border-signal/30 bg-signal/5 p-4 text-sm text-mist">Estimated trip cost: <strong>{formatINR(String(familyTotal))}</strong><span className="block mt-1 text-xs text-lichen">Adult: {adultPrice ? formatINR(adultPrice) : "—"} · Child: {childPrice ? formatINR(childPrice) : "same as adult"}</span></p> : null}
+            {paymentsEnabled && (adultPrice || childPrice) ? <p className="rounded-xl border border-signal/30 bg-signal/5 p-4 text-sm text-mist">Estimated trip cost: <strong>{formatINR(String(familyTotal))}</strong><span className="block mt-1 text-xs text-lichen">Adult / age 13+: {adultPrice ? formatINR(adultPrice) : "—"} · Age 5–12: {childPrice ? formatINR(childPrice) : "same as adult"} · Under 5: {formatINR(under5Price ?? "0")}</span></p> : null}
 
             <div>
               <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-ridge p-4 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal">

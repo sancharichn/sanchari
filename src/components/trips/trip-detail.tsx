@@ -82,7 +82,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             <Fact label="Transport" value={trip.transportMode === "VAN_BUS" ? "Van / bus" : trip.transportMode === "CARPOOL" ? "Car pool" : "Self travel"} />
             <Fact label="Type" value={tripTypeLabel(trip.kind, trip.startDate, trip.endDate)} />
             {trip.budgetEst || !departed ? (
-              <Fact label="Estimated cost" value={trip.adultBudgetEst || trip.budgetEst ? `Adult ${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} · Child ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)}` : "To be confirmed"} />
+              <Fact label="Estimated cost" value={trip.adultBudgetEst || trip.budgetEst ? `Adult ${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} · Age 5–12 ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)} · Under 5 ${formatINR(trip.under5BudgetEst ?? 0)}` : "To be confirmed"} />
             ) : null}
           </dl>
         </div>
@@ -117,6 +117,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
               budgetEst={trip.budgetEst}
               adultBudgetEst={trip.adultBudgetEst}
               childBudgetEst={trip.childBudgetEst}
+              under5BudgetEst={trip.under5BudgetEst}
             />
           ) : null}
 

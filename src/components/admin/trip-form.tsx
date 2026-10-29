@@ -25,6 +25,7 @@ export type TripFormValues = {
   budgetEst: string;
   adultBudgetEst: string;
   childBudgetEst: string;
+  under5BudgetEst: string;
   status: TripStatus;
   itinerary: Array<{ title: string; details: string }>;
 };
@@ -43,6 +44,7 @@ export const EMPTY_TRIP: TripFormValues = {
   budgetEst: "",
   adultBudgetEst: "",
   childBudgetEst: "",
+  under5BudgetEst: "0",
   status: "DRAFT",
   itinerary: [{ title: "", details: "" }],
 };
@@ -176,8 +178,11 @@ export function TripForm({
               {...aria("trip-adult-budget", "adultBudgetEst", true)}
             />
           </Field>
-          <Field label="Child cost (₹)" htmlFor="trip-child-budget" hint="Optional. Applies under 18s." error={err("childBudgetEst")}>
+          <Field label="Child cost, age 5–12 (₹)" htmlFor="trip-child-budget" hint="Ages 13 and above use the adult rate." error={err("childBudgetEst")}>
             <Input id="trip-child-budget" inputMode="decimal" value={values.childBudgetEst} onChange={set("childBudgetEst")} {...aria("trip-child-budget", "childBudgetEst", true)} />
+          </Field>
+          <Field label="Under-5 cost (₹)" htmlFor="trip-under5-budget" hint="Use 0 when children below 5 travel free." error={err("under5BudgetEst")}>
+            <Input id="trip-under5-budget" inputMode="decimal" value={values.under5BudgetEst} onChange={set("under5BudgetEst")} {...aria("trip-under5-budget", "under5BudgetEst", true)} />
           </Field>
           </> : <p className="self-end rounded-xl border border-signal/25 bg-signal/5 p-4 text-sm text-mist sm:col-span-2">Meetups are free two-hour gatherings. Payment and gear checks are not used.</p>}
         </div>

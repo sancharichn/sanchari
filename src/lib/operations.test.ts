@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expectedPayment, ledgerStatus, paymentInput } from "./operations";
+import { expectedPayment, ledgerStatus, paymentInput, travellerCharges } from "./operations";
 import { profileSchema } from "./validation";
 import { escapeHtml, indiaBirthdayDate } from "./email-content";
 
@@ -9,6 +9,9 @@ describe("operational calculations", () => {
     expect(expectedPayment({ adultBudgetEst: "1200.25", childBudgetEst: "500", budgetEst: null }, companions)).toBe(290050);
     expect(expectedPayment({ adultBudgetEst: "1200", childBudgetEst: "0", budgetEst: null }, companions)).toBe(240000);
     expect(expectedPayment({ adultBudgetEst: null, childBudgetEst: null, budgetEst: null }, [])).toBeNull();
+    const family = travellerCharges({ adultBudgetEst: "1200", childBudgetEst: "600", under5BudgetEst: "0", budgetEst: null }, "Lead", [{ name: "Toddler", age: 4, relationship: "Child" }, { name: "Child", age: 12, relationship: "Child" }, { name: "Teen", age: 13, relationship: "Child" }]);
+    expect(family.map((person) => [person.category, person.expected])).toEqual([["ADULT", 120000], ["UNDER_5", 0], ["CHILD_5_12", 60000], ["ADULT", 120000]]);
+    expect(expectedPayment({ adultBudgetEst: null, childBudgetEst: null, budgetEst: null }, [], family)).toBe(300000);
   });
   it("does not mark an unknown price paid and handles refund status", () => {
     expect(ledgerStatus(100, null, false)).toBe("PARTIAL");

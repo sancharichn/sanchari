@@ -7,7 +7,7 @@ import { AddExpenseDialog } from "@/components/admin/add-expense-dialog";
 import { FeedbackResults } from "@/components/admin/feedback-results";
 import { FeedbackOpenPanel, FeedbackQuestionsEditor } from "@/components/admin/feedback-setup";
 import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
-import { ApprovalSelect, GearToggle, PaymentSelect } from "@/components/admin/roster-controls";
+import { ApprovalSelect, GearToggle } from "@/components/admin/roster-controls";
 import { StatusSwitcher } from "@/components/admin/status-switcher";
 import { TripForm, type CoverOption, type TripFormValues } from "@/components/admin/trip-form";
 import { StatusBadge } from "@/components/trips/trip-status";
@@ -21,9 +21,9 @@ import { computeBalances, settleUp } from "@/lib/settle";
 import { parseExtraQuestions } from "@/lib/feedback";
 import { OperationsPanel } from "@/components/admin/operations-panel";
 import { FeedbackFollowUp } from "@/components/admin/feedback-followup";
-import { expectedPayment } from "@/lib/operations";
+import { expectedPayment, travellerCharges } from "@/lib/operations";
 import { IncidentClose, IncidentControls, TaskEditor, TaskToggle, TripTaskControls } from "@/components/admin/trip-ops-controls";
-import { isPublicStatus, parseItinerary, splitRoster, tripTypeLabel } from "@/lib/trips";
+import { isPublicStatus, parseItinerary, PAYMENT_LABEL, splitRoster, tripTypeLabel } from "@/lib/trips";
 import { TripEmailButton } from "@/components/admin/trip-email-button";
 import { TripCommunicationPanel } from "@/components/admin/trip-communication-panel";
 import { TripWhatsappPanel } from "@/components/admin/trip-whatsapp-panel";
@@ -87,6 +87,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
     budgetEst: trip.budgetEst?.toString() ?? "",
     adultBudgetEst: trip.adultBudgetEst?.toString() ?? "",
     childBudgetEst: trip.childBudgetEst?.toString() ?? "",
+    under5BudgetEst: trip.under5BudgetEst?.toString() ?? "0",
     status: trip.status,
     itinerary: parseItinerary(trip.itinerary).map((d) => ({ title: d.title, details: d.details ?? "" })),
   };
@@ -170,7 +171,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
 
         {/* Roster ---------------------------------------------------------- */}
         <TabsContent value="operations">
-          <OperationsPanel paymentsEnabled={!isMeetup} people={roster.map((r) => ({ id: r.id, name: r.user.name ?? r.user.email, email: r.user.email, phone: r.user.phone, partySize: r.partySize, checkedInCount: r.checkedInCount, attendance: r.attendance, attendanceOpen: trip.startDate.getTime() <= Date.now(), travellerNames: [r.user.name ?? r.user.email, ...readCompanions(r.companions).map(person => person.name)], confirmed: r.place === "Seat", expected: isMeetup ? null : expectedPayment(trip, r.companions), net: trip.paymentEvents.filter((p) => p.registrationId === r.id).reduce((n,p) => n+toPaise(p.amount),0), paymentStatus: r.paymentStatus, carpoolChoice: r.carpoolChoice, carpoolLocation: r.carpoolLocation, carpoolSeats: r.carpoolSeats, carpoolMatched: r.carpoolMatched }))} events={trip.paymentEvents.map((p) => ({ id: p.id, name: p.registration.user.name ?? p.registration.user.email, amount: p.amount.toString(), method: p.method, reference: p.reference, note: p.note, by: p.recordedBy.name ?? p.recordedBy.email, date: formatDate(p.createdAt) }))} />
+          <OperationsPanel tripId={trip.id} tripTitle={trip.title} paymentsEnabled={!isMeetup} people={roster.map((r) => ({ id: r.id, name: r.user.name ?? r.user.email, email: r.user.email, phone: r.user.phone, partySize: r.partySize, checkedInCount: r.checkedInCount, attendance: r.attendance, attendanceOpen: trip.startDate.getTime() <= Date.now(), travellerNames: [r.user.name ?? r.user.email, ...readCompanions(r.companions).map(person => person.name)], travellers: travellerCharges(trip, r.user.name ?? r.user.email, r.companions, r.pricingSnapshot), confirmed: r.place === "Seat", expected: isMeetup ? null : expectedPayment(trip, r.companions, r.pricingSnapshot), net: trip.paymentEvents.filter((p) => p.registrationId === r.id).reduce((n,p) => n+toPaise(p.amount),0), paymentStatus: r.paymentStatus, carpoolChoice: r.carpoolChoice, carpoolLocation: r.carpoolLocation, carpoolSeats: r.carpoolSeats, carpoolMatched: r.carpoolMatched }))} events={trip.paymentEvents.map((p) => ({ id: p.id, registrationId: p.registrationId, name: p.registration.user.name ?? p.registration.user.email, travellerKey: p.travellerKey, travellerName: p.travellerName, amount: p.amount.toString(), method: p.method, reference: p.reference, note: p.note, source: p.source, by: p.recordedBy.name ?? p.recordedBy.email, date: formatDate(p.receivedAt) }))} importBatches={trip.paymentImports.map((batch) => ({ id: batch.id, fileName: batch.fileName, rowCount: batch.rowCount, importedCount: batch.importedCount, date: formatDate(batch.createdAt), by: batch.importedBy.name ?? batch.importedBy.email }))} />
           {!isMeetup ? <a className="mt-6 inline-block text-signal underline" href={`/admin/trips/${trip.id}/payments.csv`}>Export payment ledger</a> : null}
         </TabsContent>
         <TabsContent value="roster">
@@ -225,7 +226,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
                         <TableCell>{r.user.bloodGroup ?? <span className="text-lichen">—</span>}</TableCell>
                         <TableCell className="min-w-40">{r.vehicleDetails ?? <span className="text-lichen">Needs a seat</span>}</TableCell>
                         <TableCell className="min-w-44">{r.carpoolChoice === "NONE" ? <span className="text-lichen">No car pool</span> : `${r.carpoolChoice === "OFFER_RIDE" ? "Offers" : "Needs"} ${r.carpoolSeats ?? ""} from ${r.carpoolLocation ?? "—"}`}</TableCell>
-                        {!isMeetup ? <><TableCell><PaymentSelect registrationId={r.id} status={r.paymentStatus} memberName={name} /></TableCell><TableCell><GearToggle registrationId={r.id} checked={r.gearChecked} memberName={name} /></TableCell></> : null}
+                        {!isMeetup ? <><TableCell><Link href={`/admin/trips/${trip.id}?tab=operations`} className="text-sm font-semibold text-signal underline underline-offset-4">{PAYMENT_LABEL[r.paymentStatus]}</Link></TableCell><TableCell><GearToggle registrationId={r.id} checked={r.gearChecked} memberName={name} /></TableCell></> : null}
                         <TableCell>
                           <ConfirmActionButton
                             label="Remove"
@@ -264,7 +265,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
             <Money label="Per person" paise={accounts.travellers ? accounts.perHead : null} />
             <div className="bg-basalt p-5">
               <dt className="text-sm text-lichen">Adult / child estimate</dt>
-              <dd className="mt-2 text-lg font-bold tabular-nums">{trip.adultBudgetEst ?? trip.budgetEst ? `${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} / ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)}` : "—"}</dd>
+              <dd className="mt-2 text-lg font-bold tabular-nums">{trip.adultBudgetEst ?? trip.budgetEst ? `${formatINR(trip.adultBudgetEst ?? trip.budgetEst!)} adult · ${formatINR(trip.childBudgetEst ?? trip.adultBudgetEst ?? trip.budgetEst!)} age 5–12 · ${formatINR(trip.under5BudgetEst ?? 0)} under 5` : "—"}</dd>
             </div>
             <div className="bg-basalt p-5">
               <dt className="text-sm text-lichen">Against the estimate</dt>

@@ -21,6 +21,7 @@ const listSelect = {
   budgetEst: true,
   adultBudgetEst: true,
   childBudgetEst: true,
+  under5BudgetEst: true,
   registrations: { select: { id: true, createdAt: true, partySize: true } },
 } satisfies Prisma.TripSelect;
 
@@ -39,6 +40,7 @@ export type TripListItem = {
   budgetEst: string | null;
   adultBudgetEst: string | null;
   childBudgetEst: string | null;
+  under5BudgetEst: string | null;
   registered: number;
   confirmed: number;
 };
@@ -59,6 +61,7 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
     budgetEst: trip.budgetEst?.toString() ?? null,
     adultBudgetEst: trip.adultBudgetEst?.toString() ?? null,
     childBudgetEst: trip.childBudgetEst?.toString() ?? null,
+    under5BudgetEst: trip.under5BudgetEst?.toString() ?? null,
     registered: countTravellers(trip.registrations),
     confirmed: countTravellers(splitRoster(trip.registrations, trip.maxCapacity).confirmed),
   };
