@@ -121,7 +121,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
             </Link>
             <a href={`/admin/trips/${trip.id}/roster.csv`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               <Download className="size-4" aria-hidden="true" />
-              Roster as CSV
+              Complete trip CSV
             </a>
             {confirmed.length > 0 ? <TripEmailButton tripId={trip.id} meetup={isMeetup} /> : null}
           </div>

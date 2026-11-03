@@ -110,6 +110,7 @@ export async function getAdminTrip(id: string) {
           createdAt: true,
           paymentStatus: true,
           approvalStatus: true,
+          approvedAt: true,
           gearChecked: true,
           checkedInCount: true,
           attendance: true,
@@ -131,10 +132,14 @@ export async function getAdminTrip(id: string) {
               email: true,
               image: true,
               phone: true,
+              createdAt: true,
               bloodGroup: true,
               emergencyContact: true,
               whatsappOptIn: true,
               whatsappNumber: true,
+              homeArea: true,
+              travelPace: true,
+              preferredTripKinds: true,
               deletedAt: true,
               role: true,
             },
@@ -166,7 +171,7 @@ export async function getAdminTrip(id: string) {
   // Attendance is a calendar fact. Hide any stale/future check-ins from the
   // organiser workspace even if an older record was saved before date guards.
   if (trip && trip.startDate.getTime() > Date.now()) {
-    return { ...trip, registrations: trip.registrations.map((registration) => ({ ...registration, checkedInCount: 0 })) };
+    return { ...trip, registrations: trip.registrations.map((registration) => ({ ...registration, checkedInCount: 0, attendance: null })) };
   }
   return trip;
 }
