@@ -17,6 +17,7 @@ const listSelect = {
   status: true,
   kind: true,
   coverPhotoId: true,
+  interestOpen: true,
   maxCapacity: true,
   budgetEst: true,
   adultBudgetEst: true,
@@ -36,6 +37,7 @@ export type TripListItem = {
   status: TripStatus;
   kind: TripKind;
   cover: GalleryImage | null;
+  interestOpen: boolean;
   maxCapacity: number;
   budgetEst: string | null;
   adultBudgetEst: string | null;
@@ -57,6 +59,7 @@ function toListItem(trip: Prisma.TripGetPayload<{ select: typeof listSelect }>):
     status: trip.status,
     kind: trip.kind,
     cover: coverPhoto(trip.coverPhotoId, trip.title),
+    interestOpen: trip.interestOpen,
     maxCapacity: trip.maxCapacity,
     budgetEst: trip.budgetEst?.toString() ?? null,
     adultBudgetEst: trip.adultBudgetEst?.toString() ?? null,
@@ -80,13 +83,13 @@ export async function getUpcomingTrips(limit?: number): Promise<TripListItem[]> 
 
 export async function getPublicTripGroups() {
   const trips = await prisma.trip.findMany({
-    where: { status: { in: PUBLIC_STATUSES } },
+    where: { OR: [{ status: { in: PUBLIC_STATUSES } }, { interestOpen: true }] },
     orderBy: { startDate: "asc" },
     select: listSelect,
   });
   const items = trips.map(toListItem);
   return {
-    upcoming: items.filter((t) => (t.status === "OPEN" || t.status === "WAITLIST" || t.status === "FULL") && t.endDate >= new Date()),
+    upcoming: items.filter((t) => (t.interestOpen || t.status === "OPEN" || t.status === "WAITLIST" || t.status === "FULL") && t.endDate >= new Date()),
     ongoing: items.filter((t) => t.status === "ONGOING" && t.endDate >= new Date()),
     past: items.filter((t) => t.status === "COMPLETED" || t.endDate < new Date()).reverse(),
   };

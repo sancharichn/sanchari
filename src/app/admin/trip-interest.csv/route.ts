@@ -15,10 +15,17 @@ function leadAttended(attendance: unknown, checkedInCount: number) {
   return Array.isArray(attendance) ? attendance[0] === true : checkedInCount > 0;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!await getAdmin()) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+  const tripId = new URL(request.url).searchParams.get("tripId");
+  const trip = tripId ? await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true, title: true, location: true, startDate: true, interestOpen: true } }) : null;
+  if (tripId && (!trip || !trip.interestOpen)) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+  const journey = trip ? `trip:${trip.id}` : "sri-lanka-2027";
+  const journeyTitle = trip?.title ?? "International Trip to Sri Lanka 2027";
+  const proposedYear = trip ? String(trip.startDate.getFullYear()) : "2027";
+  const proposedRoute = trip?.location ?? "Sigiriya · Kandy · Ella · Southern coast";
   const interests = await prisma.tripInterest.findMany({
-    where: { journey: "sri-lanka-2027", user: { deletedAt: null } },
+    where: { journey, user: { deletedAt: null } },
     orderBy: { createdAt: "asc" },
     select: {
       id: true, partySize: true, note: true, createdAt: true, updatedAt: true,
@@ -34,10 +41,11 @@ export async function GET() {
     const qualifying = entry.user.registrations.filter((registration) => registration.trip.startDate <= now && leadAttended(registration.attendance, registration.checkedInCount)).length;
     const family = entry.user.familyMembers.map((member) => `${member.name} (${member.relationship}${member.birthdayMonth && member.birthdayDay ? `; birthday ${member.birthdayDay}/${member.birthdayMonth}` : ""})`).join("; ");
     return [
-      "sri-lanka-2027", "International Trip to Sri Lanka 2027", "PLANNING INTEREST — NOT A BOOKING", "2027", "Sigiriya · Kandy · Ella · Southern coast", entry.id, formatDateTime(entry.createdAt), formatDateTime(entry.updatedAt),
+      journey, journeyTitle, "PLANNING INTEREST — NOT A BOOKING", proposedYear, proposedRoute, entry.id, formatDateTime(entry.createdAt), formatDateTime(entry.updatedAt),
       entry.user.id, entry.user.name ?? "Member", entry.user.email, entry.user.phone ?? "", entry.user.whatsappNumber ?? "", entry.user.whatsappOptIn ? "Yes" : "No", entry.user.homeArea ?? "", entry.user.travelPace ?? "", entry.user.preferredTripKinds.join("; "),
       entry.partySize, entry.note ?? "", qualifying, entry.user.bloodGroup ?? "", entry.user.emergencyContact ?? "", family,
     ];
   });
-  return new Response(toCsv([HEADERS, ...rows]), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": 'attachment; filename="international-trip-to-sri-lanka-2027-interest.csv"', "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+  const filename = `${journeyTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-interest.csv`;
+  return new Response(toCsv([HEADERS, ...rows]), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${filename}"`, "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
 }

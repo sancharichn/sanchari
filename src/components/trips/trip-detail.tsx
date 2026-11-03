@@ -15,11 +15,12 @@ import { ItineraryTrail } from "./itinerary-trail";
 import { RegistrationPanel } from "./registration-panel";
 import { TripAccounts } from "./trip-accounts";
 import { StatusBadge } from "./trip-status";
+import { InterestForm } from "./interest-form";
 
 export type TripViewer = { user: CurrentUser; profile: ProfileDefaults } | null;
 
 /** The whole trip page, given its data. Kept separate from fetching so it can be previewed. */
-export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPage; viewer: TripViewer; now?: Date }) {
+export function TripDetail({ trip, viewer, planningInterest = null, now = new Date() }: { trip: TripForPage; viewer: TripViewer; planningInterest?: { partySize: number; note: string | null } | null; now?: Date }) {
   const days = parseItinerary(trip.itinerary);
   const cover = coverPhoto(trip.coverPhotoId, trip.title);
   const started = trip.startDate.getTime() <= now.getTime();
@@ -63,14 +64,14 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
             All trips
           </Link>
 
-          {!isPublicStatus(trip.status) ? (
+          {!isPublicStatus(trip.status) && !trip.interestOpen ? (
             <p className="mt-6 max-w-xl rounded-[10px] border border-dashed border-lichen/60 px-4 py-3 text-sm text-mist">
               This trip is {STATUS_LABEL[trip.status].toLowerCase()}, so only organisers can see this page.
             </p>
           ) : null}
 
           <div className="mt-6">
-            <StatusBadge status={trip.status} />
+            {trip.interestOpen && trip.status === "DRAFT" ? <span className="rounded-full border border-signal/70 px-3 py-1 text-xs font-bold uppercase tracking-[.14em] text-signal">Interest open · planning stage</span> : <StatusBadge status={trip.status} />}
           </div>
           <h1 className="stretch-wide mt-4 max-w-4xl text-4xl font-extrabold leading-[0.95] tracking-[-0.01em] md:text-5xl">
             {trip.title}
@@ -163,7 +164,7 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
               Were you on this trip? Give feedback
             </Link>
           ) : null}
-          <div id="register" className="scroll-mt-24">
+          {trip.interestOpen ? <section id="interest" className="scroll-mt-24 rounded-panel border border-signal/40 bg-signal/5 p-5"><p className="text-xs font-bold uppercase tracking-[.15em] text-signal">Planning stage</p><h2 className="mt-2 text-xl font-bold">Join the interest group</h2><p className="mt-2 text-sm leading-6 text-lichen">Help organisers understand possible group size and preferences. This is not a booking, approval or payment commitment.</p>{viewer ? <InterestForm saved={planningInterest} journey={`trip:${trip.id}`} /> : <Link href={`/signin?callbackUrl=${encodeURIComponent(`${publicTripPath}#interest`)}`} className={buttonVariants({ className: "mt-5" })}>Sign in to register interest</Link>}</section> : <div id="register" className="scroll-mt-24">
           <RegistrationPanel
             trip={trip}
             registered={countTravellers(trip.registrations)}
@@ -180,10 +181,10 @@ export function TripDetail({ trip, viewer, now = new Date() }: { trip: TripForPa
                 : null
             }
           />
-          </div>
+          </div>}
         </aside>
       </div>
-      <div className="trip-mobile-action lg:hidden"><a href="#register">{myRegistration ? "Your trip status" : "Register for this trip"}</a></div>
+      <div className="trip-mobile-action lg:hidden"><a href={trip.interestOpen ? "#interest" : "#register"}>{trip.interestOpen ? (planningInterest ? "Update your interest" : "Join the interest group") : myRegistration ? "Your trip status" : "Register for this trip"}</a></div>
     </main>
   );
 }

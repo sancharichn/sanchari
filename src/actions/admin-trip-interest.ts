@@ -8,8 +8,8 @@ import { auditedTransaction, prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/session";
 import { sendInterestGroupEmail } from "@/lib/trip-emails";
 
-const journey = "sri-lanka-2027";
 const inputSchema = z.object({
+  journey: z.string().regex(/^(sri-lanka-2027|trip:[a-z0-9]+)$/),
   campaignId: z.string().uuid(),
   subject: z.string().trim().min(3, "Add a clear email subject.").max(140),
   details: z.string().trim().min(10, "Add the planning update before sending.").max(5000),
@@ -21,6 +21,11 @@ export async function sendTripInterestCommunication(input: unknown): Promise<Act
   if (!gmailConfigured()) return fail("Gmail is not configured in the current deployment.");
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
+  const journey = parsed.data.journey;
+  const trip = journey.startsWith("trip:") ? await prisma.trip.findUnique({ where: { id: journey.slice(5) }, select: { id: true, slug: true, title: true, interestOpen: true } }) : null;
+  if (journey.startsWith("trip:") && (!trip || !trip.interestOpen)) return fail("This trip does not have an open interest group.");
+  const journeyTitle = trip?.title ?? "International Trip to Sri Lanka 2027";
+  const publicPath = trip ? `/trips/${trip.slug ?? trip.id}` : "/trips/international-trip-to-sri-lanka-2027";
 
   const recipients = await prisma.tripInterest.findMany({
     where: { journey, user: { deletedAt: null, email: { not: "" } } },
@@ -44,7 +49,7 @@ export async function sendTripInterestCommunication(input: unknown): Promise<Act
       ? await auditedTransaction(admin.id, () => prisma.tripMessageDelivery.update({ where: { deliveryKey }, data: { status: "SENDING" } }))
       : await auditedTransaction(admin.id, () => prisma.tripMessageDelivery.create({ data: { deliveryKey, recipient: recipient.user.email, kind: "TRIP_INTEREST_EMAIL", status: "SENDING" } }));
     try {
-      await sendInterestGroupEmail(recipient.user.email, origin, parsed.data.subject, parsed.data.details);
+      await sendInterestGroupEmail(recipient.user.email, origin, parsed.data.subject, parsed.data.details, journeyTitle, publicPath);
       await auditedTransaction(admin.id, () => prisma.tripMessageDelivery.update({ where: { id: delivery.id }, data: { status: "SENT" } }));
       sent += 1;
     } catch (error) {

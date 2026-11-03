@@ -6,11 +6,10 @@ import { sendTripInterestCommunication } from "@/actions/admin-trip-interest";
 import { FormMessage, useActionRunner } from "@/components/forms/use-action-runner";
 import { Button } from "@/components/ui/button";
 
-const PUBLIC_URL = "https://sancharichennai.vercel.app/trips/international-trip-to-sri-lanka-2027";
 const PRESETS = {
-  update: { label: "Planning update", subject: "Sri Lanka 2027 planning update", details: "Thank you for registering your interest. We are working on the dates, itinerary and estimated cost. We will share the confirmed details before asking anyone to book." },
-  preferences: { label: "Check traveller preferences", subject: "Help us plan Sri Lanka 2027", details: "Please review your saved group size and planning note on the interest page. Keeping these details current helps us plan dates, rooms and transport for the group." },
-  session: { label: "Information session", subject: "Sri Lanka 2027 information session", details: "We are arranging an information session for interested members. Add the meeting date, time and joining details here before sending." },
+  update: { label: "Planning update", details: "Thank you for registering your interest. We are working on the dates, itinerary and estimated cost. We will share the confirmed details before asking anyone to book." },
+  preferences: { label: "Check traveller preferences", details: "Please review your saved group size and planning note on the interest page. Keeping these details current helps us plan dates, rooms and transport for the group." },
+  session: { label: "Information session", details: "We are arranging an information session for interested members. Add the meeting date, time and joining details here before sending." },
 } as const;
 
 type WhatsappMember = { id: string; name: string; number: string };
@@ -19,14 +18,14 @@ function newCampaignId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-0000-4000-8000-000000000000`.replace(/^\d+/, (value) => value.slice(-8).padStart(8, "0"));
 }
 
-export function TripInterestCommunication({ emailAudienceCount, whatsappMembers }: { emailAudienceCount: number; whatsappMembers: WhatsappMember[] }) {
+export function TripInterestCommunication({ journey, journeyTitle, publicUrl, emailAudienceCount, whatsappMembers }: { journey: string; journeyTitle: string; publicUrl: string; emailAudienceCount: number; whatsappMembers: WhatsappMember[] }) {
   const [preset, setPreset] = useState<keyof typeof PRESETS>("update");
-  const [subject, setSubject] = useState<string>(PRESETS.update.subject);
+  const [subject, setSubject] = useState<string>(`${journeyTitle} planning update`);
   const [details, setDetails] = useState<string>(PRESETS.update.details);
   const [campaignId, setCampaignId] = useState(newCampaignId);
   const email = useActionRunner();
-  function choose(next: keyof typeof PRESETS) { setPreset(next); setSubject(PRESETS[next].subject); setDetails(PRESETS[next].details); }
-  const whatsappText = `${subject}\n\n${details}\n\nReview your Sri Lanka 2027 interest: ${PUBLIC_URL}\n\nSanchari Chennai · Travel with Nature`;
+  function choose(next: keyof typeof PRESETS) { setPreset(next); setSubject(next === "preferences" ? `Help us plan ${journeyTitle}` : next === "session" ? `${journeyTitle} information session` : `${journeyTitle} planning update`); setDetails(PRESETS[next].details); }
+  const whatsappText = `${subject}\n\n${details}\n\nReview your interest in ${journeyTitle}: ${publicUrl}\n\nSanchari Chennai · Travel with Nature`;
 
   return <section className="admin-communication-panel my-8 overflow-hidden" aria-labelledby="interest-communication-heading">
     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -40,7 +39,7 @@ export function TripInterestCommunication({ emailAudienceCount, whatsappMembers 
           <label className="grid gap-1.5 text-sm font-semibold">Template<select value={preset} onChange={(event) => choose(event.target.value as keyof typeof PRESETS)} className="h-11 rounded-lg border border-ridge bg-night px-3 font-normal">{Object.entries(PRESETS).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select></label>
           <label className="grid gap-1.5 text-sm font-semibold">Subject<input value={subject} onChange={(event) => setSubject(event.target.value)} maxLength={140} className="h-11 rounded-lg border border-ridge bg-night px-3 font-normal" /></label>
           <label className="grid gap-1.5 text-sm font-semibold">Planning update<textarea value={details} onChange={(event) => setDetails(event.target.value)} maxLength={5000} rows={6} className="rounded-lg border border-ridge bg-night px-3 py-3 font-normal leading-relaxed" /></label>
-          <div className="flex flex-wrap items-center gap-3"><Button disabled={email.pending || !subject.trim() || !details.trim() || !emailAudienceCount} onClick={() => void email.run(() => sendTripInterestCommunication({ campaignId, subject, details }), (result) => { if (result.ok) setCampaignId(newCampaignId()); })}><Send className="size-4" />{email.pending ? "Sending…" : `Email ${emailAudienceCount} household${emailAudienceCount === 1 ? "" : "s"}`}</Button><span className="text-xs text-lichen">The email clearly identifies this as planning interest.</span></div>
+          <div className="flex flex-wrap items-center gap-3"><Button disabled={email.pending || !subject.trim() || !details.trim() || !emailAudienceCount} onClick={() => void email.run(() => sendTripInterestCommunication({ journey, campaignId, subject, details }), (result) => { if (result.ok) setCampaignId(newCampaignId()); })}><Send className="size-4" />{email.pending ? "Sending…" : `Email ${emailAudienceCount} household${emailAudienceCount === 1 ? "" : "s"}`}</Button><span className="text-xs text-lichen">The email clearly identifies this as planning interest.</span></div>
           <FormMessage result={email.result} />
         </div>
       </div>

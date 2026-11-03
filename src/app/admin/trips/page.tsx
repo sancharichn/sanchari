@@ -60,6 +60,7 @@ export default async function AdminTripsPage() {
                     <p className="text-xs text-lichen">
                       {trip.location}, {tripTypeLabel(trip.kind, trip.startDate, trip.endDate).toLowerCase()}
                     </p>
+                    {trip.interestOpen ? <Link href={`/admin/trip-interest?tripId=${trip.id}`} className="mt-1 inline-block text-xs font-semibold text-signal underline">Open interest group</Link> : null}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-lichen">{formatDateRange(trip.startDate, trip.endDate)}</TableCell>
                   <TableCell>

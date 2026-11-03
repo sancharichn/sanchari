@@ -58,7 +58,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
         {/* Keeps the date and badge readable on any photo. */}
         <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/30" />
         <div className="absolute left-4 top-4">
-          <StatusBadge status={trip.status} className="bg-black/60 backdrop-blur-sm" />
+          {trip.interestOpen && trip.status === "DRAFT" ? <span className="rounded-full border border-signal/70 bg-black/60 px-3 py-1 text-xs font-bold uppercase tracking-wider text-signal backdrop-blur-sm">Interest open</span> : <StatusBadge status={trip.status} className="bg-black/60 backdrop-blur-sm" />}
         </div>
         <p className="absolute bottom-4 left-4 text-mist">
           <span className="stretch-narrow block text-4xl font-bold leading-none tabular-nums">{when.days}</span>
@@ -78,7 +78,7 @@ function TripCard({ trip }: { trip: TripListItem }) {
         {showsSeats(trip.status, trip.registered) ? (
           <SeatsMeter className="mt-auto" registered={trip.registered} confirmed={trip.confirmed} capacity={trip.maxCapacity} status={trip.status} />
         ) : null}
-        <p className="trip-card-discover mt-auto inline-flex items-center gap-1 text-sm font-semibold text-signal">Explore this trip <ArrowUpRight className="size-4" /></p>
+        <p className="trip-card-discover mt-auto inline-flex items-center gap-1 text-sm font-semibold text-signal">{trip.interestOpen ? "Register planning interest" : "Explore this trip"} <ArrowUpRight className="size-4" /></p>
       </div>
     </Link>
   );

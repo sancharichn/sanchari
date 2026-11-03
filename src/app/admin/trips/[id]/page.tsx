@@ -34,6 +34,7 @@ export default async function AdminTripPage({ params, searchParams }: Params) {
       responses={responses}
       verifiedOnly={searchParams.fv === "1"}
       coverChoices={coverChoices}
+      instagramConfigured={Boolean(process.env.INSTAGRAM_ACCESS_TOKEN?.trim())}
     />
   );
 }

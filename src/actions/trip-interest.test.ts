@@ -17,8 +17,8 @@ describe("planning interest", () => {
     expect((await saveTripInterest({ partySize: 2, note: "" })).ok).toBe(false);
     expect(mock.upsert).not.toHaveBeenCalled();
   });
-  it("upserts only the signed-in member and fixed journey", async () => {
-    expect((await saveTripInterest({ partySize: "3", note: " May ", consent: "on", userId: "other", journey: "other" })).ok).toBe(true);
+  it("upserts only the signed-in member in the selected valid journey", async () => {
+    expect((await saveTripInterest({ partySize: "3", note: " May ", consent: "on", userId: "other", journey: "sri-lanka-2027" })).ok).toBe(true);
     expect(mock.upsert).toHaveBeenCalledWith({ where: { journey_userId: { journey: "sri-lanka-2027", userId: "member" } }, create: { journey: "sri-lanka-2027", userId: "member", partySize: 3, note: "May" }, update: { partySize: 3, note: "May" } });
   });
   it("withdraws only the member's own interest", async () => {

@@ -1,0 +1,1 @@
+ALTER TABLE "Trip" ADD COLUMN "interestOpen" BOOLEAN NOT NULL DEFAULT false;

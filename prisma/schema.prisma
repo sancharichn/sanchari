@@ -158,6 +158,7 @@ model Trip {
   transportMode              String               @default("SELF")
   maxCapacity                Int
   status                     TripStatus           @default(DRAFT)
+  interestOpen               Boolean              @default(false)
   kind                       TripKind             @default(DAY_TRIP)
   // Number of attended meetups or one-day trips required before a member can request this trip.
   minimumPriorEvents         Int                  @default(0)

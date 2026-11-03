@@ -19,6 +19,7 @@ import { formatDate, formatDateRange, formatINR, paiseToRupees, toDateInputValue
 import { tripPath } from "@/lib/trip-url";
 import { computeBalances, settleUp } from "@/lib/settle";
 import { parseExtraQuestions } from "@/lib/feedback";
+import { InstagramPublisher } from "@/components/admin/instagram-publisher";
 import { OperationsPanel } from "@/components/admin/operations-panel";
 import { FeedbackFollowUp } from "@/components/admin/feedback-followup";
 import { expectedPayment, travellerCharges } from "@/lib/operations";
@@ -37,9 +38,10 @@ type Props = {
   verifiedOnly?: boolean;
   coverChoices?: CoverOption[];
   organisers?: Array<{ id: string; label: string }>;
+  instagramConfigured?: boolean;
 };
 
-export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false, coverChoices = [], organisers = [] }: Props) {
+export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedOnly = false, coverChoices = [], organisers = [], instagramConfigured = false }: Props) {
   const isMeetup = trip.kind === "MEETUP";
   const { confirmed, waitlisted } = splitRoster(trip.registrations, trip.maxCapacity);
   const roster = [
@@ -89,6 +91,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
     childBudgetEst: trip.childBudgetEst?.toString() ?? "",
     under5BudgetEst: trip.under5BudgetEst?.toString() ?? "0",
     status: trip.status,
+    interestOpen: trip.interestOpen,
     itinerary: parseItinerary(trip.itinerary).map((d) => ({ title: d.title, details: d.details ?? "" })),
   };
   if (initialForm.itinerary.length === 0) initialForm.itinerary.push({ title: "", details: "" });
@@ -124,6 +127,7 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
               Complete trip CSV
             </a>
             {confirmed.length > 0 ? <TripEmailButton tripId={trip.id} meetup={isMeetup} /> : null}
+            {trip.interestOpen ? <Link href={`/admin/trip-interest?tripId=${trip.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>Planning interest group</Link> : null}
           </div>
         </div>
         <StatusSwitcher tripId={trip.id} status={trip.status} />
@@ -138,6 +142,8 @@ export function AdminTripView({ trip, payers, adminId, tab, responses, verifiedO
           <DeskSignal href={`/admin/trips/${trip.id}?tab=tasks`} label="Open tasks" value={trip.tasks.filter((task) => !task.completedAt).length} note="Keep the departure plan moving" urgent={trip.tasks.some((task) => !task.completedAt)} />
         </div>
       </section>
+
+      <InstagramPublisher tripId={trip.id} title={trip.title} configured={instagramConfigured} imageUrl={trip.coverPhotoId ? `/api/gallery/${encodeURIComponent(trip.coverPhotoId)}` : null} caption={`${trip.title}\n\n${trip.description.slice(0, 900)}\n\n${formatDateRange(trip.startDate, trip.endDate)} · ${trip.location}\n\nExplore the trip: https://sancharichennai.vercel.app${tripPath(trip)}\n\n#SanchariChennai #TravelWithNature #ChennaiTravelCommunity`} />
 
       <TripCommunicationPanel tripId={trip.id} meetup={isMeetup} audienceCount={confirmed.filter((registration) => Boolean(registration.user.email)).length} />
       <TripWhatsappPanel

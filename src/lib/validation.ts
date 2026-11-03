@@ -154,6 +154,7 @@ export const tripSchema = z
     childBudgetEst: z.union([z.literal(""), rupees("Enter a child amount like 2500 or 2500.50.")]).optional().transform((v) => (v ? v : null)),
     under5BudgetEst: z.union([z.literal(""), rupees("Enter an under-5 amount like 0 or 500.")]).optional().transform((v) => (v === "" || v === undefined ? null : v)),
     status: z.enum(TRIP_STATUS_VALUES).optional(),
+    interestOpen: z.boolean().default(false),
     itinerary: z
       .array(
         z.object({

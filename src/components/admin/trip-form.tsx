@@ -27,6 +27,7 @@ export type TripFormValues = {
   childBudgetEst: string;
   under5BudgetEst: string;
   status: TripStatus;
+  interestOpen: boolean;
   itinerary: Array<{ title: string; details: string }>;
 };
 
@@ -46,6 +47,7 @@ export const EMPTY_TRIP: TripFormValues = {
   childBudgetEst: "",
   under5BudgetEst: "0",
   status: "DRAFT",
+  interestOpen: false,
   itinerary: [{ title: "", details: "" }],
 };
 
@@ -188,7 +190,7 @@ export function TripForm({
         </div>
         {!tripId ? (
           <Field label="Status" htmlFor="trip-status" hint={STATUS_HELP[values.status]} error={err("status")}>
-            <NativeSelect id="trip-status" value={values.status} onChange={set("status")} aria-describedby="trip-status-hint">
+            <NativeSelect id="trip-status" value={values.status} onChange={(event) => setValues((value) => ({ ...value, status: event.target.value as TripStatus, interestOpen: event.target.value === "DRAFT" ? value.interestOpen : false }))} aria-describedby="trip-status-hint">
               {ALL_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {STATUS_LABEL[s]}
@@ -197,6 +199,10 @@ export function TripForm({
             </NativeSelect>
           </Field>
         ) : null}
+        <label className="flex items-start gap-3 rounded-xl border border-signal/30 bg-signal/5 p-4 text-sm">
+          <input type="checkbox" checked={values.interestOpen} disabled={values.status !== "DRAFT"} onChange={(event) => setValues((value) => ({ ...value, interestOpen: event.target.checked }))} className="mt-1 size-4" />
+          <span><strong className="block text-mist">Open a planning interest group</strong><span className="mt-1 block leading-6 text-lichen">Publish this draft as a planning page where signed-in members can express interest. This does not take bookings or payments.</span></span>
+        </label>
       </fieldset>
 
       <fieldset className="grid gap-4">

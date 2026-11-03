@@ -64,20 +64,21 @@ export async function saveTrip(tripId: string | null, input: unknown): Promise<A
     childBudgetEst: v.kind === "MEETUP" ? null : v.childBudgetEst,
     under5BudgetEst: v.kind === "MEETUP" ? null : v.under5BudgetEst,
     itinerary: v.itinerary,
+    interestOpen: v.interestOpen,
   };
 
   if (tripId) {
-    const existing = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true, slug: true } });
+    const existing = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true, slug: true, status: true } });
     if (!existing) return fail("That trip no longer exists.");
     // Status has its own control on the trip page; only change it here if it was sent.
     const before = await rosterSnapshot(tripId);
-    await prisma.trip.update({ where: { id: tripId }, data: { ...data, slug: existing.slug ?? await uniqueTripSlug(v.title, tripId), ...(v.status ? { status: v.status } : {}) } });
+    await prisma.trip.update({ where: { id: tripId }, data: { ...data, interestOpen: existing.status === "DRAFT" ? data.interestOpen : false, slug: existing.slug ?? await uniqueTripSlug(v.title, tripId), ...(v.status ? { status: v.status } : {}) } });
     await queuePromotions(tripId, before);
     revalidateTripPages(tripId);
     return done("Trip saved.", { id: tripId });
   }
 
-  const created = await prisma.trip.create({ data: { ...data, slug: await uniqueTripSlug(v.title), status: v.status ?? "DRAFT" }, select: { id: true } });
+  const created = await prisma.trip.create({ data: { ...data, interestOpen: (v.status ?? "DRAFT") === "DRAFT" ? data.interestOpen : false, slug: await uniqueTripSlug(v.title), status: v.status ?? "DRAFT" }, select: { id: true } });
   revalidateTripPages(created.id);
   return done("Trip created.", { id: created.id });
 
@@ -94,7 +95,7 @@ export async function setTripStatus(tripId: string, status: string): Promise<Act
   const now = Date.now();
   if (status === "ONGOING" && trip.startDate.getTime() > now) return fail("A trip can only become ongoing after its calendar start time.");
   if (status === "COMPLETED" && trip.endDate.getTime() > now) return fail("A trip can only be completed after its calendar end time.");
-  const updated = await prisma.trip.updateMany({ where: { id: tripId }, data: { status: status as TripStatus } });
+  const updated = await prisma.trip.updateMany({ where: { id: tripId }, data: { status: status as TripStatus, ...(status === "DRAFT" ? {} : { interestOpen: false }) } });
   if (updated.count === 0) return fail("That trip no longer exists.");
   revalidateTripPages(tripId);
   return done("Status updated.");

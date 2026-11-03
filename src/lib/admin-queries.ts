@@ -83,6 +83,7 @@ export async function getAdminTrips() {
       endDate: true,
       status: true,
       kind: true,
+      interestOpen: true,
       maxCapacity: true,
       registrations: { select: { id: true, createdAt: true, partySize: true, approvalStatus: true, paymentStatus: true } },
     },
